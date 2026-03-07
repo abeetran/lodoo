@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_authentik" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.authentik</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <div class="app_settings_block" data-string="Authentik SSO" string="Authentik SSO">
+                    <h2>Authentik SSO</h2>
+
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="authentik_enabled"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="authentik_enabled"/>
+                                <div class="text-muted">Enable login with Authentik (OIDC)</div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane"/>
+                            <div class="o_setting_right_pane">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <field name="authentik_base_url" placeholder="https://auth.example.com"/>
+                                    </div>
+                                    <div class="col-12 mt8">
+                                        <field name="authentik_client_id" placeholder="Client ID"/>
+                                    </div>
+                                    <div class="col-12 mt8">
+                                        <field name="authentik_client_secret" password="True" placeholder="Client Secret"/>
+                                    </div>
+                                    <div class="col-12 mt8">
+                                        <field name="authentik_scope" placeholder="openid profile email"/>
+                                    </div>
+                                    <div class="col-12 mt8">
+                                        <field name="authentik_auto_create_user"/>
+                                        <label for="authentik_auto_create_user"/>
+                                    </div>
+                                    <div class="col-12 mt8">
+                                        <field name="authentik_allowed_domain" placeholder="company.com"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,56 @@
+<odoo>
+  <record id="view_ai_chat_form" model="ir.ui.view">
+    <field name="name">odoo.ai.chat.form</field>
+    <field name="model">odoo.ai.chat</field>
+    <field name="arch" type="xml">
+      <form string="AI Assistant">
+        <header>
+          <button name="action_send" 
+                  string="Gửi AI" 
+                  type="object" 
+                  class="oe_highlight" 
+                  icon="fa-paper-plane"/>
+        </header>
+        <sheet>
+          <div class="oe_title">
+            <label for="name" string="Tiêu đề cuộc hội thoại"/>
+            <h1>
+              <field name="name" placeholder="Ví dụ: Giải thích về CRM..."/>
+            </h1>
+          </div>
+          <group>
+            <group>
+              <field name="user_id" readonly="1" options="{'no_open': True}"/>
+            </group>
+          </group>
+          <group>
+            <field name="question" placeholder="Nhập câu hỏi cho AI tại đây..."/>
+            <field name="answer" readonly="1" placeholder="Câu trả lời sẽ xuất hiện tại đây..."/>
+          </group>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+  <record id="view_ai_chat_tree" model="ir.ui.view">
+    <field name="name">odoo.ai.chat.tree</field>
+    <field name="model">odoo.ai.chat</field>
+    <field name="arch" type="xml">
+      <tree>
+        <field name="name"/>
+        <field name="user_id" widget="many2one_avatar_user"/>
+        <field name="question"/>
+        <field name="answer" optional="show"/>
+      </tree>
+    </field>
+  </record>
+
+  <record id="action_ai_chat" model="ir.actions.act_window">
+    <field name="name">AI Assistant</field>
+    <field name="res_model">odoo.ai.chat</field>
+    <field name="view_mode">tree,form</field>
+  </record>
+
+  <menuitem id="menu_ai_root" name="AI Assistant" sequence="10"/>
+  <menuitem id="menu_ai_chat" parent="menu_ai_root" action="action_ai_chat" name="AI Chat"/>
+</odoo>

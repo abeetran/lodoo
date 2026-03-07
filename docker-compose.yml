@@ -122,42 +122,42 @@ services:
     # =============================
   # ✅ MCP SERVER (AI BACKEND)
   # =============================
-  mcp-server:
-    # image: python:3.11-slim
-    build:
-      context: ./mcp
-    container_name: mcp_server
-    working_dir: /app
-    # volumes:
-    #   - ./mcp:/app
-    command: bash -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 3333"
-    # env_file:
-    #   - .env
-    ports:
-      - "3333:3333"
-    networks:
-      - coolify
-    restart: unless-stopped
+  # mcp-server:
+  #   # image: python:3.11-slim
+  #   build:
+  #     context: ./mcp
+  #   container_name: mcp_server
+  #   working_dir: /app
+  #   # volumes:
+  #   #   - ./mcp:/app
+  #   command: bash -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 3333"
+  #   # env_file:
+  #   #   - .env
+  #   ports:
+  #     - "3333:3333"
+  #   networks:
+  #     - coolify
+  #   restart: unless-stopped
 
   # =============================
   # ✅ AI CHAT UI (FRONTEND)
   # =============================
-  ai-chat:
-    # image: node:20-alpine
-    build:
-      context: ./ai-chat
-    container_name: ai_chat_ui
-    working_dir: /app
-    # volumes:
-    #   - ./ai-chat:/app
-    command: sh -c "npm install && npm run dev"
-    ports:
-      - "3000:3000"
-    # environment:
-    #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
-    networks:
-      - coolify
-    restart: unless-stopped
+  # ai-chat:
+  #   # image: node:20-alpine
+  #   build:
+  #     context: ./ai-chat
+  #   container_name: ai_chat_ui
+  #   working_dir: /app
+  #   # volumes:
+  #   #   - ./ai-chat:/app
+  #   command: sh -c "npm install && npm run dev"
+  #   ports:
+  #     - "3000:3000"
+  #   # environment:
+  #   #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
+  #   networks:
+  #     - coolify
+  #   restart: unless-stopped
 
 # networks:
 #   sso-network:

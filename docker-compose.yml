@@ -105,8 +105,8 @@ services:
     #   - .env
     # depends_on:
     #   - mcp-server
-    ports:
-      - "8068:8069"
+    # ports:
+    #   - "8068:8069"
     # environment:
     #   HOST: db
     #   USER: odoo

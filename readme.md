@@ -45,21 +45,36 @@ PY"
 
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.slug', 'authentik')
-ON CONFLICT (key) DO UPDATE SET value='authentik';
+VALUES ('authentik.slug', 'lotusauth')
+ON CONFLICT (key) DO UPDATE SET value='lotusauth';
 "
 
+server psql -U odoo -d postgres
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.client_id', 'CPi95WGTSon62uY6jOfuLvwRXWxTaKruPxDmKZDd')
-ON CONFLICT (key) DO UPDATE SET value='CPi95WGTSon62uY6jOfuLvwRXWxTaKruPxDmKZDd';
+VALUES ('authentik.client_id', 'Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW')
+ON CONFLICT (key) DO UPDATE SET value='Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW';
 "
 
+container lotus:
+odoo shell -d odoo
+env['ir.config_parameter'].sudo().set_param(
+    'authentik.client_id',
+    'Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW'
+)
+env['ir.config_parameter'].sudo().set_param(
+    'authentik.client_secret',
+    'LVssewgtNO5fah3r8cbhqqqIMnJUG61XaxzsZqRdmTneuTSVMSAN3f8o1O1OvkmpE4FkaDIBP5RMFdp1GRn9bLLfftSYp5HXQFUHedyVPV2G0ppO7tohCv7z3zMORQTk'
+)
 
+restart coolify container:
+terminal run: pkill -f odoo
+
+server psql -U odoo -d postgres
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.client_secret', 'qe5WOzBT2Hz6FciLN2ERPeJ5ipTbUC4CzkaipOh9iufDrlkYFFnM8xQS9OtdokgLQl4Qycuj20UdlSZSrYOl4Is8fNd75Z7iUExaWxyodAD8gatamSYJUC6MmnozPYs0')
-ON CONFLICT (key) DO UPDATE SET value='qe5WOzBT2Hz6FciLN2ERPeJ5ipTbUC4CzkaipOh9iufDrlkYFFnM8xQS9OtdokgLQl4Qycuj20UdlSZSrYOl4Is8fNd75Z7iUExaWxyodAD8gatamSYJUC6MmnozPYs0';
+VALUES ('authentik.client_secret', 'LVssewgtNO5fah3r8cbhqqqIMnJUG61XaxzsZqRdmTneuTSVMSAN3f8o1O1OvkmpE4FkaDIBP5RMFdp1GRn9bLLfftSYp5HXQFUHedyVPV2G0ppO7tohCv7z3zMORQTk')
+ON CONFLICT (key) DO UPDATE SET value='LVssewgtNO5fah3r8cbhqqqIMnJUG61XaxzsZqRdmTneuTSVMSAN3f8o1O1OvkmpE4FkaDIBP5RMFdp1GRn9bLLfftSYp5HXQFUHedyVPV2G0ppO7tohCv7z3zMORQTk';
 "
 
 docker compose exec db psql -U odoo -d lodooo -c "

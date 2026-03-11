@@ -48,13 +48,31 @@ INSERT INTO ir_config_parameter(key, value)
 VALUES ('authentik.slug', 'lotusauth')
 ON CONFLICT (key) DO UPDATE SET value='lotusauth';
 "
+## server 
+server: psql -U odoo -d postgres
+psql -h ukcs8w0oc4gokw4k4gckwc0k -U odoo
+password from conf file
 
-server psql -U odoo -d postgres
+INSERT INTO ir_config_parameter(key, value)
+VALUES ('authentik.client_id', 'Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW')
+ON CONFLICT (key) DO UPDATE SET value='Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW';
+
+INSERT INTO ir_config_parameter(key, value)
+VALUES ('authentik.slug', 'lotusauth')
+ON CONFLICT (key) DO UPDATE SET value='lotusauth';
+
+INSERT INTO ir_config_parameter(key, value)
+VALUES ('authentik.client_secret', 'LVssewgtNO5fah3r8cbhqqqIMnJUG61XaxzsZqRdmTneuTSVMSAN3f8o1O1OvkmpE4FkaDIBP5RMFdp1GRn9bLLfftSYp5HXQFUHedyVPV2G0ppO7tohCv7z3zMORQTk')
+ON CONFLICT (key) DO UPDATE SET value='LVssewgtNO5fah3r8cbhqqqIMnJUG61XaxzsZqRdmTneuTSVMSAN3f8o1O1OvkmpE4FkaDIBP5RMFdp1GRn9bLLfftSYp5HXQFUHedyVPV2G0ppO7tohCv7z3zMORQTk';
+
+
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
 VALUES ('authentik.client_id', 'Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW')
 ON CONFLICT (key) DO UPDATE SET value='Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW';
 "
+
+
 
 container lotus:
 odoo shell -d odoo
@@ -66,6 +84,18 @@ env['ir.config_parameter'].sudo().set_param(
     'authentik.client_secret',
     'LVssewgtNO5fah3r8cbhqqqIMnJUG61XaxzsZqRdmTneuTSVMSAN3f8o1O1OvkmpE4FkaDIBP5RMFdp1GRn9bLLfftSYp5HXQFUHedyVPV2G0ppO7tohCv7z3zMORQTk'
 )
+
+env['ir.config_parameter'].sudo().set_param(
+    'web.base.url',
+    'https://oxifi.zent.work'
+)
+
+env['ir.config_parameter'].sudo().set_param(
+    'web.base.url.freeze',
+    'True'
+)
+
+env['ir.config_parameter'].sudo().get_param('web.base.url')
 
 restart coolify container:
 terminal run: pkill -f odoo

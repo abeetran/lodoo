@@ -68,7 +68,8 @@ VALUES ('authentik.base_url', 'http://localhost:9000')
 ON CONFLICT (key) DO UPDATE SET value='http://localhost:9000';
 "
 
-
+# rebuild asset
+odoo -d odoo -u web --stop-after-init
 
 
 ## Note:

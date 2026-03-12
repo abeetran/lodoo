@@ -2,7 +2,7 @@ FROM odoo:17
 
 USER root
 
-# install python dependencies for OpenEduCat
+# install dependencies
 RUN pip3 install \
     num2words \
     phonenumbers \
@@ -17,10 +17,9 @@ RUN pip3 install \
     lxml \
     qrcode
 
-# copy custom addons
+# copy addons
 COPY . /mnt/extra-addons
 
-# fix permission
 RUN chown -R odoo:odoo /mnt/extra-addons
 
-USER odoo›
+USER odoo

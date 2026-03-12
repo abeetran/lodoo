@@ -23,4 +23,4 @@ COPY . /mnt/extra-addons
 # fix permission
 RUN chown -R odoo:odoo /mnt/extra-addons
 
-USER odoo
+USER odoo›

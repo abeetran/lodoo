@@ -117,6 +117,7 @@ services:
       - ./config/odoo.conf:/etc/odoo/odoo.conf
       # - ./addons:/mnt/extra-addons
       - ./odoo-web-data:/var/lib/odoo
+      - './openeducat:/mnt/extra-addons'
     restart: unless-stopped
 
     # =============================

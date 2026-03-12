@@ -2,12 +2,25 @@ FROM odoo:17
 
 USER root
 
-# Copy custom addons
+# install python dependencies for OpenEduCat
+RUN pip3 install \
+    num2words \
+    phonenumbers \
+    xlrd \
+    xlwt \
+    XlsxWriter \
+    reportlab \
+    python-dateutil \
+    pytz \
+    requests \
+    Pillow \
+    lxml \
+    qrcode
+
+# copy custom addons
 COPY . /mnt/extra-addons
 
-# Copy config if any
-# COPY config/odoo.conf /etc/odoo/odoo.conf
-
-RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo
+# fix permission
+RUN chown -R odoo:odoo /mnt/extra-addons
 
 USER odoo

@@ -74,7 +74,10 @@ ON CONFLICT (key) DO UPDATE SET value='Q25hRVKZFlDkpTcM2JUnBT06rcal8j0fYfn7mToW'
 
 
 
-container lotus:
+## container lotus:
+# rebuild asset:
+    odoo -d odoo -u web --stop-after-init
+
 odoo shell -d odoo
 env['ir.config_parameter'].sudo().set_param(
     'authentik.client_id',

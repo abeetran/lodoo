@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import api, fields, models
+from odoo import models, fields, api
 
 
 class OpMediaUnit(models.Model):
@@ -64,4 +65,4 @@ class OpMediaUnit(models.Model):
         if not recs:
             recs = self.search(
                 [('barcode', operator, name)] + args, limit=limit)
-        return [(res.id, res.display_name) for res in recs]
+        return recs.name_get()

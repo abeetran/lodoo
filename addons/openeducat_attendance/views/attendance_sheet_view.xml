@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <record id="view_op_attendance_sheet_tree" model="ir.ui.view">
-            <field name="name">op.attendance.sheet.list</field>
+            <field name="name">op.attendance.sheet.tree</field>
             <field name="model">op.attendance.sheet</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Attendance Sheet">
+                <tree string="Attendance Sheet">
                     <field name="register_id"/>
                     <field name="name"/>
                     <field name="session_id"/>
                     <field name="attendance_date"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -27,9 +28,11 @@
                         <button type="object" name="attendance_done"
                                 invisible="state != 'start'" string="Attendance Taken"
                                 class="oe_highlight"/>
+                        <button type="object" name="attendance_draft"
+                                invisible="state != 'cancel'" string="Draft"
+                                class="oe_highlight"/>
                         <button type="object" name="attendance_cancel"
                                 invisible="state not in ('draft','start')" string="Cancel"/>
-                        <button type="object" name="attendance_draft" string="Draft" invisible="state not in ['done','cancel']" class="oe_highlight"/>
                         <field name="state" widget="statusbar"
                                statusbar_visible="draft,start,done"/>
                     </header>
@@ -42,32 +45,35 @@
                         </div>
                         <group>
                             <group>
-                                <field name="register_id" readonly="state in ('done','cancel')"/>
-                                <field name="session_id" readonly="state in ('done','cancel')"
-                                       domain="[('course_id','=',course_id),('batch_id','=',batch_id)]" />
+                                <field name="register_id"/>
+                                <field name="session_id"
+                                       domain="[('course_id','=',course_id),('batch_id','=',batch_id)]"/>
                                 <field name="course_id" invisible="1"/>
                                 <field name="batch_id" invisible="1"/>
                             </group>
                             <group>
-                                <field name="name" readonly="state in ('done','cancel')"/>
-                                <field name="attendance_date" readonly="state in ('done','cancel')"/>
+                                <field name="name"/>
+                                <field name="attendance_date"/>
                             </group>
                         </group>
                         <group col="4" string="Students">
-                            <field name="attendance_line" colspan="4" nolabel="1" readonly="state in ('done','cancel')">
-                                <list string="Attendance Line" editable="top">
+                            <field name="attendance_line" colspan="4" nolabel="1">
+                                <tree string="Attendance Line" editable="top">
                                     <field name="student_id"
-                                           domain="[('course_detail_ids.course_id','=',parent.course_id),('course_detail_ids.batch_id','=',parent.batch_id),('course_detail_ids.state', '=', 'running')]"/>
+                                           domain="[('course_detail_ids.course_id','=',parent.course_id),('course_detail_ids.batch_id','=',parent.batch_id)]"/>
                                     <field name="present"/>
                                     <field name="late"/>
                                     <field name="excused"/>
                                     <field name="absent"/>
                                     <field name="remark"/>
-                                </list>
+                                </tree>
                             </field>
                         </group>
                     </sheet>
-                    <chatter/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
         </record>
@@ -126,14 +132,13 @@
 
         <record model="ir.actions.act_window" id="act_open_op_attendance_sheet_view">
             <field name="name">Attendance Sheets</field>
-            <field name="path">attendance-sheet</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.attendance.sheet</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form,pivot,graph</field>
+            <field name="view_mode">tree,form,pivot,graph</field>
             <field name="search_view_id" ref="view_op_attendance_sheet_search"/>
             <field name="domain">[]</field>
-            <field name="context">{'search_default_filter_attendance_today': 1}</field>
+            <field name="context">{}</field>
         </record>
 
         <record model="ir.actions.act_window.view" id="act_open_op_attendance_sheet_view_form">
@@ -146,7 +151,8 @@
         <record model="ir.actions.act_window.view" id="act_open_op_attendance_sheet_view_tree">
             <field name="act_window_id" ref="act_open_op_attendance_sheet_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_attendance_sheet_tree"/>
         </record>
+    </data>
 </odoo>

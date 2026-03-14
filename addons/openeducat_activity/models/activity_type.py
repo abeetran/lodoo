@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import fields, models
+from odoo import models, fields
 
 
 class OpActivityType(models.Model):
@@ -27,7 +28,3 @@ class OpActivityType(models.Model):
 
     name = fields.Char('Name', size=128, required=True)
     active = fields.Boolean(default=True)
-
-    _sql_constraints = [
-        ('unique_name',
-         'unique(name)', 'Activity type must be unique!')]

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Exam',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -48,6 +49,7 @@
         'report/report_ticket.xml',
         'report/student_marksheet.xml',
         'report/report_menu.xml',
+        'wizard/student_hall_tickets_wizard_view.xml',
         'menus/op_menu.xml',
     ],
     'demo': [
@@ -63,7 +65,7 @@
         'demo/result_line_demo.xml',
     ],
     'images': [
-        'static/description/openeducat-exam_banner.jpg',
+        'static/description/openeducat_exam_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

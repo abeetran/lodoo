@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import api, fields, models
+from odoo import models, fields, api
 
 
 class OpAttendanceLine(models.Model):
@@ -34,7 +35,7 @@ class OpAttendanceLine(models.Model):
     student_id = fields.Many2one(
         'op.student', 'Student', required=True, tracking=True)
     present = fields.Boolean(
-        'Present', tracking=True)
+        'Present', default=True, tracking=True)
     excused = fields.Boolean(
         'Absent Excused', tracking=True)
     absent = fields.Boolean('Absent Unexcused', tracking=True)
@@ -57,7 +58,6 @@ class OpAttendanceLine(models.Model):
     attendance_type_id = fields.Many2one(
         'op.attendance.type', 'Attendance Type',
         required=False, tracking=True)
-    state = fields.Selection(related = "attendance_id.state")
 
     _sql_constraints = [
         ('unique_student',

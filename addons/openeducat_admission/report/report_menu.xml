@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <record id="action_report_report_admission_analysis" model="ir.actions.report">
             <field name="name">Admission Analysis</field>
             <field name="model">admission.analysis</field>
@@ -7,4 +8,5 @@
             <field name="report_name">openeducat_admission.report_admission_analysis</field>
             <field name="report_file">openeducat_admission.report_admission_analysis</field>
         </record>
+    </data>
 </odoo>

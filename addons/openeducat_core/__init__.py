@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -21,7 +22,6 @@
 from . import controllers
 from . import models
 from . import wizard
-from . import report
 
 from odoo import api, SUPERUSER_ID
 

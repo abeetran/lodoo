@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -47,7 +48,7 @@ class OpExamSession(models.Model):
         required=True, tracking=True)
     evaluation_type = fields.Selection(
         [('normal', 'Normal'), ('grade', 'Grade')],
-        'Evolution Type', default="normal",
+        'Evolution type', default="normal",
         required=True, tracking=True)
     venue = fields.Many2one(
         'res.partner', 'Venue', tracking=True)
@@ -59,16 +60,10 @@ class OpExamSession(models.Model):
         ('done', 'Done')
     ], 'State', default='draft', tracking=True)
     active = fields.Boolean(default=True)
-    exams_count = fields.Integer(
-        compute='_compute_exams_count', string="Exams")
 
     _sql_constraints = [
         ('unique_exam_session_code',
          'unique(exam_code)', 'Code should be unique per exam session!')]
-
-    def _compute_exams_count(self):
-        for rec in self:
-            rec.exams_count = len(rec.exam_ids)
 
     @api.constrains('start_date', 'end_date')
     def _check_date_time(self):
@@ -87,33 +82,10 @@ class OpExamSession(models.Model):
         self.state = 'schedule'
 
     def act_held(self):
-        for rec in self:
-            if rec.exam_ids:
-                not_done_exams = rec.exam_ids.filtered(lambda e: e.state != 'done')
-                if not_done_exams:
-                    raise ValidationError(_(
-                        "You cannot mark the session '%s' as Held because not all exams are Done. "
-                        "Pending exams: %s"
-                    ) % (rec.name, ", ".join(not_done_exams.mapped("name"))))
-            else:
-                raise ValidationError(_(
-                    "You cannot mark the session '%s' as Held because no exams are linked."
-                ) % rec.name)
-
-            rec.state = 'held'
+        self.state = 'held'
 
     def act_done(self):
         self.state = 'done'
 
     def act_cancel(self):
         self.state = 'cancel'
-
-    def get_exam(self):
-        return {
-            'name': 'Exam ',
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'op.exam',
-            'domain': [('id', 'in', self.exam_ids.ids)],
-            'target': 'current',
-        }

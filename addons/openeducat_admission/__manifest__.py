@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': "OpenEduCat Admission",
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     'sequence': 3,
@@ -50,7 +51,7 @@
     ],
     'test': [],
     'images': [
-        'static/description/openeducat-admission_banner.jpg',
+        'static/description/openeducat_admission_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

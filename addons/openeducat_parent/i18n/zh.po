@@ -102,3 +102,4 @@ msgstr "用户 Id"
 #: model:ir.model,name:openeducat_parent.model_res_users
 msgid "Users"
 msgstr "用户"
+

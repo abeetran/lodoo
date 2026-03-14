@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Attendance',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -48,10 +49,9 @@
         'demo/attendance_register_demo.xml',
         'demo/attendance_sheet_demo.xml',
         'demo/attendance_line_demo.xml',
-        'demo/attendance_type_demo.xml',
     ],
     'images': [
-        'static/description/openeducat-attendance_banner.jpg',
+        'static/description/openeducat_attendance_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_student_tree_library_inherit" model="ir.ui.view">
-            <field name="name">op.student.list.library.inherit</field>
+            <field name="name">op.student.tree.library.inherit</field>
             <field name="model">op.student</field>
             <field name="inherit_id" ref="openeducat_core.view_op_student_tree"/>
             <field name="priority" eval="9"/>
@@ -27,8 +27,7 @@
                             type="object"
                             name="count_media_movement_lines"
                             style="border-right: 1px solid;"
-                            icon="fa-file"
-                            groups="openeducat_library.group_op_library_user,openeducat_library.group_op_library">
+                            icon="fa-file">
                         <field string="Media" name="media_movement_lines_count" widget="statinfo"/>
                     </button>
                 </xpath>
@@ -112,11 +111,11 @@
                                 <group>
                                     <separator string="Admission Details" colspan="4"/>
                                     <field name="course_detail_ids" nolabel="1">
-                                        <list string="Course Details" editable="bottom">
+                                        <tree string="Course Details" editable="bottom">
                                             <field name="course_id"/>
                                             <field name="batch_id" domain="[('course_id', '=', course_id)]"/>
                                             <field name="roll_number"/>
-                                        </list>
+                                        </tree>
                                     </field>
                                 </group>
                             </page>
@@ -125,5 +124,5 @@
                 </form>
             </field>
         </record>
-
+    </data>
 </odoo>

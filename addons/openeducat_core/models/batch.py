@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -58,7 +59,7 @@ class OpBatch(models.Model):
                 lst.append(courses.parent_id.id)
                 courses = courses.parent_id
             batches = self.env['op.batch'].search([('course_id', 'in', lst)])
-            return [(batch.id, batch.display_name) for batch in batches]
+            return batches.name_get()
         return super(OpBatch, self).name_search(
             name, args, operator=operator, limit=limit)
 

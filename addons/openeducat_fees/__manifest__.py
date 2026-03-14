@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Fees',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -35,22 +36,15 @@
         'report/report_menu.xml',
         'report/fees_analysis_report_view.xml',
         'wizard/fees_detail_report_wizard_view.xml',
-        'wizard/select_term_type.xml',
         'views/fees_terms_view.xml',
         'views/student_view.xml',
         'views/course_view.xml',
         'views/fees_element_view.xml',
+        'menus/op_menu.xml',
     ],
     'images': [
-        'static/description/openeducat-fees_banner.jpg',
+        'static/description/openeducat_fees_banner.jpg',
     ],
-    'assets': {
-        'web.assets_backend': [
-            'openeducat_fees/static/src/js/page_list.js',
-            'openeducat_fees/static/src/js/fees_term_widget.js',
-            'openeducat_fees/static/src/xml/fees_term_widget_template.xml',
-        ],
-    },
     'demo': [
         'demo/product_category_demo.xml',
         'demo/product_demo.xml',

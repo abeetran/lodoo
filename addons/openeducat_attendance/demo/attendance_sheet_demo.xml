@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
+    <data noupdate="1">
         <record id='op_attendance_sheet_1' model='op.attendance.sheet'>
             <field name='name'>AR1-AS1</field>
             <field name='register_id' ref='op_attendance_register_1'/>
@@ -443,4 +444,5 @@
                    eval='(DateTime.today() - relativedelta(days=30))'/>
             <field name='state'>start</field>
         </record>
+    </data>
 </odoo>

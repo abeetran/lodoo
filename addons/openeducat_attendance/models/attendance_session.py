@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import fields, models
+from odoo import models, fields
 
 
 class OpSession(models.Model):
@@ -68,7 +69,7 @@ class OpSession(models.Model):
             return {
                 'name': 'Attendance Sheet',
                 'view_type': 'form',
-                'view_mode': 'list',
+                'view_mode': 'tree',
                 'views': [(view_id, 'form')],
                 'res_model': 'op.attendance.sheet',
                 'view_id': False,

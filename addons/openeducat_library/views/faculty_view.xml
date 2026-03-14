@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_faculty_form_library_inherit" model="ir.ui.view">
             <field name="name">op.faculty.form.library.inherit</field>
             <field name="model">op.faculty</field>
@@ -9,7 +9,7 @@
             <field name="arch" type="xml">
                 <notebook position="inside">
                     <page name="library" string="Library">
-                        <group class="col-4">
+                        <group>
                             <field name="library_card_id"/>
                         </group>
                     </page>
@@ -19,12 +19,11 @@
                             type="object"
                             name="count_media_movement_lines"
                             style="border-right: 1px solid;"
-                            icon="fa-file"
-                            groups="openeducat_library.group_op_library,openeducat_library.group_op_library_user">
+                            icon="fa-file">
                         <field string="Media" name="media_movement_lines_count" widget="statinfo"/>
                     </button>
                 </xpath>
             </field>
         </record>
-
+    </data>
 </odoo>

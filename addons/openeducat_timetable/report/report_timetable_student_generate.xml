@@ -1,5 +1,5 @@
 <odoo>
-
+    <data>
         <template id="report_timetable_student_generate">
             <style>
                 .font{
@@ -39,7 +39,7 @@
                 <t t-foreach="docs" t-as="o">
                     <t t-call="web.external_layout">
                         <div class="font">
-                            <div class="page" style="font-family: 'Odoo Unicode Support Noto';">
+                            <div class="page">
                                 <br/>
                                 <br/>
                                 <br/>
@@ -52,7 +52,7 @@
                                     </h2>
                                 </div>
                                 <br></br>
-                                <table width="100%" style="text-align:center;">
+                                <table width="100%">
                                     <tbody>
                                         <tr>
                                             <td>
@@ -80,14 +80,14 @@
                                 <br></br>
                                 <table class="table table-bordered">
                                     <thead class="text-center" style="background-color:#eeeeee; font-size:14px; font-weight:600;">
-                                        <th style="text-align: center;font-weight: bold;">Period</th>
+                                        <th>Period</th>
                                         <span t-foreach="get_heading()" t-as="n">
-                                            <th style="text-align: center;font-weight: bold;">
+                                            <th>
                                                 <span t-out="n"/>
                                             </th>
                                         </span>
                                     </thead>
-                                    <tbody class="text-left" style="font-size:12px;text-align: center;">
+                                    <tbody class="text-left" style="font-size:12px;">
                                         <tr t-foreach="get_object(data)" t-as="a">
                                             <td>
                                                 <span t-out="a['name'] if  a['name']  else ''"/>
@@ -122,5 +122,5 @@
                 </t>
             </t>
         </template>
-
+    </data>
 </odoo>

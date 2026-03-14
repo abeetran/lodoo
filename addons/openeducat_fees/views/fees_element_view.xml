@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="op_fees_element_tree_1" model="ir.ui.view">
-            <field name="name">op.fees.element.list</field>
+            <field name="name">op.fees.element.tree</field>
             <field name="model">op.fees.element</field>
-            <field name="type">list</field>
+            <field name="type">tree</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Fees Elements" editable="top">
+                <tree string="Fees Elements" editable="top">
                     <field name="product_id"/>
                     <field name="value"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -37,9 +37,8 @@
             <field name="name">Fees Elements</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.fees.element</field>
-            <field name="path">fees-element</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form</field>
+            <field name="view_mode">tree,form</field>
         </record>
-
+    </data>
 </odoo>

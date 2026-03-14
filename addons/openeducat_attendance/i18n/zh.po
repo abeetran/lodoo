@@ -273,3 +273,4 @@ msgstr "迄今:"
 #: view:website:openeducat_attendance.student_attendance_report
 msgid "Total Absence"
 msgstr "总缺勤"
+

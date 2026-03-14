@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
+    <data>
         <template id="report_ticket">
             <style>
                 .font{
@@ -14,11 +14,11 @@
             </style>
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
-                    <div class="page"  style="font-family: 'Odoo Unicode Support Noto';">
+                    <div class="page">
                         <br/>
                         <br/>
                         <br/>
-                        <div class="oe_structure" id="report_ticket_structure"/>
+                        <div class="oe_structure"/>
                         <t t-foreach="get_data" t-as="ticket_data">
                             <div class="font">
                                 <div class="page">
@@ -121,5 +121,5 @@
                 </t>
             </t>
         </template>
-
+    </data>
 </odoo>

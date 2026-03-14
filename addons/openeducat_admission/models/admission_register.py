@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -19,7 +20,7 @@
 ##############################################################################
 
 from dateutil.relativedelta import relativedelta
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -35,17 +36,17 @@ class OpAdmissionRegister(models.Model):
         'Start Date', required=True, readonly=True,
         default=fields.Date.today())
     end_date = fields.Date(
-        'End Date', required=False, readonly=True,
+        'End Date', required=True, readonly=True,
         default=(fields.Date.today() + relativedelta(days=30)))
     course_id = fields.Many2one(
-        'op.course', 'Course', readonly=True, tracking=True)
+        'op.course', 'Course', required=True, readonly=True, tracking=True)
     min_count = fields.Integer(
         'Minimum No. of Admission', readonly=True)
     max_count = fields.Integer(
         'Maximum No. of Admission', readonly=True, default=30)
     product_id = fields.Many2one(
-        'product.product', 'Course Fees',
-        domain=[('type', '=', 'service')], tracking=True)
+        'product.product', 'Course Fees', required=True,
+        domain=[('type', '=', 'service')], readonly=True, tracking=True)
     admission_ids = fields.One2many(
         'op.admission', 'register_id', 'Admissions')
     state = fields.Selection(
@@ -63,58 +64,19 @@ class OpAdmissionRegister(models.Model):
                                        'Terms', readonly=True,
                                        tracking=True)
     minimum_age_criteria = fields.Integer('Minimum Required Age(Years)', default=3)
-    application_count = fields.Integer(string="Total_record",
-                                       compute="_compute_calculate_record_application")
-    is_favorite = fields.Boolean(string="Is Favorite", default=False)
-    company_id = fields.Many2one('res.company', string='Company',
-                                 default=lambda self: self.env.user.company_id)
-    draft_count = fields.Integer(compute="_compute_counts")
-    confirm_count = fields.Integer(compute="_compute_counts")
-    done_count = fields.Integer(compute="_compute_counts")
-    online_count = fields.Integer(compute='_compute_application_counts')
-    admission_base = fields.Selection([('program', 'Program'), ('course', 'Course')],
-                                      default='course')
-    admission_fees_line_ids = fields.One2many('op.admission.fees.line', 'register_id',
-                                              string='Admission Fees Configuration')
+    application_count = fields.Integer(string="Total_record", compute="calculate_record_application")
 
-    @api.onchange('admission_base')
-    def onchange_admission_base(self):
-        if self.admission_base:
-            if self.admission_base == 'program':
-                self.course_id = None
-                self.product_id = None
-            else:
-                self.program_id = None
-                self.admission_fees_line_ids = None
+    company_id = fields.Many2one(
+        'res.company', string='Company',
+        default=lambda self: self.env.user.company_id)
 
-    program_id = fields.Many2one('op.program', string="Program", tracking=True)
-
-    def _compute_counts(self):
-        for record in self:
-            draft_admissions = record.admission_ids.filtered(
-                lambda a: a.state == 'draft')
-            confirmed_admissions = record.admission_ids.filtered(
-                lambda a: a.state == 'confirm')
-            done_admissions = record.admission_ids.filtered(
-                lambda a: a.state == 'done')
-
-            record.draft_count = len(draft_admissions)
-            record.confirm_count = len(confirmed_admissions)
-            record.done_count = len(done_admissions)
-
-    def _compute_application_counts(self):
-        for record in self:
-            record.draft_count = record.admission_ids.filtered(
-                lambda a: a.state == 'draft').mapped('id').__len__()
-            record.online_count = record.admission_ids.filtered(
-                lambda a: a.state == 'online').mapped('id').__len__()
 
     @api.constrains('start_date', 'end_date')
     def check_dates(self):
         for record in self:
             start_date = fields.Date.from_string(record.start_date)
             end_date = fields.Date.from_string(record.end_date)
-            if end_date and start_date > end_date:
+            if start_date > end_date:
                 raise ValidationError(
                     _("End Date cannot be set before Start Date."))
 
@@ -128,18 +90,16 @@ class OpAdmissionRegister(models.Model):
                 raise ValidationError(_(
                     "Min Admission can't be greater than Max Admission"))
 
-    def open_student_application(self):
+    def action_open_student(self):
         return {
             "type": "ir.actions.act_window",
             "res_model": "op.admission",
             "domain": [("register_id", "=", self.id)],
             "name": "Applications",
-            "view_mode": "list,form",
+            "view_mode": "tree,form",
         }
-
-    def _compute_calculate_record_application(self):
-        record = self.env["op.admission"].search_count([
-            ("register_id", "=", self.id)])
+    def calculate_record_application(self):
+        record = self.env["op.admission"].search_count([("register_id", "=", self.id)])
         self.application_count = record
 
     def confirm_register(self):
@@ -159,55 +119,3 @@ class OpAdmissionRegister(models.Model):
 
     def close_register(self):
         self.state = 'done'
-
-    def action_open_draft_courses(self):
-        return {
-            'name': 'Draft Admissions',
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'op.admission',
-            'domain': [
-                ('id', 'in', self.admission_ids.ids),
-                ('state', '=', 'draft'),
-            ],
-            'target': 'current',
-        }
-
-    def action_open_confirmed_courses(self):
-        return {
-            'name': 'Confirmed Courses',
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'op.admission',
-            'domain': [('id', 'in', self.admission_ids.ids), ('state', '=', 'confirm')],
-            'target': 'current',
-        }
-
-    def action_open_enrolled_courses(self):
-        return {
-            'name': 'Enrolled Courses',
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'op.admission',
-            'domain': [('id', 'in', self.admission_ids.ids), ('state', '=', 'done')],
-            'target': 'current',
-        }
-
-    def action_open_online_courses(self):
-        return {
-            'name': 'Enrolled Courses',
-            'type': 'ir.actions.act_window',
-            'view_mode': 'list,form',
-            'res_model': 'op.admission',
-            'domain': [('id', 'in', self.admission_ids.ids), ('state', '=', 'online')],
-            'target': 'current',
-        }
-
-
-class AdmissionRegisterFeesLine(models.Model):
-    _name = 'op.admission.fees.line'
-    _description = "Admission Fees Line"
-
-    course_id = fields.Many2one('op.course', string="Course", required=True)
-    course_fees_product_id = fields.Many2one('product.product', string="Course Fees")
-    register_id = fields.Many2one('op.admission.register', string="Admission Register")

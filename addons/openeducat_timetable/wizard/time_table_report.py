@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,11 +19,13 @@
 #
 ###############################################################################
 
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
 from dateutil.relativedelta import relativedelta
-from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
+
+from odoo import models, fields, api, _
 
 
 class SessionReport(models.TransientModel):

@@ -21,13 +21,6 @@
 .o_notebook{
     width: 100%
 }
-.truncate-email a {
-        display: block;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        vertical-align: top;
-    }
 
 .o_MessagingMenu, .o_mail_systray_item{
 .o_MessagingMenu_dropdownMenu.dropdown-menu, .o_mail_systray_dropdown.dropdown-menu {
@@ -125,13 +118,6 @@
 
             label{
                 font-size: 18px;
-            }
-        }
-        .student-name, .faculty-name{
-            .o_field_widget {
-                input.o_field_translate{
-                    padding-right: 0 !important;
-                }
             }
         }
         @media only screen and (max-device-width: 1366px) and (-webkit-min-device-pixel-ratio: 2){

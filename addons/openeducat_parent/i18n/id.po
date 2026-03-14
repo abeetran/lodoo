@@ -1,24 +1,21 @@
-# Translation of Odoo Server.
-# This file contains the translation of the following modules:
-# 	* openeducat_parent
-#
+
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 09:17+0000\n"
-"PO-Revision-Date: 2025-04-29 09:17+0000\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: \n"
-"Plural-Forms: \n"
+"Project-Id-Version:Odoo Server 17.0"
+"Report-Msgid-Bugs-To:"
+"POT-Creation-Date:2024-02-16 05:11+0000"
+"PO-Revision-Date:2024-02-16 05:11+0000"
+"Last-Translator:"
+"Language-Team:"
+"MIME-Version:1.0"
+"Content-Type:text/plain; charset=UTF-8"
+"Content-Transfer-Encoding:"
+"Plural-Forms:"
 
 #. module: openeducat_parent
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.parent_student_form_view
 msgid "<span class=\"o_stat_text\">Parents</span>"
-msgstr "<span class = \"o_stat_text\"> orang tua </span>"
+msgstr "<span class=\"o_stat_text\">Orang tua</span>"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__active
@@ -34,17 +31,12 @@ msgstr "Diarsipkan"
 #. module: openeducat_parent
 #: model:ir.model.constraint,message:openeducat_parent.constraint_op_parent_unique_parent
 msgid "Can not create parent multiple times.!"
-msgstr "Tidak dapat membuat orang tua berkali -kali.!"
-
-#. module: openeducat_parent
-#: model:ir.model.constraint,message:openeducat_parent.constraint_op_parent_relationship_unique_relationship_name
-msgid "Can not create relationship multiple times.!"
-msgstr "Tidak dapat menciptakan hubungan beberapa kali.!"
+msgstr "Tidak dapat membuat induk berkali-kali.!"
 
 #. module: openeducat_parent
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.view_op_parent_form
 msgid "Create Parent User"
-msgstr "Buat pengguna induk"
+msgstr "Buat Pengguna Induk"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__create_uid
@@ -56,7 +48,7 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__create_date
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent_relationship__create_date
 msgid "Created on"
-msgstr "Dibuat di"
+msgstr "Dibuat pada"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__display_name
@@ -67,13 +59,7 @@ msgstr "Nama tampilan"
 #. module: openeducat_parent
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.view_op_parent_search
 msgid "Group By..."
-msgstr "Kelompok dengan ..."
-
-#. module: openeducat_parent
-#: model:ir.module.category,description:openeducat_parent.module_category_all_parent
-#: model:ir.module.category,description:openeducat_parent.module_category_openeducat_parent
-msgid "Helps you manage your institutes different-different users."
-msgstr "Membantu Anda mengelola institut Anda pengguna yang berbeda."
+msgstr "Kelompokkan Berdasarkan..."
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__id
@@ -84,44 +70,41 @@ msgstr "PENGENAL"
 #. module: openeducat_parent
 #. odoo-python
 #: code:addons/openeducat_parent/models/parent.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not             create Subject Registration!"
 msgstr ""
-"Tindakan tidak valid!\n"
-" Orang tua tidak dapat membuat pendaftaran subjek!"
+"Tindakan Tidak Valid!\n"
+" Orang Tua tidak dapat membuat Pendaftaran Subjek!"
 
 #. module: openeducat_parent
 #. odoo-python
 #: code:addons/openeducat_parent/models/parent.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not edit             Subject Registration!"
 msgstr ""
-"Tindakan tidak valid!\n"
-" Orangtua tidak dapat mengedit pendaftaran subjek!"
+"Tindakan Tidak Valid!\n"
+" Orang tua tidak dapat mengedit Pendaftaran Subjek!"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__write_uid
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent_relationship__write_uid
 msgid "Last Updated by"
-msgstr "Terakhir diperbarui oleh"
+msgstr "Terakhir Diperbarui oleh"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__write_date
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent_relationship__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui"
-
-#. module: openeducat_parent
-#: model:res.groups,name:openeducat_parent.group_op_parent_manager
-msgid "Manager"
-msgstr "Manajer"
+msgstr "Terakhir diperbarui saat"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__mobile
 msgid "Mobile"
-msgstr "Mobile"
+msgstr "Seluler"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__name
@@ -133,8 +116,7 @@ msgstr "Nama"
 #. module: openeducat_parent
 #: model:ir.model,name:openeducat_parent.model_op_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_student__parent_ids
-#: model:ir.module.category,name:openeducat_parent.module_category_all_parent
-#: model:ir.module.category,name:openeducat_parent.module_category_openeducat_parent
+#: model:res.groups,name:openeducat_parent.group_op_parent
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.view_op_parent_form
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.view_op_parent_search
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.view_op_parent_tree
@@ -149,14 +131,14 @@ msgstr "Nama orang tua"
 #. module: openeducat_parent
 #: model:ir.actions.act_window,name:openeducat_parent.act_open_op_parent_view
 #: model:ir.ui.menu,name:openeducat_parent.menu_op_parent_root
-#: model:ir.ui.menu,name:openeducat_parent.menu_op_school_config_parent
+#: model:ir.ui.menu,name:openeducat_parent.menu_op_parent_sub_parent
 msgid "Parents"
 msgstr "Orang tua"
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__relationship_id
 msgid "Relation with Student"
-msgstr "Hubungan dengan siswa"
+msgstr "Hubungan dengan Siswa"
 
 #. module: openeducat_parent
 #: model:ir.actions.act_window,name:openeducat_parent.act_open_op_parent_relationship_view
@@ -176,7 +158,7 @@ msgstr "Murid"
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__student_ids
 #: model_terms:ir.ui.view,arch_db:openeducat_parent.view_op_parent_form
 msgid "Student(s)"
-msgstr "Mahasiswa"
+msgstr "Siswa"
 
 #. module: openeducat_parent
 #: model:ir.model,name:openeducat_parent.model_op_subject_registration
@@ -186,10 +168,12 @@ msgstr "Detail Pendaftaran Subjek"
 #. module: openeducat_parent
 #. odoo-python
 #: code:addons/openeducat_parent/models/parent.py:0
+#, python-format
 msgid "Update parent email id first."
-msgstr "Perbarui ID Email Induk terlebih dahulu."
+msgstr "Perbarui id email orang tua terlebih dahulu."
 
 #. module: openeducat_parent
 #: model:ir.model.fields,field_description:openeducat_parent.field_op_parent__user_id
 msgid "User"
 msgstr "Pengguna"
+

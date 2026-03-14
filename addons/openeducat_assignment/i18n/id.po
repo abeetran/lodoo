@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 05:57+0000\n"
-"PO-Revision-Date: 2025-04-29 05:57+0000\n"
+"POT-Creation-Date: 2024-02-14 10:41+0000\n"
+"PO-Revision-Date: 2024-02-14 10:41+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -28,16 +28,16 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\">\n"
-"                                                        <span style=\"font-size: 10px;\"/>\n"
-"                                                        <br/>\n"
+"                                                        <span style=\"font-size: 10px;\"></span>\n"
+"                                                        <br>\n"
 "                                                    </td>\n"
 "                                                    <td valign=\"middle\" align=\"right\">\n"
-"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\"/>\n"
+"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -50,15 +50,15 @@ msgid ""
 "                                                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                                                        <p>Dear</p>\n"
 "                                                        <strong>\n"
-"                                                            <t t-out=\"object.student_id.name or ''\"/>\n"
+"                                                            <t t-out=\"object.student_id.name or ''\"></t>\n"
 "                                                        </strong>\n"
 "                                                        <p>Your Assignment Submission\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.assignment_id.name or ''\"/>\n"
+"                                                                <t t-out=\"object.assignment_id.name or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            date\n"
 "                                                            <strong>(\n"
-"                                                                <t t-out=\"object.submission_date or ''\"/>)\n"
+"                                                                <t t-out=\"object.submission_date or ''\"></t>)\n"
 "                                                            </strong>\n"
 "                                                            has\n"
 "                                                            been passed. Please submit it as soon as possible.\n"
@@ -68,7 +68,7 @@ msgid ""
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -79,22 +79,22 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\">\n"
-"                                                        <t t-out=\"object.company_id.name or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.name or ''\"></t>\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                                        <t t-out=\"object.company_id.phone or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.phone or ''\"></t>\n"
 "                                                        <t t-if=\"object.company_id.email\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'mailto:%s'%20%20%7B%7B%20object.company_id.email%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.email or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.email or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                        <t t-if=\"object.company_id.website\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'%s'%20%20%7B%7B%20object.company_id.website%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.website or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.website or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                    </td>\n"
@@ -123,16 +123,16 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\">\n"
-"                                                        <span style=\"font-size: 10px;\"/>\n"
-"                                                        <br/>\n"
+"                                                        <span style=\"font-size: 10px;\"></span>\n"
+"                                                        <br>\n"
 "                                                    </td>\n"
 "                                                    <td valign=\"middle\" align=\"right\">\n"
-"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\"/>\n"
+"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -145,15 +145,15 @@ msgid ""
 "                                                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                                                        <p>Dear</p>\n"
 "                                                        <strong>\n"
-"                                                            <t t-out=\"object.student_id.name or ''\"/>\n"
+"                                                            <t t-out=\"object.student_id.name or ''\"></t>\n"
 "                                                        </strong>\n"
 "                                                        <p>Your Assignment Submission\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.assignment_id.name or ''\"/>\n"
+"                                                                <t t-out=\"object.assignment_id.name or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            date is\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.submission_date or ''\"/>\n"
+"                                                                <t t-out=\"object.submission_date or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            .\n"
 "                                                            Please submit it as soon as possible.\n"
@@ -163,7 +163,7 @@ msgid ""
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -174,22 +174,22 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\">\n"
-"                                                        <t t-out=\"object.company_id.name or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.name or ''\"></t>\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                                        <t t-out=\"object.company_id.phone or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.phone or ''\"></t>\n"
 "                                                        <t t-if=\"object.company_id.email\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'mailto:%s'%20%20%7B%7B%20object.company_id.email%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.email or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.email or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                        <t t-if=\"object.company_id.website\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'%s'%20%20%7B%7B%20object.company_id.website%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.website or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.website or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                    </td>\n"
@@ -230,7 +230,7 @@ msgstr "Aktif"
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__allocation_ids
 msgid "Allocated To"
-msgstr "Dialokasikan untuk"
+msgstr "Dialokasikan Ke"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
@@ -240,7 +240,7 @@ msgstr "Alokasi"
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Allocation Infomation"
-msgstr "Infomasi alokasi"
+msgstr "Informasi Alokasi"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
@@ -248,7 +248,7 @@ msgstr "Infomasi alokasi"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Archived"
-msgstr "Diarsipkan"
+msgstr "Archived"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_op_assignment
@@ -261,27 +261,27 @@ msgstr "Diarsipkan"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_tree
 msgid "Assignment"
-msgstr "Penugasan"
+msgstr "Tugas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_student__assignment_count
 msgid "Assignment Count"
-msgstr "Jumlah penugasan"
+msgstr "Assignment Count"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_graph
 msgid "Assignment Graph View"
-msgstr "Tampilan Grafik Penugasan"
+msgstr "Tampilan Grafik Tugas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Assignment Name"
-msgstr "Nama penugasan"
+msgstr "Nama Tugas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_pivot
 msgid "Assignment Pivot View"
-msgstr "Tampilan Pivot Penugasan"
+msgstr "Tampilan Pivot Tugas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
@@ -289,48 +289,49 @@ msgstr "Tampilan Pivot Penugasan"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_tree
 msgid "Assignment Sub Line"
-msgstr "Sub Line Tugas"
+msgstr "Sub Jalur Penugasan"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_graph
 msgid "Assignment Sub Line Graph View"
-msgstr "Tampilan Grafik Sub Line Tugas"
+msgstr "Tampilan Grafik Sub Garis Tugas"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_op_assignment_sub_line
 #: model:mail.template,name:openeducat_assignment.email_template_assignment_submission
 msgid "Assignment Submission"
-msgstr "Pengajuan Penugasan"
+msgstr "tugas Submission"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_sub_line_view_pivot
 msgid "Assignment Submission Analysis Pivot"
-msgstr "Pivot Analisis Pengajuan Penugasan"
+msgstr "Pivot Analisis Penyerahan Tugas"
 
 #. module: openeducat_assignment
 #: model:mail.template,subject:openeducat_assignment.email_template_assignment_submission_after
 msgid "Assignment Submission Date Passed"
-msgstr "Tanggal Pengajuan Penugasan Lulus"
+msgstr "Tanggal Penyerahan Tugas Telah Berlalu"
 
 #. module: openeducat_assignment
 #: model:base.automation,name:openeducat_assignment.test_rule_assignment_sub_line
 msgid "Assignment Submission Line"
-msgstr "Jalur Pengajuan Penugasan"
+msgstr "Jalur Penyerahan Tugas"
 
 #. module: openeducat_assignment
 #: model:base.automation,name:openeducat_assignment.test_rule_assignment_sub_line_after
 msgid "Assignment Submission Line after 1 Days"
-msgstr "Jalur Pengajuan Penugasan Setelah 1 Hari"
+msgstr "Jalur Penyerahan Tugas setelah 1 Hari"
 
 #. module: openeducat_assignment
 #: model:mail.template,name:openeducat_assignment.email_template_assignment_submission_after
 msgid "Assignment Submission Passed"
-msgstr "Pengajuan Penugasan disahkan"
+msgstr "Penyerahan Tugas Lulus"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_sub_line_view
+#: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub_line_sub
 msgid "Assignment Submissions"
-msgstr "Pengajuan Penugasan"
+msgstr "Penyerahan Tugas"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_grading_assignment_type
@@ -338,7 +339,7 @@ msgstr "Pengajuan Penugasan"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_type
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Assignment Type"
-msgstr "Jenis penugasan"
+msgstr "Jenis Penugasan"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_type_view
@@ -346,7 +347,7 @@ msgstr "Jenis penugasan"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_form
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_tree
 msgid "Assignment Types"
-msgstr "Jenis penugasan"
+msgstr "Jenis Penugasan"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_student__allocation_ids
@@ -392,17 +393,17 @@ msgstr "Membatalkan"
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Change And Resubmit"
-msgstr "Ubah dan kirim ulang"
+msgstr "Ubah Dan Kirim Ulang"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__change
 msgid "Change Req."
-msgstr "Ubah req."
+msgstr "Ubah Persyaratan."
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Change Require"
-msgstr "Perubahan membutuhkan"
+msgstr "Perubahan Membutuhkan"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__user_boolean
@@ -446,7 +447,7 @@ msgstr "Dibuat oleh"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__create_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__create_date
 msgid "Created on"
-msgstr "Dibuat di"
+msgstr "Dibuat pada"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__description
@@ -480,7 +481,7 @@ msgstr "Fakultas"
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__faculty_user_id
 msgid "Faculty User"
-msgstr "Pengguna fakultas"
+msgstr "Pengguna Fakultas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
@@ -508,25 +509,25 @@ msgstr "Pengikut (mitra)"
 #: model:ir.model,name:openeducat_assignment.model_grading_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__grading_assignment_id
 msgid "Grading Assignment"
-msgstr "Penilaian penilaian"
+msgstr "Tugas Penilaian"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
 msgid "Group By..."
-msgstr "Kelompok dengan ..."
+msgstr "Kelompok oleh ..."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__has_message
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__has_message
 msgid "Has Message"
-msgstr "Memiliki pesan"
+msgstr "Memiliki Pesan"
 
 #. module: openeducat_assignment
 #: model:ir.module.category,description:openeducat_assignment.module_category_all_op_assignment
 msgid "Helps you manage your institutes different-different users."
-msgstr "Membantu Anda mengelola institut Anda pengguna yang berbeda."
+msgstr "Membantu Anda mengelola lembaga Anda dengan pengguna yang berbeda-beda."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__id
@@ -553,22 +554,24 @@ msgstr "Jika diperiksa, beberapa pesan memiliki kesalahan pengiriman."
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not             create Assignment Submissions!"
 msgstr ""
-"Tindakan tidak valid!\n"
-" Orang tua tidak dapat membuat pengiriman tugas!"
+"Tindakan Tidak Valid!\n"
+"Orang tua tidak dapat membuat Kiriman Tugas!"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not edit             Assignment Submissions!"
 msgstr ""
-"Tindakan tidak valid!\n"
-" Orangtua tidak dapat mengedit pengiriman penugasan!"
+"Tindakan Tidak Valid!\n"
+"Orang tua tidak dapat mengedit Kiriman Tugas!"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_is_follower
@@ -581,7 +584,7 @@ msgstr "Adalah pengikut"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__issued_date
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Issued Date"
-msgstr "Tanggal yang dikeluarkan"
+msgstr "Tanggal Diterbitkan"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__write_uid
@@ -597,12 +600,12 @@ msgstr "Terakhir diperbarui oleh"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__write_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__write_date
 msgid "Last Updated on"
-msgstr "Terakhir diperbarui"
+msgstr "Terakhir diperbarui saat"
 
 #. module: openeducat_assignment
 #: model:res.groups,name:openeducat_assignment.group_op_assignment_manager
 msgid "Manager"
-msgstr "Manajer"
+msgstr "Pengelola"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__marks
@@ -610,7 +613,7 @@ msgstr "Manajer"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Marks"
-msgstr "Tanda"
+msgstr "tanda"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_has_error
@@ -686,6 +689,12 @@ msgid "Published"
 msgstr "Diterbitkan"
 
 #. module: openeducat_assignment
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__rating_ids
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__rating_ids
+msgid "Ratings"
+msgstr "Peringkat"
+
+#. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Reject"
 msgstr "Menolak"
@@ -703,7 +712,7 @@ msgstr "Kirim ulang"
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__reviewer
 msgid "Reviewer"
-msgstr "Pengulas"
+msgstr "pengulas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_has_sms_error
@@ -719,17 +728,12 @@ msgstr "Pengajuan Penugasan Tindakan Server"
 #. module: openeducat_assignment
 #: model:ir.actions.server,name:openeducat_assignment.assignment_sub_line_action_after
 msgid "Server Actions Assignment Submission After 1 Days"
-msgstr "Pengajuan Penugasan Tindakan Server Setelah 1 hari"
+msgstr "Pengiriman Penugasan Tindakan Server Setelah 1 Hari"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Set to Draft"
-msgstr "Diatur ke draft"
-
-#. module: openeducat_assignment
-#: model:ir.ui.menu,name:openeducat_assignment.menu_assignment_config
-msgid "Settings"
-msgstr "Pengaturan"
+msgstr "Setel ke Draf"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__state
@@ -744,7 +748,7 @@ msgstr "Negara"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__student_id
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Student"
-msgstr "Murid"
+msgstr "Siswa"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__subject_id
@@ -759,27 +763,22 @@ msgid "Subjective"
 msgstr "Subyektif"
 
 #. module: openeducat_assignment
-#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line
-msgid "Submission"
-msgstr "Penyerahan"
-
-#. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__submission_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__submission_date
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Submission Date"
-msgstr "Tanggal Pengajuan"
+msgstr "Tanggal penyerahan"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment.py:0
+#, python-format
 msgid "Submission Date cannot be set before Issue Date."
-msgstr "Tanggal pengiriman tidak dapat ditetapkan sebelum tanggal masalah."
+msgstr "Tanggal Penyerahan tidak dapat ditetapkan sebelum Tanggal Penerbitan."
 
 #. module: openeducat_assignment
-#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line_count
-#: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub_line_sub
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Submissions"
 msgstr "Kiriman"
@@ -792,12 +791,12 @@ msgstr "Kirim"
 #. module: openeducat_assignment
 #: model:mail.template,subject:openeducat_assignment.email_template_assignment_submission
 msgid "Submit Your Assignment"
-msgstr "Kirim tugas Anda"
+msgstr "Kirimkan Tugas Anda"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__submit
 msgid "Submitted"
-msgstr "Dikirimkan"
+msgstr "Dikirim"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
@@ -848,5 +847,6 @@ msgstr "Pekan"
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid "You can't delete none draft submissions!"
-msgstr "Anda tidak dapat menghapus tidak ada pengiriman draf!"
+msgstr "Anda tidak dapat menghapus kiriman draf apa pun!"

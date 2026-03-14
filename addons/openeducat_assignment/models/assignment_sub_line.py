@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -84,13 +85,6 @@ class OpAssignmentSubLine(models.Model):
     def act_reject(self):
         result = self.state = 'reject'
         return result and result or False
-
-    @api.onchange('marks')
-    def _onchange_marks(self):
-        if self.assignment_id.marks < self.marks:
-            raise ValidationError(
-                _("Obtain Marks should not be greater than Actual Marks!"))
-        return {}
 
     def unlink(self):
         for record in self:

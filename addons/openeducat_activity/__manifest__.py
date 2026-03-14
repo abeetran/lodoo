@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Activity',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -43,7 +44,7 @@
         'demo/activity_demo.xml',
     ],
     'images': [
-        'static/description/openeducat-activity_banner.jpg',
+        'static/description/openeducat_activity_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

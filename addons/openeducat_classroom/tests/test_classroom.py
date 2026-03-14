@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -19,7 +20,6 @@
 ###############################################################################
 
 from logging import info
-
 from .test_classroom_common import TestClassroomCommon
 
 

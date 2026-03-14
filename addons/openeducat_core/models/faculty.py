@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -28,7 +29,7 @@ class OpFaculty(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _inherits = {"res.partner": "partner_id"}
     _parent_name = False
-
+    
     partner_id = fields.Many2one('res.partner', 'Partner',
                                  required=True, ondelete="cascade")
     first_name = fields.Char('First Name', translate=True, required=True)
@@ -80,14 +81,12 @@ class OpFaculty(models.Model):
 
     @api.onchange('first_name', 'middle_name', 'last_name')
     def _onchange_name(self):
-        fname = self.first_name or ""
-        mname = self.middle_name or ""
-        lname = self.last_name or ""
-
-        if fname or mname or lname:
-            self.name = " ".join(filter(None, [fname, mname, lname]))
+        if not self.middle_name:
+            self.name = str(self.first_name) + " " + str(
+                self.last_name)
         else:
-            self.name = "New"
+            self.name = str(self.first_name) + " " + str(
+                self.middle_name) + " " + str(self.last_name)
 
     def create_employee(self):
         for record in self:
@@ -95,6 +94,7 @@ class OpFaculty(models.Model):
                 'name': record.name,
                 'country_id': record.nationality.id,
                 'gender': record.gender,
+                # 'private_state_id': record.partner_id.id
             }
             emp_id = self.env['hr.employee'].create(vals)
             record.write({'emp_id': emp_id.id})
@@ -106,11 +106,3 @@ class OpFaculty(models.Model):
             'label': _('Import Template for Faculties'),
             'template': '/openeducat_core/static/xls/op_faculty.xls'
         }]
-
-    class PartnerTitle(models.Model):
-        _inherit = 'res.partner.title'
-
-        @api.depends('shortcut')
-        def _compute_display_name(self):
-            for record in self:
-                record.display_name = f"{record.shortcut}"

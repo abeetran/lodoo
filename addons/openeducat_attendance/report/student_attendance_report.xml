@@ -1,8 +1,9 @@
 <odoo>
+    <data>
         <template id="student_attendance_report">
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
-                    <div class="page" style="font-family: 'Odoo Unicode Support Noto';">
+                    <div class="page">
                         <br></br>
                         <br></br>
                         <br></br>
@@ -58,4 +59,5 @@
                 </t>
             </t>
         </template>
+    </data>
 </odoo>

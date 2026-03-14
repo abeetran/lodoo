@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,3 +21,4 @@
 
 from . import held_exam
 from . import room_distribution
+from . import student_hall_tickets_wizard

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <menuitem id="menu_op_student_root"
                   name="Students"
                   sequence="260"
@@ -30,4 +31,5 @@
                   sequence="40"
                   action="act_open_op_student_course_view"
                   groups="openeducat_core.group_op_back_office_admin,openeducat_core.group_op_faculty"/>
+    </data>
 </odoo>

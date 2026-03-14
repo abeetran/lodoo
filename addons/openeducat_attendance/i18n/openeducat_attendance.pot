@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 05:50+0000\n"
-"PO-Revision-Date: 2025-04-29 05:50+0000\n"
+"POT-Creation-Date: 2024-02-15 05:51+0000\n"
+"PO-Revision-Date: 2024-02-15 05:51+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -17,7 +17,7 @@ msgstr ""
 
 #. module: openeducat_attendance
 #: model:ir.ui.menu,name:openeducat_attendance.menu_op_attendance_root
-msgid " Class Attendances"
+msgid " Attendances"
 msgstr ""
 
 #. module: openeducat_attendance
@@ -222,16 +222,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_register__code
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_register_search
 msgid "Code"
-msgstr ""
-
-#. module: openeducat_attendance
-#: model:ir.model.constraint,message:openeducat_attendance.constraint_op_attendance_register_unique_attendance_register_code
-msgid "Code should be unique per attendance register!"
-msgstr ""
-
-#. module: openeducat_attendance
-#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__company_id
-msgid "Company"
 msgstr ""
 
 #. module: openeducat_attendance
@@ -493,6 +483,14 @@ msgid "Print"
 msgstr ""
 
 #. module: openeducat_attendance
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__rating_ids
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_register__rating_ids
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__rating_ids
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__rating_ids
+msgid "Ratings"
+msgstr ""
+
+#. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__register_id
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__register_id
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_search
@@ -530,16 +528,6 @@ msgid "Sessions"
 msgstr ""
 
 #. module: openeducat_attendance
-#: model:ir.ui.menu,name:openeducat_attendance.menu_attendance_config
-msgid "Settings"
-msgstr ""
-
-#. module: openeducat_attendance
-#: model:ir.model.constraint,message:openeducat_attendance.constraint_op_attendance_sheet_unique_register_sheet
-msgid "Sheet must be unique per Register/Session."
-msgstr ""
-
-#. module: openeducat_attendance
 #: model:ir.ui.menu,name:openeducat_attendance.menu_op_attendance_sheet_sub
 msgid "Sheets"
 msgstr ""
@@ -573,11 +561,6 @@ msgid "Student Should Be Marked As"
 msgstr ""
 
 #. module: openeducat_attendance
-#: model:ir.model.constraint,message:openeducat_attendance.constraint_op_attendance_line_unique_student
-msgid "Student must be unique per Attendance."
-msgstr ""
-
-#. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_form
 msgid "Students"
 msgstr ""
@@ -595,6 +578,7 @@ msgstr ""
 #. module: openeducat_attendance
 #. odoo-python
 #: code:addons/openeducat_attendance/wizards/student_attendance_wizard.py:0
+#, python-format
 msgid "To Date cannot be set before From Date."
 msgstr ""
 

@@ -1,19 +1,16 @@
-# Translation of Odoo Server.
-# This file contains the translation of the following modules:
-# 	* openeducat_facility
-#
+
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 06:57+0000\n"
-"PO-Revision-Date: 2025-04-29 06:57+0000\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: \n"
-"Plural-Forms: \n"
+"Project-Id-Version:Odoo Server 17.0"
+"Report-Msgid-Bugs-To:"
+"POT-Creation-Date:2024-02-16 05:40+0000"
+"PO-Revision-Date:2024-02-16 05:40+0000"
+"Last-Translator:"
+"Language-Team:"
+"MIME-Version:1.0"
+"Content-Type:text/plain; charset=UTF-8"
+"Content-Transfer-Encoding:"
+"Plural-Forms:"
 
 #. module: openeducat_facility
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility__active
@@ -35,7 +32,7 @@ msgstr "Code"
 #. module: openeducat_facility
 #: model:ir.model.constraint,message:openeducat_facility.constraint_op_facility_unique_facility_code
 msgid "Code should be unique per facility!"
-msgstr "Le code doit être unique par installation!"
+msgstr "Le code doit être unique par établissement !"
 
 #. module: openeducat_facility
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility__create_uid
@@ -53,13 +50,14 @@ msgstr "Créé sur"
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility__display_name
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility_line__display_name
 msgid "Display Name"
-msgstr "Nom d'affichage"
+msgstr "Afficher un nom"
 
 #. module: openeducat_facility
 #. odoo-python
 #: code:addons/openeducat_facility/models/facility_line.py:0
+#, python-format
 msgid "Enter proper Quantity in Facilities!"
-msgstr "Entrez la bonne quantité dans les installations!"
+msgstr "Entrez la quantité appropriée dans les installations !"
 
 #. module: openeducat_facility
 #: model:ir.actions.act_window,name:openeducat_facility.act_open_op_facility_view
@@ -71,8 +69,6 @@ msgstr "Installations"
 
 #. module: openeducat_facility
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility_line__facility_id
-#: model:ir.module.category,name:openeducat_facility.module_category_all_op_facility
-#: model:ir.module.category,name:openeducat_facility.module_category_openeducat_facility
 #: model_terms:ir.ui.view,arch_db:openeducat_facility.view_op_facility_form
 #: model_terms:ir.ui.view,arch_db:openeducat_facility.view_op_facility_search
 #: model_terms:ir.ui.view,arch_db:openeducat_facility.view_op_facility_tree
@@ -82,13 +78,7 @@ msgstr "Facilité"
 #. module: openeducat_facility
 #: model_terms:ir.ui.view,arch_db:openeducat_facility.view_op_facility_search
 msgid "Group By..."
-msgstr "Groupe par ..."
-
-#. module: openeducat_facility
-#: model:ir.module.category,description:openeducat_facility.module_category_all_op_facility
-#: model:ir.module.category,description:openeducat_facility.module_category_openeducat_facility
-msgid "Helps you manage your institutes different-different users."
-msgstr "Vous aide à gérer vos instituts différents utilisateurs différente."
+msgstr "Par groupe..."
 
 #. module: openeducat_facility
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility__id
@@ -106,22 +96,17 @@ msgstr "Dernière mise à jour par"
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility__write_date
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility_line__write_date
 msgid "Last Updated on"
-msgstr "Dernière mise à jour sur"
+msgstr "Dernière mise à jour le"
 
 #. module: openeducat_facility
 #: model:ir.model,name:openeducat_facility.model_op_facility
 msgid "Manage Facility"
-msgstr "Gérer les installations"
+msgstr "Gérer l'installation"
 
 #. module: openeducat_facility
 #: model:ir.model,name:openeducat_facility.model_op_facility_line
 msgid "Manage Facility Line"
-msgstr "Gérer la ligne des installations"
-
-#. module: openeducat_facility
-#: model:res.groups,name:openeducat_facility.group_op_facility_manager
-msgid "Manager"
-msgstr "Directeur"
+msgstr "Gérer la ligne d'installation"
 
 #. module: openeducat_facility
 #: model:ir.model.fields,field_description:openeducat_facility.field_op_facility__name
@@ -134,7 +119,3 @@ msgstr "Nom"
 msgid "Quantity"
 msgstr "Quantité"
 
-#. module: openeducat_facility
-#: model:res.groups,name:openeducat_facility.group_op_facility_user
-msgid "User"
-msgstr "Utilisateur"

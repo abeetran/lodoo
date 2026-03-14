@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Parent',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -36,7 +37,6 @@
         'views/parent_view.xml',
         'views/parent_relationship_view.xml',
         'menus/op_menu.xml',
-        'report/report_student_bonafide_inherit.xml',
     ],
     'demo': [
         'demo/res_partner_demo.xml',
@@ -45,7 +45,7 @@
         'demo/parent_demo.xml',
     ],
     'images': [
-        'static/description/openeducat-parent_banner.jpg',
+        'static/description/openeducat_parent_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

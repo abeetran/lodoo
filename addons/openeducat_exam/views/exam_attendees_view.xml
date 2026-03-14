@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_exam_attendees_tree" model="ir.ui.view">
-            <field name="name">op.exam.attendees.list</field>
+            <field name="name">op.exam.attendees.tree</field>
             <field name="model">op.exam.attendees</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Exam Attendees" editable="top">
+                <tree string="Exam Attendees" editable="top">
                     <field name="student_id"/>
                     <field name="exam_id"/>
                     <field name="status"/>
                     <field name="marks"/>
                     <field name="room_id"/>
                     <field name="note"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -70,25 +70,12 @@
             </field>
         </record>
 
-        <record model="ir.ui.view" id="view_op_exam_attendees_pivot">
-            <field name="name">op.exam.attendees.pivot</field>
-            <field name="model">op.exam.attendees</field>
-            <field name="arch" type="xml">
-                <pivot string="Exam Attendees Pivot">
-                    <field name="student_id" type="row"/>
-                    <field name="status" type="col"/>
-                    <field name="marks" type="measure"/>
-                </pivot>
-            </field>
-        </record>
-
         <record model="ir.actions.act_window" id="act_open_op_exam_attendees_view">
             <field name="name">Exam Attendees</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.exam.attendees</field>
-            <field name="path">exam-attendees</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form,pivot</field>
+            <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_op_exam_attendees_search"/>
             <field name="domain">[]</field>
             <field name="context">{}</field>
@@ -104,8 +91,8 @@
         <record model="ir.actions.act_window.view" id="act_open_op_exam_attendees_view_tree">
             <field name="act_window_id" ref="act_open_op_exam_attendees_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_exam_attendees_tree"/>
         </record>
-
+    </data>
 </odoo>

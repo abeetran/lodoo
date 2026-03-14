@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <odoo>
-
+    <data>
         <record model="ir.ui.view" id="return_media_form">
             <field name="name">return.media.form</field>
             <field name="model">return.media</field>
@@ -32,5 +32,5 @@
             <field name="context">{}</field>
             <field name="target">new</field>
         </record>
-
+    </data>
 </odoo>

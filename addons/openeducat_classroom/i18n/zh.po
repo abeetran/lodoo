@@ -128,3 +128,4 @@ msgstr "产品"
 #: field:op.asset,product_uom_qty:0
 msgid "Quantity"
 msgstr "数量"
+

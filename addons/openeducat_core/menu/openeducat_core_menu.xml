@@ -5,7 +5,6 @@
         <field name="name">Settings</field>
         <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.config.settings</field>
-        <field name="path">res-config-settings</field>
         <field name="view_mode">form</field>
         <field name="target">inline</field>
         <field name="context">{'module' : 'openeducat_core'}</field>
@@ -14,7 +13,8 @@
     <menuitem id="menu_op_school_root"
               name="SIS"
               sequence="220"
-              web_icon="openeducat_core,static/description/sis.png"/>
+              web_icon="openeducat_core,static/description/sis.png"
+              groups="group_op_back_office_admin"/>
 
     <menuitem id="menu_op_school_main"
               name="Students"
@@ -113,32 +113,11 @@
     <menuitem id="menu_academic_year" name="Academic Year"
               sequence="1"
               parent="openeducat_core.menu_op_school_config"
-              action="act_op_academic_year_view"
-              groups="openeducat_core.group_op_back_office_admin"/>
+              action="act_op_academic_year_view"/>
 
     <menuitem id="menu_academic_term" name="Academic Term"
               sequence="2"
               parent="openeducat_core.menu_op_school_config"
-              action="act_op_academic_term_view"
-              groups="openeducat_core.group_op_back_office_admin"/>
-
-    <menuitem id="menu_op_school_config_program"
-              name="Program Management"
-              parent="openeducat_core.menu_op_school_config"
-              sequence="9"/>
-
-    <menuitem id="menu_op_program_sub"
-              name="Programs"
-              parent="menu_op_school_config_program"
-              sequence="10"
-              action="act_open_op_program_view"
-              groups="group_op_back_office_admin"/>
-
-    <menuitem id="menu_op_program_level_sub"
-              name="Program Level"
-              parent="menu_op_school_config_program"
-              sequence="10"
-              action="act_open_op_program_level_view"
-              groups="group_op_back_office_admin"/>
+              action="act_op_academic_term_view"/>
 
 </odoo>

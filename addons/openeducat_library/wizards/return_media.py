@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,8 +19,10 @@
 #
 ###############################################################################
 
-from odoo import _, fields, models
+from odoo import models, fields, _
 from odoo.exceptions import UserError
+
+from ..models import media_unit
 
 
 class ReturnMedia(models.TransientModel):
@@ -45,6 +48,6 @@ class ReturnMedia(models.TransientModel):
                     raise UserError(_("Can't return media."))
                 media_move_search.return_media(media.actual_return_date)
             else:
-                raise UserError(_("Media Unit can not be returned because it's already: %s") % (dict( # noqa
+                raise UserError(_("Media Unit can not be returned because it's already: %s") % (dict(  # noqa
                     media.media_unit_id._fields['state'].selection).get(
                     media.media_unit_id.state)))

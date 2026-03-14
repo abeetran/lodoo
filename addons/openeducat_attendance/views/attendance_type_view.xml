@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <record id="view_op_attendance_type_tree" model="ir.ui.view">
-            <field name="name">op.attendance.type.list</field>
+            <field name="name">op.attendance.type.tree</field>
             <field name="model">op.attendance.type</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Attendance Type">
+                <tree string="Attendance Type">
                     <field name="name"/>
                     <field name="present"/>
                     <field name="absent"/>
                     <field name="excused"/>
                     <field name="late"/>
-                    <field name="company_id" groups="base.group_multi_company" optional="show"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -30,7 +30,6 @@
                         <group>
                             <group col="4" colspan="4">
                                 <field name="name"/>
-                                <field name="company_id" groups="base.group_multi_company" optional="show"/>
                             </group>
                             <group col="4" string="Student Should Be Marked As" name="student_marked_As">
                                 <field name="present"/>
@@ -41,7 +40,10 @@
                         </group>
 
                     </sheet>
-                    <chatter/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
         </record>
@@ -66,11 +68,10 @@
 
         <record model="ir.actions.act_window" id="act_open_op_attendance_type_view">
             <field name="name">Attendance Types</field>
-            <field name="path">attendance-type</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.attendance.type</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form</field>
+            <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_op_attendance_type_search"/>
             <field name="domain">[]</field>
             <field name="context">{}</field>
@@ -86,7 +87,8 @@
         <record model="ir.actions.act_window.view" id="act_open_op_attendance_type_view_tree">
             <field name="act_window_id" ref="act_open_op_attendance_type_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_attendance_type_tree"/>
         </record>
+    </data>
 </odoo>

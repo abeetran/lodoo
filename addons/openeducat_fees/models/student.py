@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ##############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 
 
@@ -163,6 +164,17 @@ class OpStudent(models.Model):
             fees.fees_details_count = self.env['op.student.fees.details'].search_count(
                 [('student_id', '=', self.id)])
 
+    def count_fees_details(self):
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Fees Details',
+            'view_mode': 'tree',
+            'res_model': 'op.student.fees.details',
+            'context': {'create': False},
+            'domain': [('student_id', '=', self.id)],
+            'target': 'current',
+        }
+
     def action_view_invoice(self):
         '''
         This function returns an action that
@@ -174,8 +186,7 @@ class OpStudent(models.Model):
         inv_ids = []
         for student in self:
             inv_ids += [invoice.id for invoice in student.invoice_ids]
-            result['context'] = {'default_partner_id': student.partner_id.id,
-                                 'default_move_type': 'out_invoice'}
+            result['context'] = {'default_partner_id': student.partner_id.id}
         if len(inv_ids) > 1:
             result['domain'] = \
                 "[('id','in',[" + ','.join(map(str, inv_ids)) + "])]"

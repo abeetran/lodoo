@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <record id="view_op_department_tree" model="ir.ui.view">
-            <field name="name">op.department.list</field>
+            <field name="name">op.department.tree</field>
             <field name="model">op.department</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Department">
+                <tree string="Department">
                     <field name="name"/>
                     <field name="code"/>
                     <field name="parent_id"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -52,9 +53,8 @@
             <field name="name">Departments</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.department</field>
-            <field name="path">department</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form</field>
+            <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_op_department_search"/>
             <field name="domain">[]</field>
             <field name="context">{}</field>
@@ -70,7 +70,9 @@
         <record model="ir.actions.act_window.view" id="act_open_op_department_view_tree">
             <field name="act_window_id" ref="act_open_op_department_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_department_tree"/>
         </record>
+    </data>
 </odoo>
+    

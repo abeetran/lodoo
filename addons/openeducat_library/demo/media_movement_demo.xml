@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-
+<odoo>
+    <data noupdate="1">
         <record id="op_media_movement_1" model="op.media.movement">
             <field name="media_id" ref="op_media_1"/>
             <field name="media_unit_id" ref="op_media_unit_20"/>
@@ -132,5 +132,5 @@
         <function model="op.media.movement" name="onchange_library_card_id">
             <value eval="[ref('op_media_movement_8')]"/>
         </function>
-
+    </data>
 </odoo>

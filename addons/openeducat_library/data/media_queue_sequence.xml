@@ -1,19 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <!-- Generate a Sequence Number for media queue request -->
         <record id="seq_media_queue_sequence" model="ir.sequence">
             <field name="name">Media Queue Request</field>
             <field name="code">op.media.queue</field>
             <field name="prefix">BQR</field>
-            <field name="padding">4</field>
-        </record>
-
-        <!-- Generate a Sequence Number for media purchase request -->
-        <record id="seq_media_purchase_sequence" model="ir.sequence">
-            <field name="name">Media Purchase Request</field>
-            <field name="code">op.media.purchase</field>
-            <field name="prefix">MPR</field>
             <field name="padding">4</field>
         </record>
 
@@ -34,5 +26,5 @@
             <field name="padding">10</field>
             <field name="company_id" eval="False"/>
         </record>
-
+    </data>
 </odoo>

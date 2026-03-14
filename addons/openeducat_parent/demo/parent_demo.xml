@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- oca-hooks:disable=xml-redundant-module-name -->
-<odoo noupdate="1">
-
+<odoo>
+    <data noupdate="1">
         <record id="op_parent_1" model="op.parent">
             <field name="name" ref="openeducat_parent.res_partner_33"/>
             <field name="student_ids"
@@ -13,4 +12,5 @@
         <record id="openeducat_parent.res_partner_33" model="res.partner">
             <field name="user_id" ref="openeducat_parent.user_parent"/>
         </record>
+    </data>
 </odoo>

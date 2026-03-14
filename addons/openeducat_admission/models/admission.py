@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -21,14 +22,13 @@
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
 
 
 class OpAdmission(models.Model):
     _name = "op.admission"
-    _inherit = ['mail.thread', 'mail.activity.mixin',
-                'mail.tracking.duration.mixin']
+    _inherit = ['mail.thread', 'mail.activity.mixin']
     _rec_name = "application_number"
     _description = "Admission"
     _order = 'id DESC'
@@ -69,10 +69,10 @@ class OpAdmission(models.Model):
         'Email', size=256, required=True)
     city = fields.Char('City', size=64)
     zip = fields.Char('Zip', size=8)
-    state_id = fields.Many2one(
-        'res.country.state', 'States', domain="[('country_id', '=', country_id)]")
     country_id = fields.Many2one(
         'res.country', 'Country')
+    state_id = fields.Many2one(
+        'res.country.state', 'States' ,domain="[('country_id', '=', country_id)]")
     fees = fields.Float('Fees')
     image = fields.Image('image')
     state = fields.Selection(
@@ -91,7 +91,7 @@ class OpAdmission(models.Model):
     family_income = fields.Float(
         'Family Income')
     gender = fields.Selection(
-        [('m', 'Male'), ('f', 'Female')],
+        [('m', 'Male'), ('f', 'Female'), ('o', 'Other')],
         string='Gender',
         required=True)
     student_id = fields.Many2one(
@@ -110,30 +110,12 @@ class OpAdmission(models.Model):
     company_id = fields.Many2one(
         'res.company', string='Company',
         default=lambda self: self.env.user.company_id)
-    program_id = fields.Many2one('op.program', string="Program", tracking=True)
-    course_ids = fields.Many2many('op.course', string='Courses',
-                                  compute='_compute_course_ids')
 
     _sql_constraints = [
         ('unique_application_number',
          'unique(application_number)',
          'Application Number must be unique per Application!'),
     ]
-
-    @api.depends('register_id')
-    def _compute_course_ids(self):
-        for data in self:
-            if data.register_id:
-                if data.register_id.admission_base == 'program':
-                    course_list = []
-                    for rec in data.register_id.admission_fees_line_ids:
-                        course_list.append(rec.course_id.id) if rec.course_id.id not in course_list else None  # noqa
-                    data.course_ids = [(6, 0, course_list)]
-                else:
-                    data.course_id = data.register_id.course_id.id
-                    data.course_ids = [(6, 0, [data.register_id.course_id.id])]
-            else:
-                data.course_ids = [(6, 0, [])]
 
     @api.onchange('first_name', 'middle_name', 'last_name')
     def _onchange_name(self):
@@ -182,27 +164,22 @@ class OpAdmission(models.Model):
 
     @api.onchange('register_id')
     def onchange_register(self):
-        if self.register_id:
-            if self.register_id.admission_base == 'course':
-                self.program_id = self.course_id.program_id.id
-                self.fees = self.register_id.product_id.lst_price
-                self.company_id = self.register_id.company_id.id
-            else:
-                self.program_id = self.register_id.program_id.id
+        self.course_id = self.register_id.course_id
+        self.fees = self.register_id.product_id.lst_price
+        self.company_id = self.register_id.company_id
 
     @api.onchange('course_id')
     def onchange_course(self):
         self.batch_id = False
         term_id = False
-        if self.course_id:
-            if self.register_id.admission_base == 'program':
-                for rec in self.register_id.admission_fees_line_ids:
-                    if rec.course_id.id == self.course_id.id:
-                        self.fees = rec.course_fees_product_id.lst_price
-            self.program_id = self.course_id.program_id.id
-            if self.course_id.fees_term_id:
-                term_id = self.course_id.fees_term_id.id
+        if self.course_id and self.course_id.fees_term_id:
+            term_id = self.course_id.fees_term_id.id
         self.fees_term_id = term_id
+
+    @api.onchange('state_id')
+    def _onchange_state(self):
+        if self.state_id.country_id and self.country_id != self.state_id.country_id:
+            self.country_id = self.state_id.country_id
 
     @api.constrains('register_id', 'application_date')
     def _check_admission_register(self):
@@ -212,12 +189,12 @@ class OpAdmission(models.Model):
             application_date = fields.Date.from_string(rec.application_date)
             if application_date < start_date or application_date > end_date:
                 raise ValidationError(_(
-                    "Application Date should be between Start Date & End Date of Admission Register."))  # noqa
+                    "Application Date should be between Start Date & End Date of Admission Register."))
 
     @api.constrains('birth_date')
     def _check_birthdate(self):
         for record in self:
-            if record.birth_date and record.birth_date > fields.Date.today():
+            if record.birth_date and  record.birth_date > fields.Date.today():
                 raise ValidationError(_(
                     "Birth Date can't be greater than current date!"))
             elif record and record.birth_date:
@@ -234,7 +211,7 @@ class OpAdmission(models.Model):
     def create_sequence(self):
         if not self.application_number:
             self.application_number = self.env['ir.sequence'].next_by_code(
-                'op.admission') or '/'
+                        'op.admission') or '/'
 
     def submit_form(self):
         self.state = 'submit'
@@ -247,23 +224,24 @@ class OpAdmission(models.Model):
             record.state = 'confirm'
 
     def get_student_vals(self):
-        enable_create_student_user = self.env['ir.config_parameter'].get_param(
-            'openeducat_admission.enable_create_student_user')
+        enable_create_student_user=self.env['ir.config_parameter'].get_param('openeducat_admission.enable_create_student_user')
         for student in self:
-            student_user = False
+            student_user=False
             if enable_create_student_user:
                 student_user = self.env['res.users'].create({
                     'name': student.name,
-                    'login': student.email if student.email else student.application_number,  # noqa
+                    'login': student.email if student.email else student.application_number,
+                    'email': student.email if student.email else student.application_number,
                     'image_1920': self.image or False,
                     'is_student': True,
                     'company_id': self.company_id.id,
+                    'company_ids': [(4, self.company_id.id)],
                     'groups_id': [
                         (6, 0,
-                         [self.env.ref('base.group_portal').id])]
+                        [self.env.ref('base.group_portal').id])]
                 })
             details = {
-                'name': student.name,
+                'name':student.name,
                 'phone': student.phone,
                 'mobile': student.mobile,
                 'email': student.email,
@@ -300,7 +278,8 @@ class OpAdmission(models.Model):
                     'product_id': student.register_id.product_id.id,
                 }]],
                 'user_id': student_user.id if student_user else False,
-                'company_id': self.company_id.id
+                'company_id': self.company_id.id,
+                'partner_id': student_user.partner_id.id
             })
             return details
 
@@ -319,8 +298,7 @@ class OpAdmission(models.Model):
                 if vals:
                     record.student_id = student_id = self.env[
                         'op.student'].create(vals).id
-                    record.partner_id = record.student_id.partner_id.id \
-                        if record else False
+                    record.partner_id = record.student_id.partner_id.id if record else False
 
             else:
                 student_id = record.student_id.id
@@ -388,6 +366,9 @@ class OpAdmission(models.Model):
                 'max_unit_load': record.course_id.max_unit_load or 0.0,
                 'state': 'draft',
             })
+            # if not record.mobile:
+            #     raise UserError(
+            #         _('Please fill in the mobile number'))
             reg_id.get_subjects()
 
     def confirm_rejected(self):
@@ -413,11 +394,11 @@ class OpAdmission(models.Model):
         value = {
             'domain': str([('id', '=', self.student_id.id)]),
             'view_type': 'form',
-            'view_mode': 'list, form',
+            'view_mode': 'tree, form',
             'res_model': 'op.student',
             'view_id': False,
             'views': [(form_view and form_view.id or False, 'form'),
-                      (tree_view and tree_view.id or False, 'list')],
+                      (tree_view and tree_view.id or False, 'tree')],
             'type': 'ir.actions.act_window',
             'res_id': self.student_id.id,
             'target': 'current',
@@ -474,7 +455,7 @@ class OpAdmission(models.Model):
             'res_model': 'account.invoice',
             'view_id': False,
             'views': [(form_view and form_view.id or False, 'form'),
-                      (tree_view and tree_view.id or False, 'list')],
+                      (tree_view and tree_view.id or False, 'tree')],
             'type': 'ir.actions.act_window',
             'res_id': invoice.id,
             'target': 'current',
@@ -503,6 +484,5 @@ class OpStudentCourseInherit(models.Model):
 class ResConfigSettings(models.TransientModel):
     _inherit = 'res.config.settings'
 
-    enable_create_student_user = fields.Boolean(
-        config_parameter='openeducat_admission.enable_create_student_user',
-        string='Create Student User')
+    enable_create_student_user = fields.Boolean(config_parameter='openeducat_admission.enable_create_student_user',
+    string='Enable Create Student User')

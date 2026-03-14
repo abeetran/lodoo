@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import api, fields, models
+from odoo import models, api, fields
 
 
 class OpHeldExam(models.TransientModel):

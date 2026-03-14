@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
+    <data noupdate="1">
         <record id="op_product_1" model="product.product">
             <field name="name">Admission Fees for Course-Sem-1</field>
             <field name="type">service</field>
@@ -71,5 +72,5 @@
         <record id="op_product_9" model="product.product">
             <field name="name">Transportation Fees</field>
         </record>
-
+    </data>
 </odoo>

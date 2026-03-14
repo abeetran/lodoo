@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Facility',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -30,7 +31,6 @@
     'website': 'https://www.openeducat.org',
     'depends': ['openeducat_core'],
     'data': [
-        'security/op_facility_security.xml',
         'security/ir.model.access.csv',
         'views/facility_view.xml',
         'views/facility_line_view.xml',
@@ -40,7 +40,7 @@
         'demo/facility_demo.xml'
     ],
     'images': [
-        'static/description/openeducat-facility_banner.jpg',
+        'static/description/openeducat_facility_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

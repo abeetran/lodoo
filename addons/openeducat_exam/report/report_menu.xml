@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="report_marksheet" model="ir.actions.report">
             <field name="name">Marksheet</field>
             <field name="model">op.marksheet.line</field>
@@ -12,12 +12,11 @@
         </record>
 
         <record id="action_student_hall_ticket_report" model="ir.actions.report">
-            <field name="name">Students Hall Tickets</field>
+            <field name="name">Student Hall Ticket</field>
             <field name="model">op.exam.session</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">openeducat_exam.report_ticket</field>
             <field name="report_file">openeducat_exam.report_ticket</field>
-            <field name="binding_model_id" ref="model_op_exam_session"/>
         </record>
-
+    </data>
 </odoo>

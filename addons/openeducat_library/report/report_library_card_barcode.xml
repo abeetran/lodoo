@@ -1,5 +1,5 @@
 <odoo>
-
+    <data>
         <template id="report_library_card_barcode">
             <style type="text/css">
                 .font{
@@ -13,7 +13,7 @@
             </style>
             <t t-call="web.html_container">
                 <t t-call="web.external_layout">
-                    <div class="page" style="font-family: 'Odoo Unicode Support Noto';">
+                    <div class="page">
                         <div class="row text-center">
                             <h2>
                                 <strong>Library Card(s) Barcode</strong>
@@ -30,9 +30,16 @@
                                 <t t-foreach="docs" t-as="card">
                                     <tr class="text-center">
                                         <td style="vertical-align: middle;" width="50%">
-                                            <h4>
-                                                <span t-esc="card.student_id.name"/>
-                                            </h4>
+                                            <t t-if="card.student_id">
+                                                <h4>
+                                                    <span t-esc="card.student_id.name"/>
+                                                </h4>
+                                            </t>
+                                            <t t-else="">
+                                                <h4>
+                                                    <span t-esc="card.faculty_id.name"/>
+                                                </h4>
+                                            </t>
                                         </td>
                                         <td style="padding:15px 0px 15px 0px;" width="50%">
                                             <img t-att-src="'/report/barcode/?barcode_type=%s&amp;value=%s&amp;width=%s&amp;height=%s' % ('Code128', card.number, 350, 60)"/>
@@ -47,5 +54,5 @@
                 </t>
             </t>
         </template>
-
+    </data>
 </odoo>

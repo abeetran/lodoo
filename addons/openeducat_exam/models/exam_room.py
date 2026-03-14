@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -28,7 +29,7 @@ class OpExamRoom(models.Model):
 
     name = fields.Char('Name', size=256, required=True)
     classroom_id = fields.Many2one('op.classroom', 'Classroom', required=True)
-    capacity = fields.Integer('No of Seats', related="classroom_id.capacity")
+    capacity = fields.Integer('Capacity', required=True)
 
     @api.constrains('capacity')
     def check_capacity(self):

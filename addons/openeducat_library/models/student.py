@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import api, fields, models
+from odoo import models, fields, api
 
 
 class OpStudent(models.Model):
@@ -40,7 +41,7 @@ class OpStudent(models.Model):
         return {
             'type': 'ir.actions.act_window',
             'name': 'Media Movement',
-            'view_mode': 'list,form',
+            'view_mode': 'tree,form',
             'res_model': 'op.media.movement',
             'domain': [('student_id', '=', self.id)],
             'target': 'current',

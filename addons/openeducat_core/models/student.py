@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api,_,tools
 from odoo.exceptions import ValidationError
 
 
@@ -98,10 +99,6 @@ class OpStudent(models.Model):
                                         'Course Details',
                                         tracking=True)
     active = fields.Boolean(default=True)
-    certificate_number = fields.Char(
-        string='Certificate No.',
-        readonly=True,
-        copy=False,)
 
     _sql_constraints = [(
         'unique_gr_no',
@@ -110,15 +107,14 @@ class OpStudent(models.Model):
     )]
 
     @api.onchange('first_name', 'middle_name', 'last_name')
-    def _onchange_name_1(self):
-        fname = self.first_name or ""
-        mname = self.middle_name or ""
-        lname = self.last_name or ""
-
-        if fname or mname or lname:
-            self.name = " ".join(filter(None, [fname, mname, lname]))
+    def _onchange_name(self):
+        if not self.middle_name:
+            self.name = str(self.first_name) + " " + str(
+                self.last_name
+            )
         else:
-            self.name = "New"
+            self.name = str(self.first_name) + " " + str(
+                self.middle_name) + " " + str(self.last_name)
 
     @api.constrains('birth_date')
     def _check_birthdate(self):
@@ -126,6 +122,16 @@ class OpStudent(models.Model):
             if record.birth_date and record.birth_date > fields.Date.today():
                 raise ValidationError(_(
                     "Birth Date can't be greater than current date!"))
+
+    @api.onchange('email')
+    def _validate_email(self):
+        if self.email and not tools.single_email_re.match(self.email):
+            raise ValidationError(_('Invalid Email! Please enter a valid email address.'))
+
+    @api.onchange("mobile")
+    def _validate_mobile(self):
+        if self.mobile and self.mobile.isalpha():
+            raise ValidationError(_("Enter Your Valid Mobile Number"))
 
     @api.model
     def get_import_templates(self):

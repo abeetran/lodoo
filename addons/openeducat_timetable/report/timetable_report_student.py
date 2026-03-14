@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -19,11 +20,10 @@
 ###############################################################################
 
 import calendar
+import pytz
 import time
 from datetime import datetime
-
-import pytz
-from odoo import _, api, fields, models, tools
+from odoo import models, api, _, fields, tools
 
 
 class ReportTimetableStudentGenerate(models.AbstractModel):

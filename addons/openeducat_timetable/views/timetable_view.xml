@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_session_tree" model="ir.ui.view">
-            <field name="name">op.session.list</field>
+            <field name="name">op.session.tree</field>
             <field name="model">op.session</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Sessions">
+                <tree string="Sessions">
                     <field name="faculty_id"/>
                     <field name="batch_id"/>
                     <field name="subject_id"/>
@@ -16,7 +16,7 @@
                     <field name="state"/>
                     <field name="course_id" optional="hide"/>
                     <field name="type" optional="hide"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -78,7 +78,11 @@
                             </group>
                         </group>
                     </sheet>
-                    <chatter/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers"
+                               groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
         </record>
@@ -157,7 +161,7 @@
                             </t>
                             <ul class="oe_kanban_colorpicker" data-field="color" />
                         </t>
-                        <t t-name="card">
+                        <t t-name="kanban-box">
                             <div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_global_click">
                                 <div class="oe_kanban_content">
                                     <div>
@@ -167,35 +171,41 @@
                                     </div>
                                     <div class="oe_kanban_left">
                                         <li t-if="record.faculty_id.raw_value">
-                                            <b>Faculty: </b>
+                                            <b>Faculty:</b>
                                             <field name="faculty_id"/>
                                         </li>
-                                        <li t-if="record.subject_id.raw_value" class="text-truncate">
-                                            <b>Subject: </b>
+                                        <li t-if="record.subject_id.raw_value">
+                                            <b>Subject:</b>
                                             <field name="subject_id"/>
                                         </li>
                                         <li t-if="record.course_id.raw_value">
-                                            <b>Course: </b>
+                                            <b>Course:</b>
                                             <field name="course_id"/>
                                         </li>
                                         <li t-if="record.batch_id.raw_value">
-                                            <b>Batch: </b>
+                                            <b>Batch:</b>
                                             <field name="batch_id"/>
                                         </li>
                                         <li t-if="record.start_datetime.raw_value">
-                                            <b>Start: </b>
+                                            <b>Start:</b>
                                             <field name="start_datetime"/>
                                         </li>
                                         <li t-if="record.end_datetime.raw_value">
-                                            <b>End: </b>
+                                            <b>End:</b>
                                             <field name="end_datetime"/>
                                         </li>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <img alt="Faculty"
+                                             t-att-src="kanban_image('op.faculty', 'image_1920', record.faculty_id.raw_value)"
+                                             t-att-title="record.faculty_id.value" width="24" height="24"
+                                             class="oe_kanban_avatar"/>
                                     </div>
                                     <div class="oe_clear"></div>
                                 </div>
                             </div>
                         </t>
-                    </templates>
+                    </templates>        
                 </kanban>
             </field>
         </record>
@@ -219,22 +229,12 @@
             </field>
         </record>
 
-        <record model="ir.actions.act_window" id="act_open_op_session_view_list">
-            <field name="name">Sessions</field>
-            <field name="type">ir.actions.act_window</field>
-            <field name="res_model">op.session</field>
-            <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form</field>
-            <field name="search_view_id" ref="view_op_session_search"/>
-        </record>
-
         <record model="ir.actions.act_window" id="act_open_op_session_view">
             <field name="name">Sessions</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.session</field>
             <field name="binding_view_types">form</field>
             <field name="view_mode">kanban,calendar,pivot</field>
-            <field name="path">session</field>
             <field name="search_view_id" ref="view_op_session_search"/>
         </record>
 
@@ -248,7 +248,7 @@
         <record model="ir.actions.act_window.view" id="act_open_op_session_view_tree">
             <field name="act_window_id" ref="act_open_op_session_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_session_tree"/>
         </record>
 
@@ -265,5 +265,5 @@
             <field name="view_mode">calendar</field>
             <field name="view_id" ref="view_op_session_calendar"/>
         </record>
-
+    </data>
 </odoo>

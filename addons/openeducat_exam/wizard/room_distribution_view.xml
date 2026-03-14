@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_room_distribution_form" model="ir.ui.view">
             <field name="name">op.room.distribution.form</field>
             <field name="model">op.room.distribution</field>
@@ -49,5 +49,5 @@
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_op_room_distribution_form"/>
         </record>
-
+    </data>
 </odoo>

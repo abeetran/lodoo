@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
+    <data noupdate="1">
         <record id="op_fees_element_line_1" model="op.fees.element">
             <field name="product_id" ref="op_product_7"/>
             <field name="value">50.0</field>
@@ -70,5 +71,5 @@
             <field name="value">50.0</field>
         </record>
 
-
+    </data>
 </odoo>

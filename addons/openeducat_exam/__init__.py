@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -21,3 +22,4 @@
 from . import models
 from . import report
 from . import wizard
+from . import tests

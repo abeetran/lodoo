@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-
+<odoo>
+    <data noupdate="1">
         <record id="op_media_unit_20" model="op.media.unit">
             <field name="name">Python Programming-U001</field>
             <field name="state">issue</field>
@@ -99,5 +99,5 @@
             <field name="state">available</field>
             <field name="media_id" ref="op_media_4"/>
         </record>
-
+    </data>
 </odoo>

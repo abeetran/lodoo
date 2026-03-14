@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -19,8 +20,7 @@
 ###############################################################################
 
 import time
-
-from odoo import api, fields, models
+from odoo import models, api, fields
 
 
 class ReportMarksheetReport(models.AbstractModel):

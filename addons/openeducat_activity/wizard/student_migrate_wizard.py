@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -35,24 +36,19 @@ class StudentMigrate(models.TransientModel):
     student_ids = fields.Many2many(
         'op.student', string='Student(s)', required=True)
     course_completed = fields.Boolean(string="Course Completed?")
-    valid_to_course_ids = fields.Many2many('op.course', compute='_compute_valid_to_courses', string="Valid To Courses")
-    student_ids_domain = fields.Many2many(
-        'op.student', compute='_compute_student_domain', store=False
-    )
-    year_id = fields.Many2one('op.academic.year', 'Academic Year')
-    term_id = fields.Many2one('op.academic.term', 'Terms')
 
-    @api.depends('course_from_id')
-    def _compute_student_domain(self):
-        for record in self:
-            if record.course_from_id:
-                students = self.env['op.student.course'].search([
-                    ('course_id', '=', record.course_from_id.id),
-                    ('state', '=', 'running')
-                ]).mapped('student_id')
-                record.student_ids_domain = students
-            else:
-                record.student_ids_domain = [(5, 0, 0)]
+    @api.onchange('course_from_id')
+    def student_by_course(self):
+        self.student_ids = False
+        if self.course_from_id:
+            lists = []
+            student_ids = self.env['op.student.course'].search([
+                ('course_id', '=', self.course_from_id.id), ('state', '=', 'running')])
+            for i in student_ids:
+                lists.append(str(i.student_id.id))
+            domain = {'student_ids': [('id', 'in', lists)]}
+            result = {'domain': domain}
+            return result
 
     @api.constrains('course_from_id', 'course_to_id')
     def _check_admission_register(self):
@@ -61,20 +57,14 @@ class StudentMigrate(models.TransientModel):
                 raise ValidationError(
                     _("From Course must not be same as To Course!"))
 
-            if (record.course_from_id.parent_id and record.course_to_id) \
+            if (record.course_from_id.parent_id and record.course_to_id)\
                     or (record.course_from_id.parent_id and record.course_completed):
                 if record.course_to_id:
                     if record.course_from_id.parent_id != \
                             record.course_to_id.parent_id:
                         raise ValidationError(_(
-                            "Can't migrate, As selected courses don't share same parent course!"))  # noqa
-            elif (record.course_from_id.program_id and record.course_to_id) \
-                    or (record.course_from_id.program_id and record.course_completed):
-                if record.course_to_id:
-                    if record.course_from_id.program_id != \
-                            record.course_to_id.program_id:
-                        raise ValidationError(_(
-                            "Can't migrate, As selected courses don't share same Program!"))
+                            "Can't migrate, As selected courses don't \
+                            share same parent course!"))
             else:
                 raise ValidationError(
                     _("Can't migrate, Proceed for new admission"))
@@ -136,15 +126,3 @@ class StudentMigrate(models.TransientModel):
                             if not record.optional_sub:
                                 reg_id.action_submitted()
                                 reg_id.action_approve()
-
-    @api.depends('course_from_id')
-    def _compute_valid_to_courses(self):
-        for rec in self:
-            rec.valid_to_course_ids = False
-            if rec.course_from_id:
-                domain = ['&',
-                          '&',
-                          ('parent_id', '=', rec.course_from_id.parent_id.id),
-                          ('program_id', '=', rec.course_from_id.program_id.id),
-                          ('id', '!=', rec.course_from_id.id)]
-                rec.valid_to_course_ids = self.env['op.course'].search(domain)

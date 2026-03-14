@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,10 +19,10 @@
 #
 ###############################################################################
 
-from datetime import datetime, timedelta
+from datetime import timedelta, datetime
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
 
 
 def days_between(to_date, from_date):

@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
+    <data noupdate="1">
         <record id="op_exam_venus" model="res.partner">
             <field name="name">Block 1</field>
             <field name="is_venue" eval="True"/>
         </record>
 
         <record id="op_exam_session_1" model="op.exam.session">
-            <field name="exam_code">BCA-E001</field>
-            <field name="name">BCA-CC-Exam-001</field>
+            <field name="exam_code">BOA-E001</field>
+            <field name="name">BOA-Exam-001</field>
             <field name="evaluation_type">normal</field>
             <field name="venue" ref="op_exam_venus"/>
             <field name="exam_type" ref="op_exam_type_1"/>
-            <field name="course_id" ref="openeducat_core.op_course_1"/>
+            <field name="course_id" ref="openeducat_core.op_course_2"/>
             <field name="batch_id" ref="openeducat_core.op_batch_1"/>
             <field name="start_date"
                    eval="(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m-01 %H:%M')"/>
@@ -21,13 +22,13 @@
         </record>
 
         <record id="op_exam_session_2" model="op.exam.session">
-            <field name="exam_code">BA-Psy-01</field>
-            <field name="name">BA-Psy-Exam-001</field>
+            <field name="exam_code">COMP-01</field>
+            <field name="name">Computer-Exam-001</field>
             <field name="evaluation_type">grade</field>
             <field name="venue" ref="op_exam_venus"/>
             <field name="exam_type" ref="op_exam_type_1"/>
-            <field name="course_id" ref="openeducat_core.op_course_8"/>
-            <field name="batch_id" ref="openeducat_core.op_batch_5"/>
+            <field name="course_id" ref="openeducat_core.op_course_4"/>
+            <field name="batch_id" ref="openeducat_core.op_batch_3"/>
             <field name="start_date"
                    eval="(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m-11 %H:%M')"/>
             <field name="end_date"
@@ -36,8 +37,8 @@
         </record>
 
         <record id="op_exam_session_3" model="op.exam.session">
-            <field name="exam_code">BCOM-AF-01</field>
-            <field name="name">BCOM-AF-Exam-001</field>
+            <field name="exam_code">CIVIL-01</field>
+            <field name="name">Civil-Exam-001</field>
             <field name="evaluation_type">normal</field>
             <field name="venue" ref="op_exam_venus"/>
             <field name="exam_type" ref="op_exam_type_1"/>
@@ -48,5 +49,5 @@
             <field name="end_date"
                    eval="(DateTime.today() - relativedelta(months=2)).strftime('%Y-%m-21 %H:%M')"/>
         </record>
-
+    </data>
 </odoo>

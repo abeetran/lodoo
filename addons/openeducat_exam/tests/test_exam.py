@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -52,7 +53,7 @@ class TestExamAttendees(TestExamCommon):
 
     def test_attendees(self):
         attendees = self.op_exam_attendees.search([])
-        for _ in attendees:
+        for data in attendees:
             attendees._sql_constraints
 
             for x in attendees:

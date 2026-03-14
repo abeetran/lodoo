@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,7 +19,7 @@
 #
 ###############################################################################
 
-from odoo import fields, models
+from odoo import models, fields
 
 
 class OpCategory(models.Model):
@@ -27,9 +28,6 @@ class OpCategory(models.Model):
 
     name = fields.Char('Name', size=256, required=True)
     code = fields.Char('Code', size=16, required=True)
-    company_id = fields.Many2one(
-        "res.company", string="Company", default=lambda self: self.env.company
-    )
 
     _sql_constraints = [
         ('unique_category_code',

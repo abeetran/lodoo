@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Part of OpenEduCat. See LICENSE file for full copyright & licensing details.
 
 ##############################################################################
@@ -7,7 +8,7 @@
 #
 ##############################################################################
 
-from odoo import fields, models
+from odoo import models, fields
 
 
 class GradingAssigmentType(models.Model):

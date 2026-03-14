@@ -6,12 +6,15 @@
         <field name="model">res.partner</field>
         <field name="inherit_id" ref="base.view_partner_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='company_type']" position="after">
-                <field name="is_parent"/>
-                <label for="is_parent"/>
-                <field name="is_student"/>
-                <label for="is_student"/>
-            </xpath>
+            <field name="company_type" position="replace">
+                <div>
+                    <field name="company_type" widget="radio" options="{'horizontal': true}"/>
+                    <field name="is_parent" class="ml16"/>
+                    <label for="is_parent" class="mr16"/>
+                    <field name="is_student"/>
+                    <label for="is_student"/>
+                </div>
+            </field>
         </field>
     </record>
 

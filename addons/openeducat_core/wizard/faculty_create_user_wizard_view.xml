@@ -1,11 +1,11 @@
 <odoo>
-
+    <data>
         <record id="op_faculty_user_create_view" model="ir.ui.view">
             <field name="name">wizard.op.faculty.form</field>
             <field name="model">wizard.op.faculty</field>
             <field name="arch" type="xml">
                 <form string="Create Users">
-                    <p class="oe_grey">Create User For Selected Faculty</p>
+                    <p class="oe_grey">Create User for selected Faculty(s)</p>
                     <separator string="Faculty" colspan="4"/>
                     <field name="faculty_ids" widget="many2many_tags" readonly="1"/>
                     <footer>
@@ -26,5 +26,5 @@
             <field name="target">new</field>
             <field name="binding_model_id" ref="model_op_faculty"/>
         </record>
-
+    </data>
 </odoo>

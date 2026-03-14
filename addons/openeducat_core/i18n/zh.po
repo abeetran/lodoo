@@ -1735,3 +1735,4 @@ msgstr "作品主题"
 #: model:ir.ui.view,arch_db:openeducat_core.op_student_user_create_view
 msgid "or"
 msgstr "或"
+

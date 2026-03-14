@@ -9,8 +9,7 @@
                <button class="btn oe_stat_button" type="object"
                                     name="get_attendance" string="Attendance Sheet"
                                     style="border-right: 1px solid;"
-                                    icon="fa-book"
-                                    groups="openeducat_attendance.group_op_attendance_manager,openeducat_attendance.group_op_attendance_user"/>
+                                    icon="fa-book"/>
             </xpath>
         </field>
     </record>

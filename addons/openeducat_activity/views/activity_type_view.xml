@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <record id="view_op_activity_type_tree" model="ir.ui.view">
-            <field name="name">op.activity.type.list</field>
+            <field name="name">op.activity.type.tree</field>
             <field name="model">op.activity.type</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Activity Type">
+                <tree string="Activity Type">
                     <field name="name"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -21,7 +22,7 @@
                     <sheet>
                         <field name="active" invisible="1"/>
                         <widget name="web_ribbon" title="Archived" bg_color="bg-danger"
-                                invisible="active == True"/>
+                                invisible="active == True"/>                                                                
                         <group>
                             <field name="name"/>
                         </group>
@@ -46,11 +47,10 @@
 
         <record model="ir.actions.act_window" id="act_open_op_activity_type_view">
             <field name="name">Activity Types</field>
-            <field name="path">activity-type</field>
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.activity.type</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form</field>
+            <field name="view_mode">tree,form</field>
             <field name="search_view_id" ref="view_op_activity_type_search"/>
             <field name="domain">[]</field>
             <field name="context">{}</field>
@@ -66,7 +66,8 @@
         <record model="ir.actions.act_window.view" id="act_open_op_activity_type_view_tree">
             <field name="act_window_id" ref="act_open_op_activity_type_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_activity_type_tree"/>
         </record>
+    </data>
 </odoo>

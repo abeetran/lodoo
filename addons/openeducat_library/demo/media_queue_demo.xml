@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-
+<odoo>
+    <data noupdate="1">
         <record id="op_media_queue_1" model="op.media.queue">
             <field name="media_id" ref="op_media_3"/>
             <field name="state">request</field>
@@ -35,5 +35,5 @@
             <field name="date_from" eval="(DateTime.today())"/>
             <field name="date_to" eval="(DateTime.today() + relativedelta(days=13))"/>
         </record>
-
+    </data>
 </odoo>

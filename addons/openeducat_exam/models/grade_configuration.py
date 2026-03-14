@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ##############################################################################
 #
 #    OpenEduCat Inc
@@ -17,7 +18,7 @@
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from odoo import _, api, fields, models
+from odoo import models, fields,api,_
 from odoo.exceptions import ValidationError
 
 
@@ -33,8 +34,6 @@ class OpGradeConfiguration(models.Model):
     @api.constrains("max_per")
     def max_per_validation(self):
         if self.max_per > 100:
-            raise ValidationError(_(
-                "Maximum percentage should not be greater than 100"))
+            raise ValidationError(_("Maximum percentage should not be greater than 100"))
         if self.max_per < self.min_per:
-            raise ValidationError(_(
-                "Minimum percentage should be not greater than Maximum percentage"))
+            raise ValidationError(_("Minimum percentage should be not greater than Maximum percentage"))

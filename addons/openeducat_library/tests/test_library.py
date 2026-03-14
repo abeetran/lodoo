@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -18,9 +19,8 @@
 #
 ###############################################################################
 
-import time
 from logging import info
-
+import time
 from .test_library_common import TestLibraryCommon
 
 

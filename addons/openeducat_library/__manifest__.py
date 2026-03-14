@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Library',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 3,
@@ -77,7 +78,7 @@
         'demo/media_purchase_demo.xml'
     ],
     'images': [
-        'static/description/openeducat-library_banner.jpg',
+        'static/description/openeducat_library_banner.jpg',
     ],
     'installable': True,
     'auto_install': False,

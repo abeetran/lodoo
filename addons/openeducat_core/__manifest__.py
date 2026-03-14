@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,7 +21,7 @@
 
 {
     'name': 'OpenEduCat Core',
-    'version': '18.0.1.0',
+    'version': '17.0.1.0',
     'license': 'LGPL-3',
     'category': 'Education',
     "sequence": 1,
@@ -38,7 +39,6 @@
         'wizard/faculty_create_employee_wizard_view.xml',
         'wizard/faculty_create_user_wizard_view.xml',
         'wizard/students_create_user_wizard_view.xml',
-        'wizard/bonafide_certificate_wizard_view.xml',
         'views/department_view.xml',
         'views/res_company_view.xml',
         'views/student_view.xml',
@@ -55,24 +55,23 @@
         'views/student_course_view.xml',
         'views/op_academic_year_view.xml',
         'views/op_academic_term_view.xml',
-        'views/program_view.xml',
-        'views/program_level.xml',
         'data/ir_cron_data.xml',
-        'data/res_partner_data.xml',
-        'data/sequence_student_bonafide.xml',
         'menu/openeducat_core_menu.xml',
+        'menu/faculty_menu.xml',
         'menu/student_menu.xml',
     ],
     'demo': [
+        'demo/homepage_template.xml',
         'demo/department_demo.xml',
-        'demo/op.program.level.csv',
-        'demo/op.program.csv',
-        'demo/op.subject.csv',
-        'demo/op.course.csv',
-        'demo/op.batch.csv',
         'demo/base_demo.xml',
         'demo/res_partner_demo.xml',
         'demo/res_users_demo.xml',
+        'demo/subject_demo.xml',
+        'demo/subject_demo2.xml',
+        'demo/course_demo.xml',
+        'demo/course_demo2.xml',
+        'demo/batch_demo.xml',
+        'demo/batch_demo2.xml',
         'demo/category_demo.xml',
         'demo/student_demo.xml',
         'demo/student_course_demo.xml',
@@ -103,8 +102,6 @@
         'web.assets_backend': [
             '/openeducat_core/static/src/scss/style.scss',
             '/openeducat_core/static/src/js/g2_review.js',
-            '/openeducat_core/static/src/js/field_inline_char.js',
-            '/openeducat_core/static/src/js/inline_many2one.js',
             '/openeducat_core/static/src/xml/review.xml',
             '/openeducat_core/static/src/xml/web_client.xml',
         ],

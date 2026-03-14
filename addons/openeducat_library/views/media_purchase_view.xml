@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_purchase_tree" model="ir.ui.view">
-            <field name="name">op.media.purchase.list</field>
+            <field name="name">op.media.purchase.tree</field>
             <field name="model">op.media.purchase</field>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <list string="Purchase Request">
-                    <field name="request_no"/>
+                <tree string="Purchase Request">
                     <field name="name"/>
                     <field name="author"/>
                     <field name="edition"/>
@@ -16,8 +15,7 @@
                     <field name="media_type_id" optional="hide"/>
                     <field name="subject_ids"/>
                     <field name="requested_id"/>
-                    <field name="request_date"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -30,13 +28,13 @@
                     <header groups="base.group_user">
                         <button name="act_requested" invisible="state != 'draft'" type="object"
                                 string="Request media" class="oe_highlight"
-                                groups="openeducat_library.group_op_library_user,openeducat_library.group_op_library"/>
+                                groups="openeducat_core.group_op_back_office_admin,openeducat_core.group_op_faculty,openeducat_library.group_op_library"/>
                         <button name="act_accept" invisible="state != 'request'" type="object"
                                 string="Accept" class="oe_highlight"
-                                groups="openeducat_library.group_op_library"/>
+                                groups="openeducat_core.group_op_back_office_admin,openeducat_library.group_op_library"/>
                         <button name="act_reject" invisible="state != 'request'" type="object"
                                 string="Reject"
-                                groups="openeducat_library.group_op_library"/>
+                                groups="openeducat_core.group_op_back_office_admin,openeducat_library.group_op_library"/>
                         <field name="state" widget="statusbar" statusbar_visible="draft,request,accept"/>
                     </header>
                     <sheet>
@@ -45,7 +43,6 @@
                                 invisible="active == True"/>
                         <group>
                             <group>
-                                <field name="request_no"/>
                                 <field name="name"/>
                                 <field name="course_ids"/>
                                 <field name="author"/>
@@ -56,11 +53,13 @@
                                 <field name="subject_ids"/>
                                 <field name="publisher"/>
                                 <field name="edition"/>
-                                <field name="request_date"/>
                             </group>
                         </group>
                     </sheet>
-                    <chatter/>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids" widget="mail_followers" groups="base.group_user"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
                 </form>
             </field>
         </record>
@@ -72,8 +71,6 @@
             <field name="arch" type="xml">
                 <search string="Purchase Request">
                     <field name="name"/>
-                    <field name="request_no"/>
-                    <field name="request_date"/>
                     <field name="author"/>
                     <field name="edition"/>
                     <field name="publisher"/>
@@ -113,10 +110,9 @@
             <field name="type">ir.actions.act_window</field>
             <field name="res_model">op.media.purchase</field>
             <field name="binding_view_types">form</field>
-            <field name="view_mode">list,form,pivot,graph</field>
+            <field name="view_mode">tree,form,pivot,graph</field>
             <field name="search_view_id" ref="view_op_purchase_search"/>
             <field name="domain">[]</field>
-            <field name="path">media-purchase</field>
             <field name="context">{}</field>
         </record>
 
@@ -130,8 +126,8 @@
         <record model="ir.actions.act_window.view" id="act_open_op_purchase_view_tree">
             <field name="act_window_id" ref="act_open_op_purchase_view"/>
             <field name="sequence" eval="10"/>
-            <field name="view_mode">list</field>
+            <field name="view_mode">tree</field>
             <field name="view_id" ref="view_op_purchase_tree"/>
         </record>
-
+    </data>
 </odoo>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo noupdate="1">
+<odoo>
+    <data noupdate="1">
         <record id="category_asian" model="op.category">
             <field name="name">Asian</field>
             <field name="code">ASIAN</field>
@@ -36,4 +37,5 @@
             <field name="name">Caucasian</field>
             <field name="code">CAUCASIAN</field>
         </record>
+    </data>
 </odoo>

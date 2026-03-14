@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -23,11 +24,12 @@ import logging
 from ast import literal_eval
 
 import requests
-from odoo import api, release
 from odoo.exceptions import UserError
-from odoo.models import AbstractModel
-from odoo.tools import misc
+from odoo.tools import misc, ustr
 from odoo.tools.translate import _
+from odoo.models import AbstractModel
+
+from odoo import api, release
 
 OEC_API_ENDPOINT = "https://srv.openeducat.org/publisher-warranty/"
 
@@ -88,7 +90,7 @@ class PublisherWarrantyContract(AbstractModel):
     @api.model
     def _get_system_logs(self):
         msg = self._get_message_logs()
-        arguments = {'arg0': str(msg), "action": "update"}
+        arguments = {'arg0': ustr(msg), "action": "update"}
         r = requests.post(OEC_API_ENDPOINT, data=arguments, timeout=30)
         r.raise_for_status()
         return literal_eval(r.text)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Part of OpenEduCat. See LICENSE file for full copyright & licensing details.
 
 ##############################################################################
@@ -7,9 +8,8 @@
 #
 ##############################################################################
 
+from odoo import models, fields
 from datetime import timedelta
-
-from odoo import fields, models
 
 
 class OpAcademicYear(models.Model):

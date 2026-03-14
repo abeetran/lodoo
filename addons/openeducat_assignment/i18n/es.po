@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 05:57+0000\n"
-"PO-Revision-Date: 2025-04-29 05:57+0000\n"
+"POT-Creation-Date: 2024-02-14 09:43+0000\n"
+"PO-Revision-Date: 2024-02-14 09:43+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -28,16 +28,16 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\">\n"
-"                                                        <span style=\"font-size: 10px;\"/>\n"
-"                                                        <br/>\n"
+"                                                        <span style=\"font-size: 10px;\"></span>\n"
+"                                                        <br>\n"
 "                                                    </td>\n"
 "                                                    <td valign=\"middle\" align=\"right\">\n"
-"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\"/>\n"
+"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -50,15 +50,15 @@ msgid ""
 "                                                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                                                        <p>Dear</p>\n"
 "                                                        <strong>\n"
-"                                                            <t t-out=\"object.student_id.name or ''\"/>\n"
+"                                                            <t t-out=\"object.student_id.name or ''\"></t>\n"
 "                                                        </strong>\n"
 "                                                        <p>Your Assignment Submission\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.assignment_id.name or ''\"/>\n"
+"                                                                <t t-out=\"object.assignment_id.name or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            date\n"
 "                                                            <strong>(\n"
-"                                                                <t t-out=\"object.submission_date or ''\"/>)\n"
+"                                                                <t t-out=\"object.submission_date or ''\"></t>)\n"
 "                                                            </strong>\n"
 "                                                            has\n"
 "                                                            been passed. Please submit it as soon as possible.\n"
@@ -68,7 +68,7 @@ msgid ""
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -79,22 +79,22 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\">\n"
-"                                                        <t t-out=\"object.company_id.name or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.name or ''\"></t>\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                                        <t t-out=\"object.company_id.phone or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.phone or ''\"></t>\n"
 "                                                        <t t-if=\"object.company_id.email\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'mailto:%s'%20%20%7B%7B%20object.company_id.email%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.email or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.email or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                        <t t-if=\"object.company_id.website\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'%s'%20%20%7B%7B%20object.company_id.website%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.website or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.website or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                    </td>\n"
@@ -123,16 +123,16 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\">\n"
-"                                                        <span style=\"font-size: 10px;\"/>\n"
-"                                                        <br/>\n"
+"                                                        <span style=\"font-size: 10px;\"></span>\n"
+"                                                        <br>\n"
 "                                                    </td>\n"
 "                                                    <td valign=\"middle\" align=\"right\">\n"
-"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\"/>\n"
+"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -145,15 +145,15 @@ msgid ""
 "                                                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                                                        <p>Dear</p>\n"
 "                                                        <strong>\n"
-"                                                            <t t-out=\"object.student_id.name or ''\"/>\n"
+"                                                            <t t-out=\"object.student_id.name or ''\"></t>\n"
 "                                                        </strong>\n"
 "                                                        <p>Your Assignment Submission\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.assignment_id.name or ''\"/>\n"
+"                                                                <t t-out=\"object.assignment_id.name or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            date is\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.submission_date or ''\"/>\n"
+"                                                                <t t-out=\"object.submission_date or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            .\n"
 "                                                            Please submit it as soon as possible.\n"
@@ -163,7 +163,7 @@ msgid ""
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -174,22 +174,22 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\">\n"
-"                                                        <t t-out=\"object.company_id.name or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.name or ''\"></t>\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                                        <t t-out=\"object.company_id.phone or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.phone or ''\"></t>\n"
 "                                                        <t t-if=\"object.company_id.email\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'mailto:%s'%20%20%7B%7B%20object.company_id.email%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.email or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.email or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                        <t t-if=\"object.company_id.website\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'%s'%20%20%7B%7B%20object.company_id.website%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.website or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.website or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                    </td>\n"
@@ -219,7 +219,7 @@ msgstr "Aceptado"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_needaction
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_needaction
 msgid "Action Needed"
-msgstr "Se necesita acción"
+msgstr "Accion necesaria"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__active
@@ -276,7 +276,7 @@ msgstr "Vista de gráficos de tarea"
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Assignment Name"
-msgstr "Nombre de la tarea"
+msgstr "Nombre de la asignación"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_pivot
@@ -289,7 +289,7 @@ msgstr "Vista de pivote de tarea"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_tree
 msgid "Assignment Sub Line"
-msgstr "Subsine de asignación"
+msgstr "Subsine de tarea"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_graph
@@ -300,7 +300,7 @@ msgstr "Vista de gráfico de subline de asignación"
 #: model:ir.model,name:openeducat_assignment.model_op_assignment_sub_line
 #: model:mail.template,name:openeducat_assignment.email_template_assignment_submission
 msgid "Assignment Submission"
-msgstr "Presentación de tarea"
+msgstr "Entrega de Trabajo"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_sub_line_view_pivot
@@ -325,10 +325,11 @@ msgstr "Línea de envío de tareas después de 1 días"
 #. module: openeducat_assignment
 #: model:mail.template,name:openeducat_assignment.email_template_assignment_submission_after
 msgid "Assignment Submission Passed"
-msgstr "Presentación de tarea aprobada"
+msgstr "Envío de tarea aprobado"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_sub_line_view
+#: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub_line_sub
 msgid "Assignment Submissions"
 msgstr "Presentaciones de tareas"
 
@@ -468,7 +469,7 @@ msgstr "Nombre para mostrar"
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__draft
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__draft
 msgid "Draft"
-msgstr "Borrador"
+msgstr "Reclutar"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__faculty_id
@@ -490,7 +491,7 @@ msgstr "Finalizar"
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__finish
 msgid "Finished"
-msgstr "Finalizado"
+msgstr "Acabado"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_follower_ids
@@ -515,7 +516,7 @@ msgstr "Asignación de calificación"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
 msgid "Group By..."
-msgstr "Grupo de ..."
+msgstr "Agrupar por..."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__has_message
@@ -526,8 +527,7 @@ msgstr "Tiene mensaje"
 #. module: openeducat_assignment
 #: model:ir.module.category,description:openeducat_assignment.module_category_all_op_assignment
 msgid "Helps you manage your institutes different-different users."
-msgstr ""
-"Le ayuda a administrar a sus institutos usuarios de diferentes diferencias."
+msgstr "Le ayuda a administrar los diferentes usuarios de sus institutos."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__id
@@ -549,27 +549,29 @@ msgstr "Si se revisan, los nuevos mensajes requieren su atención."
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_has_error
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Si se verifica, algunos mensajes tienen un error de entrega."
+msgstr "Si se verifican, algunos mensajes tienen un error de entrega."
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not             create Assignment Submissions!"
 msgstr ""
-"Acción inválida!\n"
-" ¡El padre no puede crear presentaciones de tareas!"
+"¡Acción no válida!\n"
+" ¡Los padres no pueden crear envíos de tareas!"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not edit             Assignment Submissions!"
 msgstr ""
-"Acción inválida!\n"
-" ¡El padre no puede editar envíos de asignación!"
+"¡Acción no válida!\n"
+"¡Los padres no pueden editar los envíos de tareas!"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_is_follower
@@ -598,7 +600,7 @@ msgstr "Última actualización por"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__write_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__write_date
 msgid "Last Updated on"
-msgstr "Última actualización en"
+msgstr "Ultima actualización en"
 
 #. module: openeducat_assignment
 #: model:res.groups,name:openeducat_assignment.group_op_assignment_manager
@@ -662,7 +664,7 @@ msgstr "Número de errores"
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__message_needaction_counter
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr "Número de mensajes que requieren acción"
+msgstr "Número de mensajes que requieren una acción"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__message_has_error_counter
@@ -674,7 +676,7 @@ msgstr "Número de mensajes con error de entrega"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__point
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__point
 msgid "Points"
-msgstr "Agujas"
+msgstr "Puntos"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
@@ -685,6 +687,12 @@ msgstr "Publicar"
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__publish
 msgid "Published"
 msgstr "Publicado"
+
+#. module: openeducat_assignment
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__rating_ids
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__rating_ids
+msgid "Ratings"
+msgstr "Calificaciones"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
@@ -720,17 +728,12 @@ msgstr "Acciones del servidor Asignación de asignación"
 #. module: openeducat_assignment
 #: model:ir.actions.server,name:openeducat_assignment.assignment_sub_line_action_after
 msgid "Server Actions Assignment Submission After 1 Days"
-msgstr "Acciones del servidor Asignación de asignación después de 1 días"
+msgstr "Acciones del servidor Envío de asignación después de 1 días"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Set to Draft"
 msgstr "Establecido en el borrador"
-
-#. module: openeducat_assignment
-#: model:ir.ui.menu,name:openeducat_assignment.menu_assignment_config
-msgid "Settings"
-msgstr "Ajustes"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__state
@@ -752,7 +755,7 @@ msgstr "Alumno"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__subject_id
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Subject"
-msgstr "Sujeto"
+msgstr "Tema"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__grading_assignment_type__assign_type__sub
@@ -760,28 +763,22 @@ msgid "Subjective"
 msgstr "Subjetivo"
 
 #. module: openeducat_assignment
-#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line
-msgid "Submission"
-msgstr "Envío"
-
-#. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__submission_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__submission_date
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Submission Date"
-msgstr "Fecha de presentación"
+msgstr "Día de entrega"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment.py:0
+#, python-format
 msgid "Submission Date cannot be set before Issue Date."
-msgstr ""
-"La fecha de envío no se puede establecer antes de la fecha de emisión."
+msgstr "La fecha de envío no se puede establecer antes de la fecha de emisión."
 
 #. module: openeducat_assignment
-#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line_count
-#: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub_line_sub
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Submissions"
 msgstr "Presentaciones"
@@ -789,7 +786,7 @@ msgstr "Presentaciones"
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Submit"
-msgstr "Entregar"
+msgstr "Enviar"
 
 #. module: openeducat_assignment
 #: model:mail.template,subject:openeducat_assignment.email_template_assignment_submission
@@ -799,7 +796,7 @@ msgstr "Envíe su tarea"
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__submit
 msgid "Submitted"
-msgstr "Enviado"
+msgstr "Presentada"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
@@ -815,13 +812,13 @@ msgstr "El usuario interno a cargo de este contacto."
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Today"
-msgstr "Hoy"
+msgstr "Este Dia"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment_type__assign_type
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_tree
 msgid "Type"
-msgstr "Tipo"
+msgstr "Escribe"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__user_id
@@ -850,5 +847,6 @@ msgstr "Semana"
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid "You can't delete none draft submissions!"
-msgstr "¡No puedes eliminar ninguno de los envíos de borradores!"
+msgstr "¡No puedes eliminar ningún borrador enviado!"

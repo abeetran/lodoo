@@ -1,54 +1,51 @@
-# Translation of Odoo Server.
-# This file contains the translation of the following modules:
-# 	* openeducat_attendance
-#
+
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 05:50+0000\n"
-"PO-Revision-Date: 2025-04-29 05:50+0000\n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: \n"
-"Plural-Forms: \n"
+"Project-Id-Version:Odoo Server 17.0"
+"Report-Msgid-Bugs-To:"
+"POT-Creation-Date:2024-02-15 05:51+0000"
+"PO-Revision-Date:2024-02-15 05:51+0000"
+"Last-Translator:"
+"Language-Team:"
+"MIME-Version:1.0"
+"Content-Type:text/plain; charset=UTF-8"
+"Content-Transfer-Encoding:"
+"Plural-Forms:"
 
 #. module: openeducat_attendance
 #: model:ir.ui.menu,name:openeducat_attendance.menu_op_attendance_root
-msgid " Class Attendances"
-msgstr "Associés en classe"
+msgid " Attendances"
+msgstr "Présences"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.student_attendance_report
 msgid "<b>From Date:</b>"
-msgstr "<b> à partir de la date: </b>"
+msgstr "<b>Date de début :</b>"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.student_attendance_report
 msgid "<b>Student Name:</b>"
-msgstr "<b> Nom de l'élève: </b>"
+msgstr "<b>Nom de l'étudiant :</b>"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.student_attendance_report
 msgid "<b>To Date:</b>"
-msgstr "<b> à ce jour: </b>"
+msgstr "<b>À ce jour :</b>"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.student_attendance_report
 msgid "<b>Total Absence</b>"
-msgstr "<b> Absence totale </b>"
+msgstr "<b>Absence totale</b>"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_student_form_attendance_inherit
 msgid "<span class=\"o_stat_text\">Attendance</span>"
-msgstr "<span class = \"o_stat_text\"> présence </span>"
+msgstr "<span class=\"o_stat_text\">Participation</span>"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.student_attendance_report
 msgid "<strong>Student Attendance Detail</strong>"
-msgstr "<strong> Détail de fréquentation des étudiants </strong>"
+msgstr "<strong>Détails de la fréquentation des étudiants</strong>"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__absent
@@ -59,7 +56,7 @@ msgstr "Absent"
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__excused
 msgid "Absent Excused"
-msgstr "Absent excusé"
+msgstr "Absent Excusé"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__absent
@@ -124,7 +121,7 @@ msgstr "Analyse de fréquentation"
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_line_tree
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_form
 msgid "Attendance Line"
-msgstr "Ligne de fréquentation"
+msgstr "Ligne de présence"
 
 #. module: openeducat_attendance
 #: model:ir.model,name:openeducat_attendance.model_op_attendance_line
@@ -138,17 +135,17 @@ msgstr "Lignes de présence"
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_register_search
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_register_tree
 msgid "Attendance Register"
-msgstr "Registre de fréquentation"
+msgstr "Registre de présence"
 
 #. module: openeducat_attendance
 #: model:ir.actions.act_window,name:openeducat_attendance.act_open_op_attendance_register_view
 msgid "Attendance Registers"
-msgstr "Registres de fréquentation"
+msgstr "Registres de présence"
 
 #. module: openeducat_attendance
 #: model:ir.model,name:openeducat_attendance.model_report_openeducat_attendance_student_attendance_report
 msgid "Attendance Report"
-msgstr "Rapport de fréquentation"
+msgstr "Rapport de présence"
 
 #. module: openeducat_attendance
 #: model:ir.model,name:openeducat_attendance.model_op_attendance_sheet
@@ -165,19 +162,19 @@ msgstr "Feuille de présence"
 #. module: openeducat_attendance
 #: model:ir.actions.act_window,name:openeducat_attendance.act_open_op_attendance_sheet_view
 msgid "Attendance Sheets"
-msgstr "Fiches de présence"
+msgstr "Feuilles de présence"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields.selection,name:openeducat_attendance.selection__op_attendance_sheet__state__start
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_form
 msgid "Attendance Start"
-msgstr "Début de fréquentation"
+msgstr "Début de la participation"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields.selection,name:openeducat_attendance.selection__op_attendance_sheet__state__done
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_form
 msgid "Attendance Taken"
-msgstr "Fréquentation"
+msgstr "Participation prise"
 
 #. module: openeducat_attendance
 #: model:ir.model,name:openeducat_attendance.model_op_attendance_type
@@ -187,12 +184,12 @@ msgstr "Fréquentation"
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_type_search
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_type_tree
 msgid "Attendance Type"
-msgstr "Type de fréquentation"
+msgstr "Type de présence"
 
 #. module: openeducat_attendance
 #: model:ir.actions.act_window,name:openeducat_attendance.act_open_op_attendance_type_view
 msgid "Attendance Types"
-msgstr "Types de fréquentation"
+msgstr "Types de présence"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__batch_id
@@ -223,16 +220,6 @@ msgstr "Fermer"
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_register_search
 msgid "Code"
 msgstr "Code"
-
-#. module: openeducat_attendance
-#: model:ir.model.constraint,message:openeducat_attendance.constraint_op_attendance_register_unique_attendance_register_code
-msgid "Code should be unique per attendance register!"
-msgstr "Le code doit être unique par registre de fréquentation!"
-
-#. module: openeducat_attendance
-#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__company_id
-msgid "Company"
-msgstr "Entreprise"
 
 #. module: openeducat_attendance
 #: model:ir.ui.menu,name:openeducat_attendance.menu_op_attendance_config
@@ -282,7 +269,7 @@ msgstr "Date"
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__display_name
 #: model:ir.model.fields,field_description:openeducat_attendance.field_student_attendance__display_name
 msgid "Display Name"
-msgstr "Nom d'affichage"
+msgstr "Afficher un nom"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields.selection,name:openeducat_attendance.selection__op_attendance_sheet__state__draft
@@ -293,12 +280,12 @@ msgstr "Brouillon"
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__excused
 msgid "Excused ?"
-msgstr "Excusé?"
+msgstr "Excusé ?"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__faculty_id
 msgid "Faculty"
-msgstr "Faculté"
+msgstr "la faculté"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__message_follower_ids
@@ -306,7 +293,7 @@ msgstr "Faculté"
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__message_follower_ids
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__message_follower_ids
 msgid "Followers"
-msgstr "Abonnés"
+msgstr "Suiveurs"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__message_partner_ids
@@ -319,12 +306,12 @@ msgstr "Abonnés (partenaires)"
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_student_attendance__from_date
 msgid "From Date"
-msgstr "À partir de la date"
+msgstr "Partir de la date"
 
 #. module: openeducat_attendance
 #: model:ir.actions.report,name:openeducat_attendance.action_report_student_attendance
 msgid "Generate Attendance"
-msgstr "Générer la présence"
+msgstr "Générer de la fréquentation"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_line_search
@@ -332,7 +319,7 @@ msgstr "Générer la présence"
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_search
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_type_search
 msgid "Group By..."
-msgstr "Groupe par ..."
+msgstr "Par groupe..."
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__has_message
@@ -345,7 +332,7 @@ msgstr "A un message"
 #. module: openeducat_attendance
 #: model:ir.module.category,description:openeducat_attendance.module_category_all_op_attendance
 msgid "Helps you manage your institutes different-different users."
-msgstr "Vous aide à gérer vos instituts différents utilisateurs différente."
+msgstr "Vous aide à gérer les différents utilisateurs de votre institut."
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__id
@@ -362,7 +349,8 @@ msgstr "IDENTIFIANT"
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_sheet__message_needaction
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_type__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "S'il est vérifié, les nouveaux messages nécessitent votre attention."
+msgstr ""
+"Si cette case est cochée, les nouveaux messages nécessitent votre attention."
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_line__message_has_error
@@ -374,7 +362,7 @@ msgstr "S'il est vérifié, les nouveaux messages nécessitent votre attention."
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_type__message_has_error
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_type__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "S'il est vérifié, certains messages ont une erreur de livraison."
+msgstr "Si coché, certains messages ont une erreur de livraison."
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__message_is_follower
@@ -382,7 +370,7 @@ msgstr "S'il est vérifié, certains messages ont une erreur de livraison."
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__message_is_follower
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__message_is_follower
 msgid "Is Follower"
-msgstr "Est un adepte"
+msgstr "Est un suiveur"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__write_uid
@@ -400,7 +388,7 @@ msgstr "Dernière mise à jour par"
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__write_date
 #: model:ir.model.fields,field_description:openeducat_attendance.field_student_attendance__write_date
 msgid "Last Updated on"
-msgstr "Dernière mise à jour sur"
+msgstr "Dernière mise à jour le"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__late
@@ -419,7 +407,7 @@ msgstr "Directeur"
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__message_has_error
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__message_has_error
 msgid "Message Delivery error"
-msgstr "Erreur de livraison de messages"
+msgstr "Erreur de livraison du message"
 
 #. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__message_ids
@@ -427,7 +415,7 @@ msgstr "Erreur de livraison de messages"
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__message_ids
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__message_ids
 msgid "Messages"
-msgstr "Messages"
+msgstr "messages"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_search
@@ -493,6 +481,14 @@ msgid "Print"
 msgstr "Imprimer"
 
 #. module: openeducat_attendance
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__rating_ids
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_register__rating_ids
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__rating_ids
+#: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_type__rating_ids
+msgid "Ratings"
+msgstr "Notes"
+
+#. module: openeducat_attendance
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_line__register_id
 #: model:ir.model.fields,field_description:openeducat_attendance.field_op_attendance_sheet__register_id
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_search
@@ -530,16 +526,6 @@ msgid "Sessions"
 msgstr "Séances"
 
 #. module: openeducat_attendance
-#: model:ir.ui.menu,name:openeducat_attendance.menu_attendance_config
-msgid "Settings"
-msgstr "Paramètres"
-
-#. module: openeducat_attendance
-#: model:ir.model.constraint,message:openeducat_attendance.constraint_op_attendance_sheet_unique_register_sheet
-msgid "Sheet must be unique per Register/Session."
-msgstr "La feuille doit être unique par registre / session."
-
-#. module: openeducat_attendance
 #: model:ir.ui.menu,name:openeducat_attendance.menu_op_attendance_sheet_sub
 msgid "Sheets"
 msgstr "Feuilles"
@@ -573,11 +559,6 @@ msgid "Student Should Be Marked As"
 msgstr "L'étudiant doit être marqué comme"
 
 #. module: openeducat_attendance
-#: model:ir.model.constraint,message:openeducat_attendance.constraint_op_attendance_line_unique_student
-msgid "Student must be unique per Attendance."
-msgstr "L'étudiant doit être unique par fréquentation."
-
-#. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_form
 msgid "Students"
 msgstr "Étudiants"
@@ -595,8 +576,9 @@ msgstr "À ce jour"
 #. module: openeducat_attendance
 #. odoo-python
 #: code:addons/openeducat_attendance/wizards/student_attendance_wizard.py:0
+#, python-format
 msgid "To Date cannot be set before From Date."
-msgstr "À ce jour, il ne peut pas être défini à partir de la date."
+msgstr "La date de fin ne peut pas être définie avant la date de début."
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_line_search
@@ -623,9 +605,10 @@ msgstr "Messages du site Web"
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_sheet__website_message_ids
 #: model:ir.model.fields,help:openeducat_attendance.field_op_attendance_type__website_message_ids
 msgid "Website communication history"
-msgstr "Historique de communication du site Web"
+msgstr "Historique des communications du site Web"
 
 #. module: openeducat_attendance
 #: model_terms:ir.ui.view,arch_db:openeducat_attendance.view_op_attendance_sheet_search
 msgid "Week"
 msgstr "Semaine"
+

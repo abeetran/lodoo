@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
-
+    <data>
         <record id="view_op_held_exam_form" model="ir.ui.view">
             <field name="name">op.held.exam.form</field>
             <field name="model">op.held.exam</field>
@@ -42,5 +42,5 @@
             <field name="view_mode">form</field>
             <field name="view_id" ref="view_op_held_exam_form"/>
         </record>
-
+    </data>
 </odoo>

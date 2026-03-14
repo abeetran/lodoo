@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###############################################################################
 #
 #    OpenEduCat Inc
@@ -20,10 +21,10 @@
 
 import calendar
 import datetime
+import pytz
 import time
 
-import pytz
-from odoo import _, api, fields, models
+from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError
 
 
@@ -94,9 +95,9 @@ class GenerateSession(models.TransientModel):
                 curr_date = start_date + datetime.timedelta(n)
                 for line in session.time_table_lines:
                     if int(line.day) == curr_date.weekday():
-                        session_start_time = '%s:00' % '{:02.0f}:{:02.0f}'.format(
+                        session_start_time = '%s:00' % '{0:02.0f}:{1:02.0f}'.format(
                             *divmod(line.session_start_time * 60, 60))
-                        session_end_time = '%s:00' % '{:02.0f}:{:02.0f}'.format(
+                        session_end_time = '%s:00' % '{0:02.0f}:{1:02.0f}'.format(
                             *divmod(line.session_end_time * 60, 60))
                         final_start_date = datetime.datetime.strptime(
                             curr_date.strftime('%Y-%m-%d ') +

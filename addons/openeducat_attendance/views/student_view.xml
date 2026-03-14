@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
+    <data>
         <record id="view_op_student_form_attendance_inherit" model="ir.ui.view">
             <field name="name">op.student.form.attendance.inherit</field>
             <field name="model">op.student</field>
@@ -10,8 +11,7 @@
                     <button name="get_attendance"
                         class="btn oe_stat_button"
                         icon="fa-calendar"
-                        type="object"
-                        groups="openeducat_attendance.group_op_attendance_user,openeducat_attendance.group_op_attendance_manager">
+                        type="object">
                         <div class="o_field_widget o_stat_info">
                             <span class="o_stat_text">Attendance</span>
                         </div>
@@ -19,4 +19,5 @@
                 </xpath>
             </field>
         </record>
+    </data>
 </odoo>

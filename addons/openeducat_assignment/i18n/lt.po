@@ -4,10 +4,10 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
+"Project-Id-Version: Odoo Server 17.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 05:57+0000\n"
-"PO-Revision-Date: 2025-04-29 05:57+0000\n"
+"POT-Creation-Date: 2024-02-14 12:58+0000\n"
+"PO-Revision-Date: 2024-02-14 12:58+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -28,16 +28,16 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\">\n"
-"                                                        <span style=\"font-size: 10px;\"/>\n"
-"                                                        <br/>\n"
+"                                                        <span style=\"font-size: 10px;\"></span>\n"
+"                                                        <br>\n"
 "                                                    </td>\n"
 "                                                    <td valign=\"middle\" align=\"right\">\n"
-"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\"/>\n"
+"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -50,15 +50,15 @@ msgid ""
 "                                                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                                                        <p>Dear</p>\n"
 "                                                        <strong>\n"
-"                                                            <t t-out=\"object.student_id.name or ''\"/>\n"
+"                                                            <t t-out=\"object.student_id.name or ''\"></t>\n"
 "                                                        </strong>\n"
 "                                                        <p>Your Assignment Submission\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.assignment_id.name or ''\"/>\n"
+"                                                                <t t-out=\"object.assignment_id.name or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            date\n"
 "                                                            <strong>(\n"
-"                                                                <t t-out=\"object.submission_date or ''\"/>)\n"
+"                                                                <t t-out=\"object.submission_date or ''\"></t>)\n"
 "                                                            </strong>\n"
 "                                                            has\n"
 "                                                            been passed. Please submit it as soon as possible.\n"
@@ -68,7 +68,7 @@ msgid ""
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -79,22 +79,22 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\">\n"
-"                                                        <t t-out=\"object.company_id.name or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.name or ''\"></t>\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                                        <t t-out=\"object.company_id.phone or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.phone or ''\"></t>\n"
 "                                                        <t t-if=\"object.company_id.email\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'mailto:%s'%20%20%7B%7B%20object.company_id.email%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.email or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.email or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                        <t t-if=\"object.company_id.website\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'%s'%20%20%7B%7B%20object.company_id.website%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.website or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.website or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                    </td>\n"
@@ -109,6 +109,10 @@ msgid ""
 "                </table>\n"
 "            "
 msgstr ""
+"<p> brangusis <strong> $ {Object.student_id.name} </strong>\n"
+"<p> Jūsų priskyrimo pateikimas <strong> ($ {Object.Assignment_id.name}) </strong> Data <strong> ($ {Object.submission_date}) </strong> buvo priimtas. Prašau pateikti jį kuo greičiau. </p>\n"
+"<p> Ačiū. </p>\n"
+"            "
 
 #. module: openeducat_assignment
 #: model:mail.template,body_html:openeducat_assignment.email_template_assignment_submission
@@ -123,16 +127,16 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\">\n"
-"                                                        <span style=\"font-size: 10px;\"/>\n"
-"                                                        <br/>\n"
+"                                                        <span style=\"font-size: 10px;\"></span>\n"
+"                                                        <br>\n"
 "                                                    </td>\n"
 "                                                    <td valign=\"middle\" align=\"right\">\n"
-"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\"/>\n"
+"                                                        <img t-att-src=\"'/logo.png?company=%s' % object.company_id.id\" style=\"padding: 0px; margin: 0px; height: auto; width: 80px;\" t-att-alt=\"'%s' % object.company_id.name\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td colspan=\"2\" style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin:16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -145,15 +149,15 @@ msgid ""
 "                                                    <td valign=\"top\" style=\"font-size: 13px;\">\n"
 "                                                        <p>Dear</p>\n"
 "                                                        <strong>\n"
-"                                                            <t t-out=\"object.student_id.name or ''\"/>\n"
+"                                                            <t t-out=\"object.student_id.name or ''\"></t>\n"
 "                                                        </strong>\n"
 "                                                        <p>Your Assignment Submission\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.assignment_id.name or ''\"/>\n"
+"                                                                <t t-out=\"object.assignment_id.name or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            date is\n"
 "                                                            <strong>\n"
-"                                                                <t t-out=\"object.submission_date or ''\"/>\n"
+"                                                                <t t-out=\"object.submission_date or ''\"></t>\n"
 "                                                            </strong>\n"
 "                                                            .\n"
 "                                                            Please submit it as soon as possible.\n"
@@ -163,7 +167,7 @@ msgid ""
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td style=\"text-align:center;\">\n"
-"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\"/>\n"
+"                                                        <hr width=\"100%\" style=\"background-color:rgb(204,204,204);border:medium none;clear:both;display:block;font-size:0px;min-height:1px;line-height:0; margin: 16px 0px 16px 0px;\">\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                            </table>\n"
@@ -174,22 +178,22 @@ msgid ""
 "                                            <table border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"590\" style=\"min-width: 590px; background-color: white; font-size: 11px; padding: 0px 8px 0px 8px; border-collapse:separate;\">\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\">\n"
-"                                                        <t t-out=\"object.company_id.name or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.name or ''\"></t>\n"
 "                                                    </td>\n"
 "                                                </tr>\n"
 "                                                <tr>\n"
 "                                                    <td valign=\"middle\" align=\"left\" style=\"opacity: 0.7;\">\n"
-"                                                        <t t-out=\"object.company_id.phone or ''\"/>\n"
+"                                                        <t t-out=\"object.company_id.phone or ''\"></t>\n"
 "                                                        <t t-if=\"object.company_id.email\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'mailto:%s'%20%20%7B%7B%20object.company_id.email%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.email or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.email or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                        <t t-if=\"object.company_id.website\">\n"
 "                                                            |\n"
 "                                                            <a href=\"'%s'%20%20%7B%7B%20object.company_id.website%20%7D%7D\" style=\"text-decoration:none; color: #454748;\">\n"
-"                                                                <t t-out=\"object.company_id.website or ''\"/>\n"
+"                                                                <t t-out=\"object.company_id.website or ''\"></t>\n"
 "                                                            </a>\n"
 "                                                        </t>\n"
 "                                                    </td>\n"
@@ -204,43 +208,47 @@ msgid ""
 "                </table>\n"
 "            "
 msgstr ""
+"<p> brangusis <strong> $ {Object.student_id.name} </strong>\n"
+"<p> Jūsų priskyrimo pateikimas <strong> ($ {Object.assignment_id.name}) </strong> Data yra <strong> $ {Object.submission_date} </strong>. Prašau pateikti jį kuo greičiau. </p>\n"
+"<p> Ačiū. </p>\n"
+"            "
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Accept"
-msgstr "Pieņemt"
+msgstr "Priimti"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__accept
 msgid "Accepted"
-msgstr "Pieņemts"
+msgstr "Priimtas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_needaction
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_needaction
 msgid "Action Needed"
-msgstr "Nepieciešama darbība"
+msgstr "Reikalingas veiksmas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__active
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__active
 msgid "Active"
-msgstr "Aktīvs"
+msgstr "Aktyvus"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__allocation_ids
 msgid "Allocated To"
-msgstr "Iedalīts"
+msgstr "Paskirta"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Allocation"
-msgstr "Sadalījums"
+msgstr "Paskirstymas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Allocation Infomation"
-msgstr "Piešķīrums"
+msgstr "Paskirstymo infekcija"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
@@ -248,7 +256,7 @@ msgstr "Piešķīrums"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Archived"
-msgstr "Arhivēts"
+msgstr "Archyvuota"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_op_assignment
@@ -261,27 +269,27 @@ msgstr "Arhivēts"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_tree
 msgid "Assignment"
-msgstr "Norīkojums"
+msgstr "Užduotis"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_student__assignment_count
 msgid "Assignment Count"
-msgstr "Uzdevumu skaits"
+msgstr "Užduoties skaičius"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_graph
 msgid "Assignment Graph View"
-msgstr "Piešķiršanas diagrammas skats"
+msgstr "Priskyrimo grafiko vaizdas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Assignment Name"
-msgstr "Uzdevuma nosaukums"
+msgstr "Priskyrimo pavadinimas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_pivot
 msgid "Assignment Pivot View"
-msgstr "Piešķiršanas šarnīra skats"
+msgstr "Priskyrimo „Pivot View“"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
@@ -289,48 +297,49 @@ msgstr "Piešķiršanas šarnīra skats"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_tree
 msgid "Assignment Sub Line"
-msgstr "Piešķiršanas apakšlīnija"
+msgstr "Priskyrimo pogrupio eilutė"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_graph
 msgid "Assignment Sub Line Graph View"
-msgstr "Piešķiršanas apakšlīnijas diagrammas skats"
+msgstr "Priskyrimo pogrupio grafiko vaizdas"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_op_assignment_sub_line
 #: model:mail.template,name:openeducat_assignment.email_template_assignment_submission
 msgid "Assignment Submission"
-msgstr "Norīkojuma iesniegšana"
+msgstr "Užduočių pateikimas"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_sub_line_view_pivot
 msgid "Assignment Submission Analysis Pivot"
-msgstr "Piešķiršanas iesniegšanas analīzes šarnīrs"
+msgstr "Užduočių pateikimo analizė „Pivot“"
 
 #. module: openeducat_assignment
 #: model:mail.template,subject:openeducat_assignment.email_template_assignment_submission_after
 msgid "Assignment Submission Date Passed"
-msgstr "Piešķiršanas datums"
+msgstr "Paskelbta užduoties pateikimo data"
 
 #. module: openeducat_assignment
 #: model:base.automation,name:openeducat_assignment.test_rule_assignment_sub_line
 msgid "Assignment Submission Line"
-msgstr "Norīkojuma iesniegšanas līnija"
+msgstr "Priskyrimo pateikimo eilutė"
 
 #. module: openeducat_assignment
 #: model:base.automation,name:openeducat_assignment.test_rule_assignment_sub_line_after
 msgid "Assignment Submission Line after 1 Days"
-msgstr "Piešķiršanas iesniegšanas līnija pēc 1 dienas"
+msgstr "Užduočių pateikimo eilutė po 1 dienos"
 
 #. module: openeducat_assignment
 #: model:mail.template,name:openeducat_assignment.email_template_assignment_submission_after
 msgid "Assignment Submission Passed"
-msgstr "Piešķirts piešķīruma iesniegums"
+msgstr "Paskelbtas užduoties pateikimas"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_sub_line_view
+#: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub_line_sub
 msgid "Assignment Submissions"
-msgstr "Piešķiršanas iesniegumi"
+msgstr "Paskyrimo pateikimai"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_grading_assignment_type
@@ -338,7 +347,7 @@ msgstr "Piešķiršanas iesniegumi"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_type
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Assignment Type"
-msgstr "Piešķiršanas tips"
+msgstr "Priskyrimo tipas"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_type_view
@@ -346,12 +355,12 @@ msgstr "Piešķiršanas tips"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_form
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_tree
 msgid "Assignment Types"
-msgstr "Piešķiršanas veidi"
+msgstr "Užduočių tipai"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_student__allocation_ids
 msgid "Assignment(s)"
-msgstr "Piešķiršana (-i)"
+msgstr "Užduotis (-os)"
 
 #. module: openeducat_assignment
 #: model:ir.actions.act_window,name:openeducat_assignment.act_open_op_assignment_view
@@ -359,23 +368,23 @@ msgstr "Piešķiršana (-i)"
 #: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_root
 #: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub
 msgid "Assignments"
-msgstr "Uzdevumi"
+msgstr "Užduotys"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_attachment_count
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_attachment_count
 msgid "Attachment Count"
-msgstr "Pielikumu skaits"
+msgstr "Priedų skaičius"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__grading_assignment_type__assign_type__attendance
 msgid "Attendance"
-msgstr "Apmeklējums"
+msgstr "Dalyvavimas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Basic Information"
-msgstr "Pamatinformācija"
+msgstr "Pagrindinė informacija"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__batch_id
@@ -387,50 +396,50 @@ msgstr "Partija"
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__cancel
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Cancel"
-msgstr "Atcelt"
+msgstr "Atšaukti"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Change And Resubmit"
-msgstr "Mainīt un atkārtoti iesniegt"
+msgstr "Pakeisti ir iš naujo pateikti"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__change
 msgid "Change Req."
-msgstr "Mainīt req."
+msgstr "Pakeisti req."
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Change Require"
-msgstr "Mainīt prasību"
+msgstr "Pokyčių reikalavimas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__user_boolean
 msgid "Check user"
-msgstr "Pārbaudīt lietotāju"
+msgstr "Patikrinkite vartotoją"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment_type__code
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
 msgid "Code"
-msgstr "Kodekss"
+msgstr "Kodas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__company_id
 msgid "Company"
-msgstr "Kompānija"
+msgstr "Įmonė"
 
 #. module: openeducat_assignment
 #: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_configuration
 msgid "Configuration"
-msgstr "Konfigurācija"
+msgstr "Konfigūracija"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__course_id
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__course_id
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Course"
-msgstr "Kurss"
+msgstr "Kursas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__create_uid
@@ -438,7 +447,7 @@ msgstr "Kurss"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__create_uid
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__create_uid
 msgid "Created by"
-msgstr "Izveidots ar"
+msgstr "Sukurta"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__create_date
@@ -446,7 +455,7 @@ msgstr "Izveidots ar"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__create_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__create_date
 msgid "Created on"
-msgstr "Izveidots"
+msgstr "Sukurtas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__description
@@ -454,7 +463,7 @@ msgstr "Izveidots"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Description"
-msgstr "Apraksts"
+msgstr "apibūdinimas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__display_name
@@ -462,71 +471,71 @@ msgstr "Apraksts"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__display_name
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__display_name
 msgid "Display Name"
-msgstr "Displeja nosaukums"
+msgstr "Rodomas pavadinimas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__draft
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__draft
 msgid "Draft"
-msgstr "Uzmetums"
+msgstr "Juodraštis"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__faculty_id
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__faculty_id
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Faculty"
-msgstr "Fakultāte"
+msgstr "Fakultetas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__faculty_user_id
 msgid "Faculty User"
-msgstr "Fakultātes lietotājs"
+msgstr "Fakulteto vartotojas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Finish"
-msgstr "Pabeigt"
+msgstr "Baigti"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__finish
 msgid "Finished"
-msgstr "Pabeigts"
+msgstr "Baigtas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_follower_ids
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_follower_ids
 msgid "Followers"
-msgstr "Sekotāji"
+msgstr "Pasekėjai"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_partner_ids
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Sekotāji (partneri)"
+msgstr "Stebėtojai (partneriai)"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_grading_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__grading_assignment_id
 msgid "Grading Assignment"
-msgstr "Šķirošanas uzdevums"
+msgstr "Vertinimo užduotis"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
 msgid "Group By..."
-msgstr "Grupa ..."
+msgstr "Grupuoti pagal..."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__has_message
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__has_message
 msgid "Has Message"
-msgstr "Ir ziņojums"
+msgstr "Turi pranešimą"
 
 #. module: openeducat_assignment
 #: model:ir.module.category,description:openeducat_assignment.module_category_all_op_assignment
 msgid "Helps you manage your institutes different-different users."
-msgstr "Palīdz pārvaldīt savus institūtus dažādus diferencētus lietotājus."
+msgstr "Padeda valdyti skirtingus institutus ir skirtingus vartotojus."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__id
@@ -534,13 +543,13 @@ msgstr "Palīdz pārvaldīt savus institūtus dažādus diferencētus lietotāju
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__id
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__id
 msgid "ID"
-msgstr "Personas apliecība"
+msgstr "Id"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__message_needaction
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "Pārbaudot, jauniem ziņojumiem ir nepieciešama jūsu uzmanība."
+msgstr "Jei patikrinsite, nauji pranešimai reikalauja jūsų dėmesio."
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__message_has_error
@@ -548,40 +557,42 @@ msgstr "Pārbaudot, jauniem ziņojumiem ir nepieciešama jūsu uzmanība."
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_has_error
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Pārbaudot, dažiem ziņojumiem ir piegādes kļūda."
+msgstr "Jei patikrinta, kai kurie pranešimai turi pristatymo klaidą."
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not             create Assignment Submissions!"
 msgstr ""
-"Nederīga darbība!\n"
-" Vecāks nevar izveidot uzdevumu iesniegumus!"
+"Netinkamas veiksmas!\n"
+"Tėvai negali sukurti užduočių pateikimo!"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid ""
 "Invalid Action!\n"
 " Parent can not edit             Assignment Submissions!"
 msgstr ""
-"Nederīga darbība!\n"
-" Vecāks nevar rediģēt uzdevumu iesniegumus!"
+"Netinkamas veiksmas!\n"
+"Tėvai negali redaguoti užduočių pateiktų dokumentų!"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_is_follower
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_is_follower
 msgid "Is Follower"
-msgstr "Ir sekotājs"
+msgstr "Yra sekėjas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__issued_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__issued_date
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Issued Date"
-msgstr "Izdots datums"
+msgstr "Išduota data"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__write_uid
@@ -589,7 +600,7 @@ msgstr "Izdots datums"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__write_uid
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__write_uid
 msgid "Last Updated by"
-msgstr "Pēdējo reizi atjaunināts"
+msgstr "Paskutinį kartą atnaujinta"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__write_date
@@ -597,12 +608,12 @@ msgstr "Pēdējo reizi atjaunināts"
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__write_date
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__write_date
 msgid "Last Updated on"
-msgstr "Pēdējo reizi atjaunināts"
+msgstr "Paskutinį kartą atnaujinta"
 
 #. module: openeducat_assignment
 #: model:res.groups,name:openeducat_assignment.group_op_assignment_manager
 msgid "Manager"
-msgstr "Vadītājs"
+msgstr "Vadovas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__marks
@@ -610,25 +621,25 @@ msgstr "Vadītājs"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Marks"
-msgstr "Zīmes"
+msgstr "Ženklai"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_has_error
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_has_error
 msgid "Message Delivery error"
-msgstr "Ziņojuma piegādes kļūda"
+msgstr "Pranešimo pristatymo klaida"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_ids
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_ids
 msgid "Messages"
-msgstr "Ziņojumi"
+msgstr "Pranešimai"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Month"
-msgstr "Mēnesis"
+msgstr "Mėnuo"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__name
@@ -637,99 +648,100 @@ msgstr "Mēnesis"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
 msgid "Name"
-msgstr "Nosaukt"
+msgstr "vardas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__note
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Note"
-msgstr "Atzīmēt"
+msgstr "PASTABA"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_needaction_counter
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_needaction_counter
 msgid "Number of Actions"
-msgstr "Darbību skaits"
+msgstr "Veiksmų skaičius"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_has_error_counter
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_has_error_counter
 msgid "Number of errors"
-msgstr "Kļūdu skaits"
+msgstr "Klaidų skaičius"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__message_needaction_counter
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr "Ziņojumu skaits, kas prasa darbību"
+msgstr "Pranešimų, kuriems reikalingas veiksmas, skaičius"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__message_has_error_counter
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__message_has_error_counter
 msgid "Number of messages with delivery error"
-msgstr "Ziņojumu skaits ar piegādes kļūdu"
+msgstr "Pranešimų su pristatymo klaida skaičius"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__point
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__point
 msgid "Points"
-msgstr "Punkti"
+msgstr "Taškai"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Publish"
-msgstr "Izdot"
+msgstr "Publikuoti"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment__state__publish
 msgid "Published"
-msgstr "Publicēts"
+msgstr "Paskelbta"
+
+#. module: openeducat_assignment
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__rating_ids
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__rating_ids
+msgid "Ratings"
+msgstr "Įvertinimai"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Reject"
-msgstr "Noraidīt"
+msgstr "Atmesti"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__reject
 msgid "Rejected"
-msgstr "Noraidīts"
+msgstr "Atstumtas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Resubmit"
-msgstr "Atkārtoti iesniegt"
+msgstr "Pateikti iš naujo"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__reviewer
 msgid "Reviewer"
-msgstr "Recenzents"
+msgstr "Recenzentas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__message_has_sms_error
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr "SMS piegādes kļūda"
+msgstr "SMS pristatymo klaida"
 
 #. module: openeducat_assignment
 #: model:ir.actions.server,name:openeducat_assignment.assignment_sub_line_action
 msgid "Server Actions Assignment Submission"
-msgstr "Servera darbību piešķiršanas iesniegšana"
+msgstr "Serverio veiksmų priskyrimo pateikimas"
 
 #. module: openeducat_assignment
 #: model:ir.actions.server,name:openeducat_assignment.assignment_sub_line_action_after
 msgid "Server Actions Assignment Submission After 1 Days"
-msgstr "Servera darbību piešķiršanas iesniegšana pēc 1 dienas"
+msgstr "Serverio veiksmų priskyrimo pateikimas po 1 dienos"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Set to Draft"
-msgstr "Iestatīts uz melnrakstu"
-
-#. module: openeducat_assignment
-#: model:ir.ui.menu,name:openeducat_assignment.menu_assignment_config
-msgid "Settings"
-msgstr "Iestatījumi"
+msgstr "Nustatykite juodraštį"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__state
@@ -737,31 +749,26 @@ msgstr "Iestatījumi"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "State"
-msgstr "Štats"
+msgstr "Būsena"
 
 #. module: openeducat_assignment
 #: model:ir.model,name:openeducat_assignment.model_op_student
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__student_id
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Student"
-msgstr "Students"
+msgstr "Studentas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment__subject_id
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__subject_id
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 msgid "Subject"
-msgstr "Priekšmets"
+msgstr "Tema"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__grading_assignment_type__assign_type__sub
 msgid "Subjective"
-msgstr "Subjektīvs"
-
-#. module: openeducat_assignment
-#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line
-msgid "Submission"
-msgstr "Iesniegšana"
+msgstr "Subjektyvus"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__submission_date
@@ -769,84 +776,85 @@ msgstr "Iesniegšana"
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Submission Date"
-msgstr "Iesniegšanas datums"
+msgstr "Pateikimo data"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment.py:0
+#, python-format
 msgid "Submission Date cannot be set before Issue Date."
-msgstr "Iesniegšanas datumu nevar iestatīt pirms izdošanas datuma."
+msgstr "Pateikimo data negali būti nustatyta anksčiau nei išleidimo data"
 
 #. module: openeducat_assignment
-#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line_count
-#: model:ir.ui.menu,name:openeducat_assignment.menu_op_assignment_sub_line_sub
+#: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__assignment_sub_line
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_form
 msgid "Submissions"
-msgstr "Iesniegumi"
+msgstr "Pateikimai"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_form
 msgid "Submit"
-msgstr "Iesniegt"
+msgstr "Pateikti"
 
 #. module: openeducat_assignment
 #: model:mail.template,subject:openeducat_assignment.email_template_assignment_submission
 msgid "Submit Your Assignment"
-msgstr "Iesniedziet savu uzdevumu"
+msgstr "Pateikite savo užduotį"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields.selection,name:openeducat_assignment.selection__op_assignment_sub_line__state__submit
 msgid "Submitted"
-msgstr "Iesniegts"
+msgstr "Pateiktas"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_type_search
 msgid "Tag"
-msgstr "Marķēt"
+msgstr "Žyma"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__faculty_user_id
 msgid "The internal user in charge of this contact."
-msgstr "Iekšējais lietotājs, kas atbild par šo kontaktu."
+msgstr "Už šį kontaktą atsakingas vidinis vartotojas."
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Today"
-msgstr "Šodien"
+msgstr "Šiandien"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_grading_assignment_type__assign_type
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_tree
 msgid "Type"
-msgstr "Ierakstīt"
+msgstr "Tipas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__user_id
 #: model:res.groups,name:openeducat_assignment.group_op_assignment_user
 msgid "User"
-msgstr "Lietotājs"
+msgstr "Vartotojas"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment__website_message_ids
 #: model:ir.model.fields,field_description:openeducat_assignment.field_op_assignment_sub_line__website_message_ids
 msgid "Website Messages"
-msgstr "Vietnes ziņojumi"
+msgstr "Svetainės pranešimai"
 
 #. module: openeducat_assignment
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment__website_message_ids
 #: model:ir.model.fields,help:openeducat_assignment.field_op_assignment_sub_line__website_message_ids
 msgid "Website communication history"
-msgstr "Tīmekļa komunikācijas vēsture"
+msgstr "Tinklalapio komunikacijos istorija"
 
 #. module: openeducat_assignment
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_search
 #: model_terms:ir.ui.view,arch_db:openeducat_assignment.view_op_assignment_sub_line_search
 msgid "Week"
-msgstr "Nedēļa"
+msgstr "Savaitė"
 
 #. module: openeducat_assignment
 #. odoo-python
 #: code:addons/openeducat_assignment/models/assignment_sub_line.py:0
+#, python-format
 msgid "You can't delete none draft submissions!"
-msgstr "Jūs nevarat izdzēst nevienu iesniegšanas projektu!"
+msgstr "Negalite ištrinti nė vieno pateikimo juodraščio!"

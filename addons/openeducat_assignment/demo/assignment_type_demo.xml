@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
+<odoo>
+    <data noupdate="1">
         <record id="Assignment_type_1" model="grading.assignment.type">
             <field name="name">Homework</field>
             <field name="code">hm1</field>
@@ -34,4 +35,6 @@
             <field name="name">Presentation</field>
             <field name="code">p1</field>
         </record>
+
+    </data>
 </odoo>

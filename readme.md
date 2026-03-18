@@ -45,21 +45,69 @@ PY"
 
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.slug', 'authentik')
-ON CONFLICT (key) DO UPDATE SET value='authentik';
+VALUES ('authentik.slug', 'zfluxauth')
+ON CONFLICT (key) DO UPDATE SET value='zfluxauth';
 "
+## server 
+server: psql -U odoo -d postgres
+psql -h ukcs8w0oc4gokw4k4gckwc0k -U odoo
+password from conf file
+
+INSERT INTO ir_config_parameter(key, value)
+VALUES ('authentik.client_id', 'F1NUka56CXM4pSrjOb6R6lJkn140HVtWdsfILaWU')
+ON CONFLICT (key) DO UPDATE SET value='F1NUka56CXM4pSrjOb6R6lJkn140HVtWdsfILaWU';
+
+INSERT INTO ir_config_parameter(key, value)
+VALUES ('authentik.slug', 'zfluxauth')
+ON CONFLICT (key) DO UPDATE SET value='zfluxauth';
+
+INSERT INTO ir_config_parameter(key, value)
+VALUES ('authentik.client_secret', 'GoH8pi731Y4FHbmf232wMleQqhyrhNowNHScRjEmOUDPq3CqXypeNEKtcyXaWnzrvxrI3iWfOgfcM9mY19zrbgfwehiF42HB4ab6FCwAcp9HceSCb2px76CnGEW0JnGo')
+ON CONFLICT (key) DO UPDATE SET value='GoH8pi731Y4FHbmf232wMleQqhyrhNowNHScRjEmOUDPq3CqXypeNEKtcyXaWnzrvxrI3iWfOgfcM9mY19zrbgfwehiF42HB4ab6FCwAcp9HceSCb2px76CnGEW0JnGo';
+
 
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.client_id', 'CPi95WGTSon62uY6jOfuLvwRXWxTaKruPxDmKZDd')
-ON CONFLICT (key) DO UPDATE SET value='CPi95WGTSon62uY6jOfuLvwRXWxTaKruPxDmKZDd';
+VALUES ('authentik.client_id', 'F1NUka56CXM4pSrjOb6R6lJkn140HVtWdsfILaWU')
+ON CONFLICT (key) DO UPDATE SET value='F1NUka56CXM4pSrjOb6R6lJkn140HVtWdsfILaWU';
 "
 
 
+
+## container lotus:
+# rebuild asset:
+    odoo -d odoo -u web --stop-after-init
+
+odoo shell -d odoo
+env['ir.config_parameter'].sudo().set_param(
+    'authentik.client_id',
+    'F1NUka56CXM4pSrjOb6R6lJkn140HVtWdsfILaWU'
+)
+env['ir.config_parameter'].sudo().set_param(
+    'authentik.client_secret',
+    'GoH8pi731Y4FHbmf232wMleQqhyrhNowNHScRjEmOUDPq3CqXypeNEKtcyXaWnzrvxrI3iWfOgfcM9mY19zrbgfwehiF42HB4ab6FCwAcp9HceSCb2px76CnGEW0JnGo'
+)
+
+env['ir.config_parameter'].sudo().set_param(
+    'web.base.url',
+    'https://meworld.zent.work'
+)
+
+env['ir.config_parameter'].sudo().set_param(
+    'web.base.url.freeze',
+    'True'
+)
+
+env['ir.config_parameter'].sudo().get_param('web.base.url')
+
+restart coolify container:
+terminal run: pkill -f odoo
+
+server psql -U odoo -d postgres
 docker compose exec db psql -U odoo -d lodooo -c "
 INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.client_secret', 'qe5WOzBT2Hz6FciLN2ERPeJ5ipTbUC4CzkaipOh9iufDrlkYFFnM8xQS9OtdokgLQl4Qycuj20UdlSZSrYOl4Is8fNd75Z7iUExaWxyodAD8gatamSYJUC6MmnozPYs0')
-ON CONFLICT (key) DO UPDATE SET value='qe5WOzBT2Hz6FciLN2ERPeJ5ipTbUC4CzkaipOh9iufDrlkYFFnM8xQS9OtdokgLQl4Qycuj20UdlSZSrYOl4Is8fNd75Z7iUExaWxyodAD8gatamSYJUC6MmnozPYs0';
+VALUES ('authentik.client_secret', 'GoH8pi731Y4FHbmf232wMleQqhyrhNowNHScRjEmOUDPq3CqXypeNEKtcyXaWnzrvxrI3iWfOgfcM9mY19zrbgfwehiF42HB4ab6FCwAcp9HceSCb2px76CnGEW0JnGo')
+ON CONFLICT (key) DO UPDATE SET value='GoH8pi731Y4FHbmf232wMleQqhyrhNowNHScRjEmOUDPq3CqXypeNEKtcyXaWnzrvxrI3iWfOgfcM9mY19zrbgfwehiF42HB4ab6FCwAcp9HceSCb2px76CnGEW0JnGo';
 "
 
 docker compose exec db psql -U odoo -d lodooo -c "

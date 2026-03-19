@@ -8,6 +8,6 @@ COPY . /mnt/extra-addons
 # Copy config if any
 # COPY config/odoo.conf /etc/odoo/odoo.conf
 
-RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo
+RUN chown -R odoo:odoo /mnt/extra-addons/meworld /etc/odoo
 
 USER odoo

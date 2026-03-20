@@ -16,5 +16,3 @@ auth-templates
 *package-lock.json
 *.next
 *__pycache__
-mcp
-ai-chat

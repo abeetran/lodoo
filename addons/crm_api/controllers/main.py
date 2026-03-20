@@ -1,9 +1,10 @@
-from odoo import http
-from odoo.http import request
 import json
 import os
+import xmlrpc.client
+from urllib.parse import urlparse
+from odoo import http
+from odoo.http import request
 
-# API_TOKEN = "my_secure_token_123"  # đổi lại token của bạn
 API_TOKEN = os.getenv("CRM_API_TOKEN", "default_token")
 
 def check_token(req):
@@ -13,96 +14,209 @@ def check_token(req):
 
 class LeadAPI(http.Controller):
 
-    # 🔹 GET ALL (có pagination)
+    def _get_rpc(self):
+        # 👉 ĐỔI MẶC ĐỊNH SANG HTTP
+        url = os.getenv("CRM_RPC_URL", "http://odoo_tik:8069")
+        db = os.getenv("CRM_RPC_DB", "odoo")
+        username = os.getenv("CRM_RPC_USER", "abeetran@gmail.com")
+        password = os.getenv("CRM_RPC_PASSWORD", "Abcd@1234")
+
+        parsed = urlparse(url)
+        print("RPC URL:", url)
+
+        # 👉 FIX SSL: nếu là https thì bỏ verify (cho dev)
+        if parsed.scheme == 'https':
+            import ssl
+            context = ssl._create_unverified_context()
+            common = xmlrpc.client.ServerProxy(
+                f'{url}/xmlrpc/2/common',
+                context=context,
+                allow_none=True
+            )
+            models = xmlrpc.client.ServerProxy(
+                f'{url}/xmlrpc/2/object',
+                context=context,
+                allow_none=True
+            )
+        else:
+            # 👉 HTTP (localhost)
+            common = xmlrpc.client.ServerProxy(
+                f'{url}/xmlrpc/2/common',
+                allow_none=True
+            )
+            models = xmlrpc.client.ServerProxy(
+                f'{url}/xmlrpc/2/object',
+                allow_none=True
+            )
+
+        uid = common.authenticate(db, username, password, {})
+
+        if not uid:
+            raise Exception("RPC Authentication failed")
+
+        return db, uid, password, models
+
+
+    def _format_lead(self, lead):
+        return {
+            'id': lead.get('id'),
+            'name': lead.get('name') or '',
+            'email': lead.get('email_from') or '',
+            'phone': lead.get('phone') or '',
+            'expected_revenue': float(lead.get('expected_revenue') or 0),
+            'priority': int(lead.get('priority') or 0),
+            'stage': {
+                'id': lead['stage_id'][0] if lead.get('stage_id') else None,
+                'name': lead['stage_id'][1] if lead.get('stage_id') else ''
+            }
+        }
+
+
     @http.route('/api/leads', type='http', auth='public', methods=['GET'], csrf=False)
     def get_leads(self, **params):
         if not check_token(request):
             return request.make_response("Unauthorized", status=401)
 
-        limit = int(params.get('limit', 10))
-        offset = int(params.get('offset', 0))
+        try:
+            db, uid, password, models = self._get_rpc()
 
-        leads = request.env['crm.lead'].sudo().search([], limit=limit, offset=offset)
+            limit = int(params.get('limit', 10))
+            offset = int(params.get('offset', 0))
 
-        data = []
-        for l in leads:
-            data.append({
-                'id': l.id,
-                'name': l.name,
-                'email': l.email_from,
-                'phone': l.phone,
-            })
+            leads = models.execute_kw(
+                db, uid, password,
+                'crm.lead', 'search_read',
+                [[]],
+                {
+                    'fields': [
+                        'name', 'email_from', 'phone',
+                        'expected_revenue', 'priority', 'stage_id'
+                    ],
+                    'limit': limit,
+                    'offset': offset
+                }
+            )
 
-        return request.make_response(json.dumps(data), headers=[('Content-Type', 'application/json')])
+            data = [self._format_lead(l) for l in leads]
 
-    # 🔹 GET ONE
+            return request.make_response(
+                json.dumps(data),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        except Exception as e:
+            return request.make_response(str(e), status=500)
+
+
     @http.route('/api/leads/<int:lead_id>', type='http', auth='public', methods=['GET'], csrf=False)
     def get_lead(self, lead_id):
         if not check_token(request):
             return request.make_response("Unauthorized", status=401)
 
-        lead = request.env['crm.lead'].sudo().browse(lead_id)
+        try:
+            db, uid, password, models = self._get_rpc()
 
-        if not lead.exists():
-            return request.make_response("Not found", status=404)
+            leads = models.execute_kw(
+                db, uid, password,
+                'crm.lead', 'search_read',
+                [[['id', '=', lead_id]]],
+                {
+                    'fields': [
+                        'name', 'email_from', 'phone',
+                        'expected_revenue', 'priority', 'stage_id'
+                    ],
+                    'limit': 1
+                }
+            )
 
-        data = {
-            'id': lead.id,
-            'name': lead.name,
-            'email': lead.email_from,
-            'phone': lead.phone,
-        }
+            if not leads:
+                return request.make_response("Not found", status=404)
 
-        return request.make_response(json.dumps(data), headers=[('Content-Type', 'application/json')])
+            data = self._format_lead(leads[0])
 
-    # 🔹 CREATE
+            return request.make_response(
+                json.dumps(data),
+                headers=[('Content-Type', 'application/json')]
+            )
+
+        except Exception as e:
+            return request.make_response(str(e), status=500)
+
+
     @http.route('/api/leads', type='http', auth='public', methods=['POST'], csrf=False)
     def create_lead(self):
         if not check_token(request):
             return request.make_response("Unauthorized", status=401)
 
-        body = json.loads(request.httprequest.data)
+        try:
+            db, uid, password, models = self._get_rpc()
+            body = json.loads(request.httprequest.data)
 
-        lead = request.env['crm.lead'].sudo().create({
-            'name': body.get('name'),
-            'email_from': body.get('email'),
-            'phone': body.get('phone'),
-        })
+            lead_id = models.execute_kw(
+                db, uid, password,
+                'crm.lead', 'create',
+                [{
+                    'name': body.get('name'),
+                    'email_from': body.get('email'),
+                    'phone': body.get('phone'),
+                }]
+            )
 
-        return request.make_response(json.dumps({'id': lead.id}), headers=[('Content-Type', 'application/json')])
+            return request.make_response(
+                json.dumps({'id': lead_id}),
+                headers=[('Content-Type', 'application/json')]
+            )
 
-    # 🔹 UPDATE
+        except Exception as e:
+            return request.make_response(str(e), status=500)
+
+
     @http.route('/api/leads/<int:lead_id>', type='http', auth='public', methods=['PUT'], csrf=False)
     def update_lead(self, lead_id):
         if not check_token(request):
             return request.make_response("Unauthorized", status=401)
 
-        lead = request.env['crm.lead'].sudo().browse(lead_id)
+        try:
+            db, uid, password, models = self._get_rpc()
+            body = json.loads(request.httprequest.data)
 
-        if not lead.exists():
-            return request.make_response("Not found", status=404)
+            success = models.execute_kw(
+                db, uid, password,
+                'crm.lead', 'write',
+                [[lead_id], {
+                    'name': body.get('name'),
+                    'email_from': body.get('email'),
+                    'phone': body.get('phone'),
+                }]
+            )
 
-        body = json.loads(request.httprequest.data)
+            return request.make_response(
+                json.dumps({'success': success}),
+                headers=[('Content-Type', 'application/json')]
+            )
 
-        lead.write({
-            'name': body.get('name'),
-            'email_from': body.get('email'),
-            'phone': body.get('phone'),
-        })
+        except Exception as e:
+            return request.make_response(str(e), status=500)
 
-        return request.make_response(json.dumps({'success': True}), headers=[('Content-Type', 'application/json')])
 
-    # 🔹 DELETE
     @http.route('/api/leads/<int:lead_id>', type='http', auth='public', methods=['DELETE'], csrf=False)
     def delete_lead(self, lead_id):
         if not check_token(request):
             return request.make_response("Unauthorized", status=401)
 
-        lead = request.env['crm.lead'].sudo().browse(lead_id)
+        try:
+            db, uid, password, models = self._get_rpc()
 
-        if not lead.exists():
-            return request.make_response("Not found", status=404)
+            success = models.execute_kw(
+                db, uid, password,
+                'crm.lead', 'unlink',
+                [[lead_id]]
+            )
 
-        lead.unlink()
+            return request.make_response(
+                json.dumps({'success': success}),
+                headers=[('Content-Type', 'application/json')]
+            )
 
-        return request.make_response(json.dumps({'success': True}), headers=[('Content-Type', 'application/json')])
+        except Exception as e:
+            return request.make_response(str(e), status=500)

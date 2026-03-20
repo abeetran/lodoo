@@ -2,167 +2,157 @@ version: "3.5"
 
 services:
   # --- CƠ SỞ DỮ LIỆU & REDIS (Dùng chung cho Authentik) ---
-  # authentik-db:
-  #   image: postgres:16-alpine
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
-  #     start_period: 20s
-  #     interval: 30s
-  #     retries: 5
-  #     timeout: 5s
-  #   networks:
-  #     - coolify
-  #   volumes:
-  #     - ./auth-db:/var/lib/postgresql/data
-  #   environment:
-  #     POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
-  #     POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
-  #     POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
-  #   restart: unless-stopped
+  authentik-db:
+    image: postgres:16-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    networks:
+      - sso-network
+    volumes:
+      - ./auth-db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
+      POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
+    restart: unless-stopped
 
-  # authentik-redis:
-  #   image: redis:alpine
-  #   command: --save 60 1 --loglevel warning
-  #   networks:
-  #     - coolify
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-  #     start_period: 20s
-  #     interval: 30s
-  #     retries: 5
-  #     timeout: 3s
-  #   restart: unless-stopped
+  authentik-redis:
+    image: redis:alpine
+    command: --save 60 1 --loglevel warning
+    networks:
+      - sso-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 3s
+    restart: unless-stopped
 
   # --- AUTHENTIK (Trụ sở SSO) ---
-  # authentik-server:
-  #   image: ghcr.io/goauthentik/server:latest
-  #   command: server
-  #   environment:
-  #     AUTHENTIK_REDIS__HOST: authentik-redis
-  #     AUTHENTIK_POSTGRESQL__HOST: authentik-db
-  #     AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
-  #     AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
-  #     AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
-  #     AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
-  #   volumes:
-  #     - ./auth-media:/media
-  #     - ./auth-certs:/certs
-  #     - ./auth-templates:/templates
-  #   ports:
-  #     - "9000:9000"
-  #     - "9443:9443"
-  #   networks:
-  #     - coolify
-    # depends_on:
-    #   authentik-db:
-    #     condition: service_healthy
-    #   authentik-redis:
-    #     condition: service_healthy
-    # restart: unless-stopped
+  authentik-server:
+    image: ghcr.io/goauthentik/server:latest
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    volumes:
+      - ./auth-media:/media
+      - ./auth-certs:/certs
+      - ./auth-templates:/templates
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    networks:
+      - sso-network
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    restart: unless-stopped
 
-  # authentik-worker:
-  #   image: ghcr.io/goauthentik/server:latest
-  #   command: worker
-  #   environment:
-  #     AUTHENTIK_REDIS__HOST: authentik-redis
-  #     AUTHENTIK_POSTGRESQL__HOST: authentik-db
-  #     AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
-  #     AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
-  #     AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
-  #     AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
-  #   networks:
-  #     - coolify
-    # depends_on:
-    #   authentik-db:
-    #     condition: service_healthy
-    #   authentik-redis:
-    #     condition: service_healthy
-    # restart: unless-stopped
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:latest
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__USER: ${AUTHENTIK_POSTGRESQL__USER:-authentik}
+      AUTHENTIK_POSTGRESQL__NAME: ${AUTHENTIK_POSTGRESQL__NAME:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    networks:
+      - sso-network
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+      authentik-redis:
+        condition: service_healthy
+    restart: unless-stopped
 
 
   # =============================
   # ✅ ODOO mapped theo mẫu bạn đưa
   # =============================
-  # db:
-  #   image: postgres:15
-  #   container_name: odoo_db
-  #   environment:
-  #     POSTGRES_DB: postgres
-  #     POSTGRES_USER: odoo
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
-  #   volumes:
-  #     - ./postgres:/var/lib/postgresql/data
-  #   networks:
-  #     - coolify
-  #   restart: unless-stopped
+  db:
+    image: postgres:15
+    container_name: odoo_db
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - sso-network
+    restart: unless-stopped
 
   odoo:
-    # image: odoo:17
-    build:
-      context: ./addons
+    image: odoo:17
     container_name: odoo_tik
-    # env_file:
-    #   - .env
-    # depends_on:
-    #   - mcp-server
-    # ports:
-    #   - "8068:8069"
-    # environment:
-    #   HOST: db
-    #   USER: odoo
-    #   PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"
+    environment:
+      HOST: db
+      USER: odoo
+      PASSWORD: ${POSTGRES_PASSWORD:-odoo}
     networks:
-      - coolify
+      - sso-network
     volumes:
       - ./config/odoo.conf:/etc/odoo/odoo.conf
-      # - ./addons:/mnt/extra-addons
+      - ./addons:/mnt/extra-addons
       - ./odoo-web-data:/var/lib/odoo
     restart: unless-stopped
 
     # =============================
   # ✅ MCP SERVER (AI BACKEND)
   # =============================
-  # mcp-server:
-  #   # image: python:3.11-slim
-  #   build:
-  #     context: ./mcp
-  #   container_name: mcp_server
-  #   working_dir: /app
-  #   # volumes:
-  #   #   - ./mcp:/app
-  #   command: bash -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 3333"
-  #   # env_file:
-  #   #   - .env
-  #   ports:
-  #     - "3333:3333"
-  #   networks:
-  #     - coolify
-  #   restart: unless-stopped
+  mcp-server:
+    image: python:3.11-slim
+    container_name: mcp_server
+    working_dir: /app
+    volumes:
+      - ./mcp:/app
+    command: bash -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 3333"
+    env_file:
+      - .env
+    ports:
+      - "3333:3333"
+    networks:
+      - sso-network
+    restart: unless-stopped
 
   # =============================
   # ✅ AI CHAT UI (FRONTEND)
   # =============================
-  # ai-chat:
-  #   # image: node:20-alpine
-  #   build:
-  #     context: ./ai-chat
-  #   container_name: ai_chat_ui
-  #   working_dir: /app
-  #   # volumes:
-  #   #   - ./ai-chat:/app
-  #   command: sh -c "npm install && npm run dev"
-  #   ports:
-  #     - "3000:3000"
-  #   # environment:
-  #   #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
-  #   networks:
-  #     - coolify
-  #   restart: unless-stopped
-
-# networks:
-#   sso-network:
-#     driver: bridge
+  ai-chat:
+    image: node:20-alpine
+    container_name: ai_chat_ui
+    working_dir: /app
+    volumes:
+      - ./ai-chat:/app
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_MCP_URL=http://localhost:3333
+    networks:
+      - sso-network
+    restart: unless-stopped
 
 networks:
-  coolify:
-    external: true
+  sso-network:
+    driver: bridge

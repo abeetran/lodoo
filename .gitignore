@@ -1,0 +1,11 @@
+auth-certs
+auth-db
+auth-media
+auth-templates
+.env
+postgres
+*/__pycache__
+*/.next
+*/node_modules
+.DS_Store
+*/.DS_Store

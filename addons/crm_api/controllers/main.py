@@ -159,6 +159,8 @@ class LeadAPI(http.Controller):
                     'name': body.get('name'),
                     'email_from': body.get('email'),
                     'phone': body.get('phone'),
+                    'expected_revenue': float(body.get('expected_revenue') or 0),
+                    'priority': body.get('priority'),
                 }]
             )
 
@@ -180,15 +182,44 @@ class LeadAPI(http.Controller):
             db, uid, password, models = self._get_rpc()
             body = json.loads(request.httprequest.data)
 
-            success = models.execute_kw(
-                db, uid, password,
-                'crm.lead', 'write',
-                [[lead_id], {
-                    'name': body.get('name'),
-                    'email_from': body.get('email'),
-                    'phone': body.get('phone'),
-                }]
-            )
+            vals = {}
+
+            if body.get('name'):
+                vals['name'] = body.get('name')
+
+            if body.get('email'):
+                vals['email_from'] = body.get('email')
+
+            if body.get('phone'):
+                vals['phone'] = body.get('phone')
+
+            if body.get('expected_revenue') is not None:
+                vals['expected_revenue'] = float(body.get('expected_revenue'))
+
+            if body.get('priority') is not None:
+                vals['priority'] = str(body.get('priority'))  # ⚠️ phải là string
+
+            # ✅ xử lý stage
+            stage = body.get('stage')
+            if stage in [1, 2, 3, 4]:
+                # map stage API → stage_id thực trong Odoo
+                stage_map = {
+                    1: 1,
+                    2: 2,
+                    3: 3,
+                    4: 4
+                }
+                vals['stage_id'] = stage_map[stage]
+
+            # 👉 chỉ write khi có dữ liệu
+            if vals:
+                success = models.execute_kw(
+                    db, uid, password,
+                    'crm.lead', 'write',
+                    [[lead_id], vals]
+                )
+            else:
+                success = False
 
             return request.make_response(
                 json.dumps({'success': success}),

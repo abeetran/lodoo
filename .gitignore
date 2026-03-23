@@ -16,3 +16,4 @@ auth-templates
 *package-lock.json
 *.next
 *__pycache__
+addons/.DS_Store

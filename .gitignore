@@ -1,0 +1,15 @@
+ai-chat
+auth-certs
+auth-db
+auth-media
+auth-templates
+crm_api
+mcp
+odoo-web-data
+postgres
+.env
+*/node_modules
+node_modules*/package-lock.json
+*/.next
+*/.DS_Store
+.DS_Store

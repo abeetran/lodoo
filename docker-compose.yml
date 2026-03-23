@@ -134,7 +134,7 @@ services:
     # env_file:
     #   - .env
     ports:
-      - "3333:3333"
+      - "3334:3333"
     networks:
       - coolify
     restart: unless-stopped
@@ -152,7 +152,7 @@ services:
     #   - ./ai-chat:/app
     command: sh -c "npm install && npm run dev"
     ports:
-      - "3000:3000"
+      - "3001:3000"
     # environment:
     #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
     networks:

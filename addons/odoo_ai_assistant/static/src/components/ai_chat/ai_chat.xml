@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="odoo_ai_assistant.AiChatWidgetTemplate" owl="1">
+        <div class="o_ai_chat_widget">
+            
+            <button class="ai-chat-fab" t-on-click="toggleChat" t-if="!state.isOpen">
+                💬
+            </button>
+
+            <div class="chat-card" t-if="state.isOpen">
+                
+                <div class="chat-header">
+                    <div class="hd-avatar">🤖</div>
+                    <div class="hd-text">
+                        <div class="hd-name">Hỗ trợ trực tuyến</div>
+                        <div class="hd-sub">
+                            <span class="hd-dot" /> Đang hoạt động
+                        </div>
+                    </div>
+                    <button class="close-btn" t-on-click="toggleChat">✖</button>
+                </div>
+
+                <div class="chat-body">
+                    <t t-foreach="state.messages" t-as="msg" t-key="msg_index">
+                        <div t-attf-class="msg-row {{ msg.role }}">
+                            <div class="msg-icon">
+                                <t t-if="msg.role === 'ai'">🤖</t>
+                                <t t-else="">👤</t>
+                            </div>
+                            <div t-attf-class="bubble {{ msg.role }}">
+                                <t t-esc="msg.content"/>
+                            </div>
+                        </div>
+                    </t>
+
+                    <t t-if="state.isLoading">
+                        <div class="msg-row ai">
+                            <div class="msg-icon">🤖</div>
+                            <div class="bubble ai">
+                                <div class="typing">
+                                    <span /><span /><span />
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                    <div t-ref="chatEnd"/>
+                </div>
+
+                <div class="chat-footer">
+                    <input type="text"
+                           class="chat-input"
+                           placeholder="Nhập câu hỏi..."
+                           t-model="state.inputText"
+                           t-on-keydown="onKeydown"/>
+                    <button class="send-btn" t-on-click="sendMessage" t-att-disabled="state.isLoading">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="22" y1="2" x2="11" y2="13" />
+                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                        </svg>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </t>
+</templates>

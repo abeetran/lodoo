@@ -1,45 +1,18 @@
 version: "3.5"
 
 services:
-    odoo:
-    # image: odoo:17
+  odoo:
     build:
       context: ./addons
     container_name: odoo_tik
-    # env_file:
-    #   - .env
-    # depends_on:
-    #   - mcp-server
-    # ports:
-    #   - "8068:8069"
-    # environment:
-    #   HOST: db
-    #   USER: odoo
-    #   PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    # Đặt HOST, PASSWORD trong file .env cạnh docker-compose.yml (Compose tự đọc)
+    environment:
+      HOST: ${HOST:-db}
+      PASSWORD: ${PASSWORD:-odoo}
     networks:
       - coolify
     volumes:
-      - type: bind
-        source: ./config/odoo.conf
-        target: /etc/odoo/odoo.conf
-        content: |
-          [options]
-          log_level = debug
-          log_handler = :DEBUG
-          # Hash pbkdf2: mỗi $ trong hash phải là $$ trong compose
-          admin_passwd = $$pbkdf2-sha512$$600000$$LWVsrVWK8X5vjdEaY2yN8Q$$dUssZ4CtxY1ClAL1k4QTvzkzLPgX4fw.87wXFXVQxXii7FRxl3GweMQY31oVEPW/9qwjkqWJynNzXfM7AWIGjg
-          db_host = ${HOST}
-          db_port = 5432
-          db_user = odoo
-          db_password = ${PASSWORD}
-          addons_path = /mnt/extra-addons,/usr/lib/python3/dist-packages/odoo/addons
-          proxy_mode = True
-          web.base.url = http://localhost:8069
-          web.base.url.freeze = True
-      - type: bind
-        source: ./odoo-web-data
-        target: /var/lib/odoo
-        is_directory: true
+      - ./odoo-web-data:/var/lib/odoo
     restart: unless-stopped
 
 networks:

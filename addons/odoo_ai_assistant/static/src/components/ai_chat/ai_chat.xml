@@ -1,66 +1,324 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="odoo_ai_assistant.AiChatWidgetTemplate" owl="1">
-        <div class="o_ai_chat_widget">
+
+    <t t-name="odoo_ai_assistant.AiChatFloatingWidgetTemplate" owl="1">
+        <div class="o_ai_chat_widget_fab">
             
-            <button class="ai-chat-fab" t-on-click="toggleChat" t-if="!state.isOpen">
-                💬
+            <button class="ai-chat-fab" t-on-click="toggleChat" t-if="!state.isOpen" title="Hỏi AI tại Module này">
+                🤖
             </button>
 
-            <div class="chat-card" t-if="state.isOpen">
-                
-                <div class="chat-header">
-                    <div class="hd-avatar">🤖</div>
+            <div class="chat-card-mini" t-if="state.isOpen">
+                <div class="chat-header-mini">
                     <div class="hd-text">
-                        <div class="hd-name">Hỗ trợ trực tuyến</div>
+                        <div class="hd-name">AI Hỗ Trợ Module</div>
                         <div class="hd-sub">
-                            <span class="hd-dot" /> Đang hoạt động
+                            <span class="hd-dot" /> Đang ở: <t t-esc="state.currentModuleName"/>
                         </div>
                     </div>
                     <button class="close-btn" t-on-click="toggleChat">✖</button>
                 </div>
 
-                <div class="chat-body">
+                <div class="chat-body-mini">
                     <t t-foreach="state.messages" t-as="msg" t-key="msg_index">
                         <div t-attf-class="msg-row {{ msg.role }}">
-                            <div class="msg-icon">
-                                <t t-if="msg.role === 'ai'">🤖</t>
-                                <t t-else="">👤</t>
-                            </div>
+                            
+                            <t t-if="msg.role === 'ai'">
+                                <div class="msg-avatar bot">🤖</div>
+                            </t>
+
                             <div t-attf-class="bubble {{ msg.role }}">
                                 <t t-esc="msg.content"/>
+                                <t t-if="msg.suggested_action">
+                                    <div class="suggested-action-container" style="margin-top:8px;">
+                                        <button class="btn-view-details" style="font-size:11px; padding:3px 6px;"
+                                                t-on-click="() => this.openSuggestedAction(msg.suggested_action)">
+                                            📊 Xem chi tiết
+                                        </button>
+                                    </div>
+                                </t>
                             </div>
+
+                            <t t-if="msg.role === 'user'">
+                                <div class="msg-avatar user">
+                                    <t t-esc="state.userInitial"/>
+                                </div>
+                            </t>
                         </div>
                     </t>
 
                     <t t-if="state.isLoading">
                         <div class="msg-row ai">
-                            <div class="msg-icon">🤖</div>
-                            <div class="bubble ai">
-                                <div class="typing">
-                                    <span /><span /><span />
-                                </div>
+                            <div class="msg-avatar bot">🤖</div>
+                            <div class="bubble ai typing-bubble">
+                                <div class="typing"><span /><span /><span /></div>
                             </div>
                         </div>
                     </t>
-                    <div t-ref="chatEnd"/>
+                    <div t-ref="chatEndMini"/>
                 </div>
 
-                <div class="chat-footer">
+                <div class="chat-footer-mini">
                     <input type="text"
-                           class="chat-input"
-                           placeholder="Nhập câu hỏi..."
+                           class="chat-input-mini"
+                           placeholder="Hỏi AI..."
                            t-model="state.inputText"
                            t-on-keydown="onKeydown"/>
-                    <button class="send-btn" t-on-click="sendMessage" t-att-disabled="state.isLoading">
-                        <svg viewBox="0 0 24 24">
-                            <line x1="22" y1="2" x2="11" y2="13" />
-                            <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                        </svg>
+                    <button class="send-btn-mini" t-on-click="sendMessage" t-att-disabled="state.isLoading">
+                        ↑
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </t>
+
+    <t t-name="odoo_ai_assistant.AiChatWindowTemplate" owl="1">
+        <div t-attf-class="o_ai_chat_action_window {{ state.isDarkTheme ? '' : 'theme-light' }}">
+
+            <div class="o_ai_chat_sidebar">
+
+                <!-- Brand + New Chat -->
+                <div class="sidebar-top">
+                    <div class="brand-row">
+                        <div class="brand-icon">🤖</div>
+                        <span class="brand-name">AI Assistant</span>
+                    </div>
+                    <button class="btn-new-chat" t-on-click="startNewChat">
+                        <span class="icon">✏️</span>
+                        <span>Cuộc trò chuyện mới</span>
                     </button>
                 </div>
 
+                <!-- Search -->
+                <div class="sidebar-search">
+                    <div class="search-wrap">
+                        <span class="search-icon">🔍</span>
+                        <input
+                            type="text"
+                            placeholder="Tìm kiếm cuộc trò chuyện..."
+                            t-model="state.searchQuery"
+                            t-on-input="onSearchInput"
+                        />
+                    </div>
+                </div>
+
+                <!-- Chat History List -->
+                <div class="sidebar-history" t-ref="sidebarHistory">
+                    <t t-if="filteredHistory.length === 0">
+                        <div class="history-empty">
+                            <div style="font-size:28px;margin-bottom:8px;">💬</div>
+                            <div t-if="state.searchQuery">Không tìm thấy kết quả</div>
+                            <div t-else="">Chưa có lịch sử trò chuyện</div>
+                        </div>
+                    </t>
+
+                    <t t-else="">
+                        <!-- Group: Hôm nay -->
+                        <t t-if="todayChats.length > 0">
+                            <div class="history-group-label">Hôm nay</div>
+                            <t t-foreach="todayChats" t-as="chat" t-key="chat.id">
+                                <div t-attf-class="history-item {{ state.activeChatId === chat.id ? 'active' : '' }}"
+                                     t-on-click="() => this.loadChat(chat.id)">
+                                    <span class="item-icon">💬</span>
+                                    <span class="item-title" t-esc="chat.name"/>
+                                    <div class="item-actions">
+                                        <button title="Xóa" class="del" t-on-click.stop="() => this.deleteChat(chat.id)">🗑</button>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+
+                        <!-- Group: 7 ngày qua -->
+                        <t t-if="recentChats.length > 0">
+                            <div class="history-group-label">7 Ngày Qua</div>
+                            <t t-foreach="recentChats" t-as="chat" t-key="chat.id">
+                                <div t-attf-class="history-item {{ state.activeChatId === chat.id ? 'active' : '' }}"
+                                     t-on-click="() => this.loadChat(chat.id)">
+                                    <span class="item-icon">💬</span>
+                                    <span class="item-title" t-esc="chat.name"/>
+                                    <div class="item-actions">
+                                        <button title="Xóa" class="del" t-on-click.stop="() => this.deleteChat(chat.id)">🗑</button>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+
+                        <!-- Group: Cũ hơn -->
+                        <t t-if="olderChats.length > 0">
+                            <div class="history-group-label">Cũ Hơn</div>
+                            <t t-foreach="olderChats" t-as="chat" t-key="chat.id">
+                                <div t-attf-class="history-item {{ state.activeChatId === chat.id ? 'active' : '' }}"
+                                     t-on-click="() => this.loadChat(chat.id)">
+                                    <span class="item-icon">💬</span>
+                                    <span class="item-title" t-esc="chat.name"/>
+                                    <div class="item-actions">
+                                        <button title="Xóa" class="del" t-on-click.stop="() => this.deleteChat(chat.id)">🗑</button>
+                                    </div>
+                                </div>
+                            </t>
+                        </t>
+                    </t>
+                </div>
+
+                <!-- User info + Theme Toggle bottom -->
+                <div class="sidebar-footer">
+                    <div class="theme-toggle-row">
+                        <div class="theme-label">
+                            <span class="theme-icon" t-esc="state.isDarkTheme ? '🌙' : '☀️'"/>
+                            <span t-esc="state.isDarkTheme ? 'Giao diện tối' : 'Giao diện sáng'"/>
+                        </div>
+                        <label class="theme-switch">
+                            <input type="checkbox"
+                                   t-att-checked="state.isDarkTheme"
+                                   t-on-change="toggleTheme"/>
+                            <span class="slider"/>
+                        </label>
+                    </div>
+                    <div class="user-row">
+                        <div class="user-avatar" t-esc="state.userInitial"/>
+                        <span class="user-name" t-esc="state.userName"/>
+                    </div>
+                </div>
             </div>
+            <div class="o_ai_chat_main_area">
+                <!-- Top Bar -->
+                <div class="chat-topbar">
+                    <div class="chat-title">
+                        <span>AI Assistant</span>
+                        <span class="model-badge">Odoo MCP</span>
+                    </div>
+                    <div class="topbar-actions">
+                        <button title="Chuyển giao diện sáng/tối" t-on-click="toggleTheme">
+                            <t t-esc="state.isDarkTheme ? '☀️' : '🌙'"/>
+                        </button>
+                        <button title="Cuộc trò chuyện mới" t-on-click="startNewChat">✏️</button>
+                    </div>
+                </div>
+
+                <t t-if="state.messages.length === 0">
+                    <div class="chat-welcome">
+                        <div class="welcome-logo">🤖</div>
+                        <h2>Xin chào!</h2>
+                        <p>Tôi là AI Assistant của bạn. Tôi có thể giúp bạn phân tích dữ liệu Odoo, trả lời câu hỏi về doanh thu và báo cáo.</p>
+                        <div class="quick-prompts">
+                            <button class="quick-prompt-btn" t-on-click="() => this.useQuickPrompt('Doanh thu tháng này như thế nào?')">
+                                <span class="prompt-icon">📊</span>
+                                <span class="prompt-text">Doanh thu tháng này như thế nào?</span>
+                            </button>
+                            <button class="quick-prompt-btn" t-on-click="() => this.useQuickPrompt('Top 5 sản phẩm bán chạy nhất?')">
+                                <span class="prompt-icon">🏆</span>
+                                <span class="prompt-text">Top 5 sản phẩm bán chạy nhất?</span>
+                            </button>
+                            <button class="quick-prompt-btn" t-on-click="() => this.useQuickPrompt('Tổng hợp đơn hàng tuần này?')">
+                                <span class="prompt-icon">🛒</span>
+                                <span class="prompt-text">Tổng hợp đơn hàng tuần này?</span>
+                            </button>
+                            <button class="quick-prompt-btn" t-on-click="() => this.useQuickPrompt('Phân tích khách hàng theo khu vực?')">
+                                <span class="prompt-icon">🗺️</span>
+                                <span class="prompt-text">Phân tích khách hàng theo khu vực?</span>
+                            </button>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- Messages -->
+                <t t-else="">
+                    <div class="chat-body" t-ref="chatBody">
+                        <div class="msg-group">
+                            <t t-foreach="state.messages" t-as="msg" t-key="msg_index">
+
+                                <!-- AI Message -->
+                                <t t-if="msg.role === 'ai'">
+                                    <div class="msg-row ai">
+                                        <div class="ai-avatar">🤖</div>
+                                        <div class="bubble ai">
+                                            <t t-esc="msg.content"/>
+                                            <t t-if="msg.suggested_action">
+                                                <div class="suggested-action-container">
+                                                    <button class="btn-view-details"
+                                                            t-on-click="() => this.openSuggestedAction(msg.suggested_action)">
+                                                        📊 Xem chi tiết báo cáo
+                                                    </button>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </t>
+
+                                <!-- User Message -->
+                                <t t-else="">
+                                    <div class="msg-row user">
+                                        <div class="bubble user">
+                                            <t t-esc="msg.content"/>
+                                        </div>
+                                    </div>
+                                </t>
+
+                            </t>
+
+                            <!-- Typing Indicator -->
+                            <t t-if="state.isLoading">
+                                <div class="msg-row ai">
+                                    <div class="ai-avatar">🤖</div>
+                                    <div class="bubble ai typing-bubble">
+                                        <div class="typing">
+                                            <span/><span/><span/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+
+                            <div t-ref="chatEnd"/>
+                        </div>
+                    </div>
+                </t>
+                
+                <!-- Footer Input Bar -->
+                <div class="chat-footer">
+                    <div class="prompt-wrapper">
+                        <div class="prompt-container">
+                            <t t-if="state.attachments.length > 0">
+                                <div class="attachment-preview-area">
+                                    <t t-foreach="state.attachments" t-as="file" t-key="file.name">
+                                        <div class="file-tag">
+                                            <span class="file-name" t-esc="file.name"/>
+                                            <button class="file-remove" t-on-click="() => this.removeAttachment(file.name)">✖</button>
+                                        </div>
+                                    </t>
+                                </div>
+                            </t>
+
+                            <div class="input-row">
+                                <textarea
+                                    class="chat-input"
+                                    placeholder="Nhắn tin cho AI Assistant..."
+                                    t-model="state.inputText"
+                                    t-on-keydown="onKeydown"
+                                    rows="1"
+                                    t-ref="chatInput"
+                                />
+                            </div>
+                            <div class="footer-actions">
+                                <div class="footer-left">
+                                    <input type="file" t-ref="fileInput" t-on-change="onFileChange" multiple="multiple" style="display: none;"/>
+                                    <button class="tool-btn" title="Đính kèm tệp (CSV, PDF...)" t-on-click="triggerFileInput">📎</button>
+                                    <button class="tool-btn" title="Gửi hình ảnh" t-on-click="triggerFileInput">🖼️</button>
+                                </div>
+                                <button
+                                    class="send-btn"
+                                    t-on-click="sendMessage"
+                                    t-att-disabled="state.isLoading or (!state.inputText.trim() and state.attachments.length === 0)">
+                                    ↑
+                                </button>
+                            </div>
+                        </div>
+                        <div class="footer-note">AI có thể mắc lỗi. Hãy kiểm tra thông tin quan trọng.</div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </t>
+
 </templates>

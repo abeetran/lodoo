@@ -1,7 +1,7 @@
 [options]
 log_level = debug
 log_handler = :DEBUG
-admin_passwd = $$pbkdf2-sha512$$600000$$LWVsrVWK8X5vjdEaY2yN8Q$$dUssZ4CtxY1ClAL1k4QTvzkzLPgX4fw.87wXFXVQxXii7FRxl3GweMQY31oVEPW/9qwjkqWJynNzXfM7AWIGjg
+admin_passwd = $pbkdf2-sha512$600000$LWVsrVWK8X5vjdEaY2yN8Q$dUssZ4CtxY1ClAL1k4QTvzkzLPgX4fw.87wXFXVQxXii7FRxl3GweMQY31oVEPW/9qwjkqWJynNzXfM7AWIGjg
 db_host = ${HOST}
 db_port = 5432
 db_user = odoo

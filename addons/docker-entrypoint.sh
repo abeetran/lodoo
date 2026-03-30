@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Tránh cảnh báo Perl/psql khi image không có locale en_US.UTF-8
+export LC_ALL=C
+export LANG=C
+
 export HOST="${HOST:-db}"
 export PASSWORD="${PASSWORD:-odoo}"
 export DB_NAME="${DB_NAME:-odoo}" # Thêm biến tên DB để linh hoạt
@@ -27,7 +31,7 @@ DB_EXISTS=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d odoo -tAc "SELECT 
 if [ "$DB_EXISTS" != "1" ]; then
     echo "Phát hiện Database trống. Đang khởi tạo lần đầu với -i base..."
     # Chạy init một lần rồi dừng
-    sudo odoo -i base --stop-after-init
+    odoo -i base --stop-after-init
     echo "Khởi tạo hoàn tất!"
 else
     echo "Database đã có dữ liệu. Bỏ qua khởi tạo để bảo vệ dữ liệu."

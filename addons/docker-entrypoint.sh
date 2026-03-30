@@ -27,7 +27,7 @@ DB_EXISTS=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d odoo -tAc "SELECT 
 if [ "$DB_EXISTS" != "1" ]; then
     echo "Phát hiện Database trống. Đang khởi tạo lần đầu với -i base..."
     # Chạy init một lần rồi dừng
-    sudo -u odoo odoo -c /etc/odoo/odoo.conf -d odoo -i base --stop-after-init
+    sudo odoo -i base --stop-after-init
     echo "Khởi tạo hoàn tất!"
 else
     echo "Database đã có dữ liệu. Bỏ qua khởi tạo để bảo vệ dữ liệu."

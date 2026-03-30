@@ -96,11 +96,18 @@ def _internal_url():
 
 
 def _odoo_base_url():
-    """Prefer configured web.base.url"""
+    """
+    URL công khai của Odoo (scheme + host, không có / cuối).
+    Dùng đúng giá trị này trong Authentik → Redirect URIs:
+      {base}/auth/authentik/callback
+    Ưu tiên env (Docker / reverse proxy) rồi mới web.base.url trong DB.
+    """
+    base = (os.getenv("SERVICE_URL_ODOO") or os.getenv("WEB_BASE_URL") or "").strip().rstrip("/")
+    if base:
+        return base
     base = (_cfg("web.base.url") or "").strip().rstrip("/")
     if base:
         return base
-    # fallback
     return request.httprequest.url_root.strip().rstrip("/")
 
 

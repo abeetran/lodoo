@@ -25,6 +25,28 @@ def _as_bool(v):
     return str(v).strip().lower() in ("1", "true", "yes", "y", "on")
 
 
+def _client_id():
+    """Ưu tiên env (Docker) rồi mới ir.config_parameter — tránh rỗng khi session/registry chưa sẵn."""
+    v = (os.getenv("AUTHENTIK_CLIENT_ID") or "").strip()
+    if v:
+        return v
+    return (_cfg("authentik.client_id") or "").strip()
+
+
+def _client_secret():
+    v = (os.getenv("AUTHENTIK_CLIENT_SECRET") or "").strip()
+    if v:
+        return v
+    return (_cfg("authentik.client_secret") or "").strip()
+
+
+def _oidc_scope():
+    v = (os.getenv("AUTHENTIK_SCOPE") or "").strip()
+    if v:
+        return v
+    return (_cfg("authentik.scope") or "openid profile email").strip()
+
+
 def _ensure_db():
     """Ensure db is selected for session."""
     try:
@@ -87,6 +109,9 @@ def _oidc_slug():
     Authentik provider/application slug.
     Example: authentik
     """
+    v = (os.getenv("AUTHENTIK_SLUG") or "").strip().strip("/")
+    if v:
+        return v
     return (_cfg("authentik.slug") or "").strip().strip("/")
 
 
@@ -276,12 +301,13 @@ class AuthentikSSOController(http.Controller):
     # -------------------------
     @http.route("/auth/authentik/login", type="http", auth="public", website=True, csrf=False)
     def authentik_login(self, **kw):
+        _ensure_db()
         enabled = _as_bool(_cfg("authentik.enabled", "1"))
         if not enabled:
             return redirect("/web/login?error=authentik_disabled", code=303)
 
-        client_id = (_cfg("authentik.client_id") or "").strip()
-        scope = (_cfg("authentik.scope") or "openid profile email").strip()
+        client_id = _client_id()
+        scope = _oidc_scope()
 
         if not client_id:
             _logger.error("Missing authentik.client_id")
@@ -349,8 +375,8 @@ class AuthentikSSOController(http.Controller):
             return redirect("/web/login?error=invalid_state", code=303)
 
         slug = _oidc_slug()
-        client_id = (_cfg("authentik.client_id") or "").strip()
-        client_secret = (_cfg("authentik.client_secret") or "").strip()
+        client_id = _client_id()
+        client_secret = _client_secret()
 
         if not slug or not client_id or not client_secret:
             _logger.error("Missing config: authentik.slug / authentik.client_id / authentik.client_secret")

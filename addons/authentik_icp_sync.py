@@ -22,4 +22,5 @@ else:
     ICP.set_param("authentik.internal_url", os.environ["AUTHENTIK_INTERNAL_URL"])
     ICP.set_param("authentik.base_url", os.environ["AUTHENTIK_BASE_URL"])
     ICP.set_param("authentik.slug", os.environ["AUTHENTIK_SLUG"])
+    env.cr.commit()
     print("[authentik_icp_sync] Đã ghi ir.config_parameter từ biến môi trường.")

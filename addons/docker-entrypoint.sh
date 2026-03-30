@@ -26,7 +26,7 @@ until PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "postgres" -c '\q'; do
 done
 
 # Kiểm tra xem Database đã được khởi tạo (có bảng ir_module_module) chưa
-DB_EXISTS=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d odoo -tAc "SELECT 1 FROM information_schema.tables WHERE table_name='ir_module_module';" || echo "0")
+DB_EXISTS=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" || echo "0")
 
 if [ "$DB_EXISTS" != "1" ]; then
     echo "Phát hiện Database trống. Đang khởi tạo lần đầu với -i base..."
@@ -37,5 +37,12 @@ else
     echo "Database đã có dữ liệu. Bỏ qua khởi tạo để bảo vệ dữ liệu."
 fi
 
-# 4. Thực thi entrypoint gốc của Odoo (Chạy Odoo bình thường)
+# 4. Đồng bộ Authentik từ biến môi trường -> ir.config_parameter (cần DB đã init)
+DB_READY=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" 2>/dev/null | tr -d '[:space:]' || echo "0")
+if [ "$DB_READY" = "1" ] && [ -n "${AUTHENTIK_CLIENT_ID:-}" ]; then
+  echo "Đồng bộ cấu hình Authentik (ir.config_parameter)..."
+  odoo shell -d odoo < /mnt/extra-addons/meworld/authentik_icp_sync.py
+fi
+
+# 5. Thực thi entrypoint gốc của Odoo (Chạy Odoo bình thường)
 exec /entrypoint.sh "$@"

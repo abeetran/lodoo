@@ -39,6 +39,13 @@ fi
 
 # 4. Đồng bộ Authentik từ biến môi trường -> ir.config_parameter (cần DB đã init)
 DB_READY=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" 2>/dev/null | tr -d '[:space:]' || echo "0")
+
+# 4b. Cài app business bằng lệnh riêng (không trộn vào setup lần đầu)
+if [ "$DB_READY" = "1" ]; then
+  echo "Đang cài app business (nếu chưa có)..."
+  odoo -d odoo -i crm,sale_management,calendar,website,account --stop-after-init
+fi
+
 if [ "$DB_READY" = "1" ] && [ -n "${AUTHENTIK_CLIENT_ID:-}" ]; then
   echo "Đồng bộ cấu hình Authentik (ir.config_parameter)..."
   odoo shell -d odoo < /mnt/extra-addons/meworld/authentik_icp_sync.py

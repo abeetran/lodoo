@@ -47,7 +47,7 @@ fi
 # 5. Bootstrap admin login theo email (có default nếu thiếu env)
 if [ "$DB_READY" = "1" ]; then
   echo "Đang bootstrap tài khoản admin..."
-  odoo shell -c < /mnt/extra-addons/meworld/admin_bootstrap.py
+  odoo shell -d odoo < /mnt/extra-addons/meworld/admin_bootstrap.py
 fi
 
 # 6. Thực thi entrypoint gốc của Odoo (Chạy Odoo bình thường)

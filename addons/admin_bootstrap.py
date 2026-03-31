@@ -27,4 +27,5 @@ else:
         vals["password"] = admin_password
 
     admin_user.write(vals)
+    env.cr.commit()
     print(f"[admin_bootstrap] Admin login set to: {admin_email}")

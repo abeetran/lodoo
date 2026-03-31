@@ -8,6 +8,7 @@ _required = (
     "AUTHENTIK_INTERNAL_URL",
     "AUTHENTIK_BASE_URL",
     "AUTHENTIK_SLUG",
+    "SERVICE_URL_ODOO",
 )
 _missing = [k for k in _required if not (os.environ.get(k) or "").strip()]
 if _missing:
@@ -22,5 +23,6 @@ else:
     ICP.set_param("authentik.internal_url", os.environ["AUTHENTIK_INTERNAL_URL"])
     ICP.set_param("authentik.base_url", os.environ["AUTHENTIK_BASE_URL"])
     ICP.set_param("authentik.slug", os.environ["AUTHENTIK_SLUG"])
+    ICP.set_param("web.base.url", os.environ["SERVICE_URL_ODOO"])
     env.cr.commit()
     print("[authentik_icp_sync] Đã ghi ir.config_parameter từ biến môi trường.")

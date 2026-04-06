@@ -4,6 +4,33 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
 
+function parseSuggestedAction(actionParam) {
+    const tokens = actionParam.split(/\|+/).map((t) => t.trim()).filter(Boolean);
+    let actionStr = tokens.length > 0 ? tokens[0] : actionParam;
+    const options = {};
+    for (const token of tokens.slice(1)) {
+        if (token === "NEW") {
+            options.viewType = "form";
+            continue;
+        }
+        if (token.startsWith("OD_ACTION:")) {
+            actionStr = token.substring(10).trim();
+            continue;
+        }
+        if (token.startsWith("DOMAIN:")) {
+            try {
+                options.domain = JSON.parse(token.substring(7));
+            } catch (e) {
+                console.error("Lỗi parse domain:", e);
+            }
+        }
+    }
+    if (actionStr.startsWith("OD_ACTION:")) {
+        actionStr = actionStr.substring(10).trim();
+    }
+    return { actionStr, options };
+}
+
 function getDateGroup(dateStr) {
     const now = new Date();
     const d = new Date(dateStr);
@@ -13,149 +40,113 @@ function getDateGroup(dateStr) {
     return "older";
 }
 
-// ==========================================================
-// COMPONENT 1: BÓNG CHAT TRÔI NỔI (MINI)
-// ==========================================================
 export class AiChatFloatingWidget extends Component {
     setup() {
         this.orm = useService("orm");
         this.actionService = useService("action");
         this.router = useService("router");
-        this.menuService = useService("menu"); 
-        this.userService = useService("user"); // ĐỂ LẤY TÊN USER
+        this.menuService = useService("menu");
+        this.userService = useService("user");
 
-        this.state = useState({ 
-            isOpen: false,
-            messages: [],
-            inputText: "",
-            isLoading: false,
-            currentModuleName: "",
-            activeChatId: null,
-            userInitial: "U", // Giá trị mặc định
+        this.state = useState({
+            isOpen: false, messages: [], inputText: "", isLoading: false,
+            currentModuleName: "", activeChatId: null, userInitial: "U",
         });
-        
-        // BỘ NHỚ ĐỆM: Nhớ ID luồng và Tin nhắn của từng Module
-        this.moduleChatMemory = {}; 
 
+        this.moduleChatMemory = {};
         this.chatEndRef = useRef("chatEndMini");
 
         onWillStart(() => {
-            // Lấy chữ cái đầu của User
             const userName = this.userService.name || "Người dùng";
             this.state.userInitial = userName.charAt(0).toUpperCase();
         });
 
-        // 1. Tự động cuộn chat mini
         useEffect(() => {
-            if (this.state.isOpen && this.chatEndRef.el) {
-                this.chatEndRef.el.scrollIntoView({ behavior: "smooth" });
-            }
+            if (this.state.isOpen && this.chatEndRef.el) { this.chatEndRef.el.scrollIntoView({ behavior: "smooth" }); }
         }, () => [this.state.messages.length, this.state.isLoading, this.state.isOpen]);
     }
 
-    // ĐÓNG / MỞ MINI CHAT VÀ PHỤC HỒI NGỮ CẢNH CŨ
     toggleChat() {
         this.state.isOpen = !this.state.isOpen;
-        
         if (this.state.isOpen) {
             const currentApp = this.menuService.getCurrentApp();
             const moduleName = currentApp ? currentApp.name : "Hệ thống chung";
             const currentModKey = currentApp ? currentApp.xmlid : 'general';
-            
-            // LOGIC MỚI: PHỤC HỒI HOẶC TẠO MỚI TIN NHẮN THEO MODULE
-            // 1. Nếu quay lại Module cũ -> Moi trong bộ nhớ ra
+
             if (this.moduleChatMemory[currentModKey]) {
                 const memo = this.moduleChatMemory[currentModKey];
                 this.state.messages = memo.messages;
                 this.state.activeChatId = memo.chatId;
                 this.state.currentModuleName = moduleName;
-            } 
-            // 2. Nếu Module mới tinh hoặc chưa chat câu nào -> Tạo câu chào mới
-            else {
+            } else {
                 this.state.currentModuleName = moduleName;
-                this.state.activeChatId = null; 
-                this.state.messages = [{
-                    role: "ai",
-                    content: `Bạn cần gì ở module ${moduleName} này!`
-                }];
-                // Khởi tạo bộ nhớ cho Module này
+                this.state.activeChatId = null;
+                this.state.messages = [{ role: "ai", content: `Bạn cần gì ở ${moduleName} này!` }];
                 this._saveModuleMemory(currentModKey);
             }
         }
     }
 
-    // GỬI TIN NHẮN (Gửi chat_id cũ nếu có)
     async sendMessage() {
         const text = this.state.inputText.trim();
         if (!text || this.state.isLoading) return;
 
-        // Thêm tin nhắn User vào màn hình
         this.state.messages.push({ role: "user", content: text });
         this.state.inputText = "";
         this.state.isLoading = true;
 
         try {
             const promptWithContext = `[Ngữ cảnh: Người dùng đang ở module ${this.state.currentModuleName} của Odoo] ${text}`;
-            
-            // TRUYỀN ID CŨ (Nếu có) ĐỂ PYTHON LƯU NỐI TIẾP
-            const res = await this.orm.call("odoo.ai.chat", "send_message_from_ui", [
-                promptWithContext, 
-                [], 
-                this.state.activeChatId || null 
-            ]);
+            const res = await this.orm.call("odoo.ai.chat", "send_message_from_ui", [promptWithContext, [], this.state.activeChatId || null]);
 
-            // Nếu là câu chat đầu, lấy lại ID luồng từ Python
-            if (res.chat_id && !this.state.activeChatId) {
-                this.state.activeChatId = res.chat_id;
-            }
+            if (res.chat_id && !this.state.activeChatId) this.state.activeChatId = res.chat_id;
 
-            // Thêm tin nhắn Bot vào màn hình
             const msg = { role: "ai", content: res.answer };
             if (res.suggested_action) msg.suggested_action = res.suggested_action;
             this.state.messages.push(msg);
 
-            // CẬP NHẬT LẠI BỘ NHỚ PER MODULE
             const currentApp = this.menuService.getCurrentApp();
             const currentModKey = currentApp ? currentApp.xmlid : 'general';
             this._saveModuleMemory(currentModKey);
 
-        } catch (error) {
-            this.state.messages.push({
-                role: "ai",
-                content: _t("Lỗi kết nối đến máy chủ AI.")
-            });
-        } finally {
-            this.state.isLoading = false;
-        }
+        } catch (error) { this.state.messages.push({ role: "ai", content: _t("Lỗi kết nối đến máy chủ AI.") });
+        } finally { this.state.isLoading = false; }
     }
 
-    // Hàm phụ trợ lưu dữ liệu vào bộ nhớ đệm
-    _saveModuleMemory(modKey) {
-        this.moduleChatMemory[modKey] = {
-            chatId: this.state.activeChatId,
-            messages: [...this.state.messages] // Copy mảng
-        };
+    _saveModuleMemory(modKey) { this.moduleChatMemory[modKey] = { chatId: this.state.activeChatId, messages: [...this.state.messages] }; }
+
+    async openSuggestedAction(actionParam) {
+        try {
+            const parsed = parseSuggestedAction(actionParam || "");
+            let actionRef = parsed.actionStr;
+            let domainStr = false;
+            let viewType = false;
+
+            if (parsed.options.domain) domainStr = JSON.stringify(parsed.options.domain);
+            if (parsed.options.viewType === "form") viewType = "form";
+
+            let actionObj = await this.orm.call("odoo.ai.chat", "get_action_data", [actionRef, domainStr, viewType]);
+            
+            if (actionObj) {
+                await this.orm.call("odoo.ai.chat", "log_user_behavior", ["module_visit", String(actionObj.id), ""]);
+                await this.actionService.doAction(actionObj);
+            } else {
+                let finalAction = actionRef;
+                if (actionRef.includes(",")) finalAction = parseInt(actionRef.split(",")[1]);
+                else if (!isNaN(actionRef)) finalAction = parseInt(actionRef);
+                
+                await this.orm.call("odoo.ai.chat", "log_user_behavior", ["module_visit", String(finalAction), ""]);
+                await this.actionService.doAction(finalAction, parsed.options);
+            }
+        } catch (e) { console.error("Lỗi mở màn hình:", e); }
     }
 
-    async openSuggestedAction(xmlId) {
-        try { await this.actionService.doAction(xmlId); } 
-        catch (error) { console.error("Lỗi mở báo cáo:", error); }
-    }
-
-    onKeydown(ev) {
-        if (ev.key === "Enter" && !ev.shiftKey) {
-            ev.preventDefault();
-            this.sendMessage();
-        }
-    }
+    onKeydown(ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); this.sendMessage(); } }
 }
 AiChatFloatingWidget.template = "odoo_ai_assistant.AiChatFloatingWidgetTemplate";
 registry.category("main_components").add("odoo_ai_assistant.AiChatFloatingWidget", { Component: AiChatFloatingWidget });
 
 
-// ==========================================================
-// COMPONENT 2: MÀN HÌNH CHÍNH CHATGPT STYLE
-// ==========================================================
 export class AiChatWindow extends Component {
     setup() {
         this.orm = useService("orm");
@@ -168,22 +159,16 @@ export class AiChatWindow extends Component {
         }, () => []);
 
         this.state = useState({
-            messages: [],           
-            inputText: "",
-            isLoading: false,
-            activeChatId: null,    
-            chatHistory: [],        
-            searchQuery: "",        
-            isDarkTheme: false,      
-            userName: "",
-            userInitial: "U",
-            attachments: [], 
+            messages: [], inputText: "", isLoading: false, activeChatId: null,
+            chatHistory: [], searchQuery: "", isDarkTheme: false,
+            userName: "", userInitial: "U", attachments: [],
+            suggestions: { modules: [], queries: [], related: [] }
         });
 
         this.chatEndRef = useRef("chatEnd");
         this.chatInputRef = useRef("chatInput");
         this.fileInputRef = useRef("fileInput");
-        
+
         onWillStart(async () => {
             const savedTheme = localStorage.getItem("odoo_ai_theme");
             if (savedTheme !== null) this.state.isDarkTheme = savedTheme !== "light";
@@ -193,13 +178,18 @@ export class AiChatWindow extends Component {
 
             await this._loadSidebarHistory();
             this.startNewChat();
+            const data = await this.orm.call("odoo.ai.chat", "get_personalized_suggestions", []);
+            this.state.suggestions = data;
+
+            await this.orm.call("odoo.ai.chat", "log_user_behavior", ["module_visit", "odoo_ai_assistant.action_ai_chat_client", "AI Assistant"]);
         });
 
         useEffect(() => {
             if (this.chatEndRef.el) { this.chatEndRef.el.scrollIntoView({ behavior: "smooth" }); }
         }, () => [this.state.messages.length, this.state.isLoading]);
     }
-
+    
+    async openModule(actionXmlId) { await this.actionService.doAction(actionXmlId); }
     triggerFileInput() { if (this.fileInputRef.el) this.fileInputRef.el.click(); }
 
     async onFileChange(ev) {
@@ -210,7 +200,7 @@ export class AiChatWindow extends Component {
             const base64Data = await this._toBase64(file);
             this.state.attachments.push({ name: file.name, type: file.type, data: base64Data.split(",")[1] });
         }
-        ev.target.value = ""; 
+        ev.target.value = "";
     }
 
     removeAttachment(fileName) { this.state.attachments = this.state.attachments.filter(f => f.name !== fileName); }
@@ -227,9 +217,7 @@ export class AiChatWindow extends Component {
     async _loadSidebarHistory() {
         try {
             const records = await this.orm.searchRead(
-                "odoo.ai.chat",
-                [["user_id", "=", this.userService.userId]],
-                ["id", "name", "write_date"],
+                "odoo.ai.chat", [["user_id", "=", this.userService.userId]], ["id", "name", "write_date"],
                 { order: "id desc", limit: 50 }
             );
             this.state.chatHistory = records;
@@ -252,11 +240,8 @@ export class AiChatWindow extends Component {
         try {
             const historyJson = await this.orm.call("odoo.ai.chat", "get_chat_history", [chatId]);
             this.state.messages = historyJson || [];
-        } catch (e) {
-            this.state.messages = [{ role: "ai", content: _t("Không thể tải dữ liệu.") }];
-        } finally {
-            this.state.isLoading = false;
-        }
+        } catch (e) { this.state.messages = [{ role: "ai", content: _t("Không thể tải dữ liệu.") }]; } 
+        finally { this.state.isLoading = false; }
     }
 
     toggleTheme() {
@@ -265,8 +250,8 @@ export class AiChatWindow extends Component {
     }
 
     startNewChat() {
-        this.state.messages = []; 
-        this.state.activeChatId = null; 
+        this.state.messages = [];
+        this.state.activeChatId = null;
         this.state.inputText = "";
         setTimeout(() => { if (this.chatInputRef.el) this.chatInputRef.el.focus(); }, 50);
     }
@@ -280,17 +265,16 @@ export class AiChatWindow extends Component {
     }
 
     useQuickPrompt(text) { this.state.inputText = text; this.sendMessage(); }
-
     onSearchInput(ev) { this.state.searchQuery = ev.target.value; }
 
     async sendMessage() {
         const text = this.state.inputText.trim();
         const files = [...this.state.attachments];
         if (!text && files.length === 0 || this.state.isLoading) return;
-        
+
         let userContent = text;
         if (files.length > 0) userContent += `\n[Đã đính kèm ${files.length} tệp]`;
-        
+
         this.state.messages.push({ role: "user", content: userContent });
         this.state.inputText = "";
         this.state.attachments = [];
@@ -298,34 +282,48 @@ export class AiChatWindow extends Component {
 
         try {
             const res = await this.orm.call("odoo.ai.chat", "send_message_from_ui", [], {
-                question: text,
-                attachments: files,
-                chat_id: this.state.activeChatId || false
+                question: text, attachments: files, chat_id: this.state.activeChatId || false
             });
 
-            if (res.chat_id && !this.state.activeChatId) {
-                this.state.activeChatId = res.chat_id;
-            }
+            if (res.chat_id && !this.state.activeChatId) this.state.activeChatId = res.chat_id;
 
             const msg = { role: "ai", content: res.answer };
             if (res.suggested_action) msg.suggested_action = res.suggested_action;
             this.state.messages.push(msg);
 
             await this._loadSidebarHistory();
-        } catch (error) {
-            this.state.messages.push({ role: "ai", content: _t("Lỗi kết nối: Không thể kết nối đến máy chủ AI.") });
-        } finally {
-            this.state.isLoading = false;
-        }
+            if (text.length < 50) this.orm.call("odoo.ai.chat", "log_user_behavior", ["frequent_question", text]);
+        } catch (error) { this.state.messages.push({ role: "ai", content: _t("Lỗi kết nối: Không thể kết nối đến máy chủ AI.") });
+        } finally { this.state.isLoading = false; }
     }
 
-    async openSuggestedAction(xmlId) {
-        try { await this.actionService.doAction(xmlId); } catch (e) { console.error("Lỗi mở báo cáo:", e); }
+    async openSuggestedAction(actionParam) {
+        try {
+            const parsed = parseSuggestedAction(actionParam || "");
+            let actionRef = parsed.actionStr;
+            let domainStr = false;
+            let viewType = false;
+
+            if (parsed.options.domain) domainStr = JSON.stringify(parsed.options.domain);
+            if (parsed.options.viewType === "form") viewType = "form";
+
+            let actionObj = await this.orm.call("odoo.ai.chat", "get_action_data", [actionRef, domainStr, viewType]);
+            
+            if (actionObj) {
+                await this.orm.call("odoo.ai.chat", "log_user_behavior", ["module_visit", String(actionObj.id), ""]);
+                await this.actionService.doAction(actionObj);
+            } else {
+                let finalAction = actionRef;
+                if (actionRef.includes(",")) finalAction = parseInt(actionRef.split(",")[1]);
+                else if (!isNaN(actionRef)) finalAction = parseInt(actionRef);
+                
+                await this.orm.call("odoo.ai.chat", "log_user_behavior", ["module_visit", String(finalAction), ""]);
+                await this.actionService.doAction(finalAction, parsed.options);
+            }
+        } catch (e) { console.error("Lỗi mở màn hình:", e); }
     }
 
-    onKeydown(ev) {
-        if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); this.sendMessage(); }
-    }
+    onKeydown(ev) { if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); this.sendMessage(); } }
 }
 AiChatWindow.template = "odoo_ai_assistant.AiChatWindowTemplate";
 registry.category("actions").add("odoo_ai_assistant.AiChatClientAction", AiChatWindow);

@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_odoo_ai_chat_user,access.odoo.ai.chat.user,model_odoo_ai_chat,base.group_user,1,1,1,1
+access_odoo_ai_user_behavior,access.odoo.ai.user.behavior,model_odoo_ai_user_behavior,base.group_user,1,1,1,1
+access_odoo_ai_knowledge,odoo.ai.knowledge,model_odoo_ai_knowledge,base.group_user,1,1,1,1

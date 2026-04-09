@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_knowledge_article_user,knowledge.article.user,model_knowledge_article,group_knowledge_user,1,1,1,1
+access_knowledge_article_member_user,knowledge.article.member.user,model_knowledge_article_member,group_knowledge_user,1,1,1,1
+access_knowledge_invite_wizard_user,knowledge.invite.wizard.user,model_knowledge_invite_wizard,group_knowledge_user,1,1,1,1

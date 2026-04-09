@@ -1,0 +1,432 @@
+/* ============================================================
+   CUSTOM KNOWLEDGE - ENTERPRISE STYLE CSS
+   Odoo 17 – Phong cách Notion / Odoo Enterprise
+   ============================================================ */
+
+/* ----------------------------------------------------------------
+   FORM LAYOUT TỔNG THỂ
+   ---------------------------------------------------------------- */
+.o_knowledge_form .o_form_view {
+    background: #fff;
+}
+
+.o_knowledge_form .o_form_sheet_bg {
+    background: #f8f9fa;
+}
+
+.o_knowledge_sheet {
+    max-width: 100%;
+    padding: 0 !important;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+/* ----------------------------------------------------------------
+   ẢNH BÌA (Cover)
+   ---------------------------------------------------------------- */
+.o_knowledge_cover {
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+}
+
+.o_knowledge_cover_image {
+    width: 100% !important;
+    height: 220px !important;
+    object-fit: cover !important;
+    display: block;
+    border-radius: 0 !important;
+}
+
+.o_knowledge_cover .o_field_image {
+    width: 100%;
+    height: 220px;
+}
+
+.o_knowledge_cover .o_field_image img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+}
+
+/* ----------------------------------------------------------------
+   CONTENT WRAPPER
+   ---------------------------------------------------------------- */
+.o_knowledge_content_wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 32px 48px 64px;
+}
+
+@media (max-width: 768px) {
+    .o_knowledge_content_wrapper {
+        padding: 16px 20px 40px;
+    }
+}
+
+/* ----------------------------------------------------------------
+   TITLE BLOCK
+   ---------------------------------------------------------------- */
+.o_knowledge_title_block {
+    margin-bottom: 24px;
+}
+
+.o_knowledge_icon_picker {
+    margin-bottom: 8px;
+    overflow: visible;
+}
+
+.o_knowledge_icon_field {
+    font-size: 3.5rem !important;
+    width: 5rem !important;
+    height: 5rem !important;
+    line-height: 5rem !important;
+    text-align: center !important;
+    border: 2px dashed transparent !important;
+    border-radius: 12px !important;
+    background: transparent !important;
+    padding: 0 !important;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    overflow: visible !important;
+    display: block;
+}
+
+.o_knowledge_icon_field input,
+.o_knowledge_icon_field .o_input {
+    font-size: 3.5rem !important;
+    width: 5rem !important;
+    height: 5rem !important;
+    line-height: 5rem !important;
+    text-align: center !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+}
+
+.o_knowledge_icon_field:hover,
+.o_knowledge_icon_field:focus,
+.o_knowledge_icon_field:hover input,
+.o_knowledge_icon_field:focus input {
+    border-color: #dee2e6 !important;
+    background: #f8f9fa !important;
+    border-radius: 12px !important;
+}
+
+.o_knowledge_title_row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.o_knowledge_main_title {
+    margin: 0;
+    flex-grow: 1;
+}
+
+.o_knowledge_title_input {
+    font-size: 2.25rem !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    color: #1a1a2e !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    width: 100% !important;
+    outline: none !important;
+    box-shadow: none !important;
+    letter-spacing: -0.5px;
+}
+
+.o_knowledge_title_input::placeholder {
+    color: #c8c8c8 !important;
+    font-style: italic;
+}
+
+.o_knowledge_favorite_btn {
+    flex-shrink: 0;
+    margin-top: 6px;
+    font-size: 1.4rem !important;
+}
+
+.o_knowledge_favorite_btn .o_field_boolean_favorite .o_favorite {
+    font-size: 1.4rem;
+    color: #ffc107;
+}
+
+/* ----------------------------------------------------------------
+   BREADCRUMB
+   ---------------------------------------------------------------- */
+.o_knowledge_breadcrumb {
+    margin-top: 4px;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+.o_knowledge_parent_link .o_form_uri {
+    color: #6c757d;
+    text-decoration: none;
+    border-bottom: 1px dashed #6c757d;
+}
+
+.o_knowledge_parent_link .o_form_uri:hover {
+    color: #495057;
+    border-bottom-style: solid;
+}
+
+/* ----------------------------------------------------------------
+   METADATA / PROPERTIES
+   ---------------------------------------------------------------- */
+.o_knowledge_properties {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.o_knowledge_prop_label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #868e96;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.o_knowledge_member_btn {
+    font-size: 0.9rem;
+    color: #495057 !important;
+    text-decoration: none !important;
+}
+
+.o_knowledge_member_btn:hover {
+    color: #0d6efd !important;
+}
+
+/* ----------------------------------------------------------------
+   DIVIDER
+   ---------------------------------------------------------------- */
+.o_knowledge_divider {
+    border: none;
+    border-top: 1px solid #e9ecef;
+    margin: 16px 0 24px;
+}
+
+/* ----------------------------------------------------------------
+   BODY / HTML EDITOR
+   ---------------------------------------------------------------- */
+.o_knowledge_body_wrapper {
+    min-height: 500px;
+}
+
+.o_knowledge_html_editor {
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #333;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable {
+    padding: 0 !important;
+    min-height: 500px;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable h1 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-top: 2em;
+    margin-bottom: 0.5em;
+    color: #1a1a2e;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.4em;
+    color: #2d3748;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.2em;
+    margin-bottom: 0.3em;
+    color: #4a5568;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable p {
+    margin-bottom: 0.75em;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable ul,
+.o_knowledge_html_editor .odoo-editor-editable ol {
+    padding-left: 1.5em;
+    margin-bottom: 0.75em;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable li {
+    margin-bottom: 0.25em;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable blockquote {
+    border-left: 4px solid #dee2e6;
+    padding: 8px 16px;
+    margin: 1em 0;
+    background: #f8f9fa;
+    border-radius: 0 8px 8px 0;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable pre,
+.o_knowledge_html_editor .odoo-editor-editable code {
+    background: #f1f3f5;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', monospace;
+    font-size: 0.875em;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable pre {
+    padding: 16px;
+    overflow-x: auto;
+}
+
+.o_knowledge_html_editor .odoo-editor-editable code {
+    padding: 2px 6px;
+}
+
+/* Placeholder text cho editor rỗng */
+.o_knowledge_html_editor .odoo-editor-editable:empty::before,
+.o_knowledge_html_editor .odoo-editor-editable > p:first-child:empty::before {
+    content: attr(data-placeholder);
+    color: #c8c8c8;
+    font-style: italic;
+    pointer-events: none;
+}
+
+/* ----------------------------------------------------------------
+   CHILDREN TABLE
+   ---------------------------------------------------------------- */
+.o_knowledge_children h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #868e96;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+/* ----------------------------------------------------------------
+   TREE VIEW
+   ---------------------------------------------------------------- */
+.o_knowledge_form .o_list_view .o_data_row td {
+    vertical-align: middle;
+}
+
+/* ----------------------------------------------------------------
+   KANBAN VIEW
+   ---------------------------------------------------------------- */
+.o_knowledge_kanban_card {
+    border-radius: 10px !important;
+    border: 1px solid #e9ecef !important;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+}
+
+.o_knowledge_kanban_card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+    transform: translateY(-2px);
+}
+
+.o_knowledge_card_icon {
+    line-height: 1;
+}
+
+/* ----------------------------------------------------------------
+   HEADER BUTTONS
+   ---------------------------------------------------------------- */
+.o_knowledge_form .o_form_statusbar {
+    background: #fff;
+    border-bottom: 1px solid #e9ecef;
+    padding: 8px 16px;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.o_knowledge_form .o_form_statusbar .btn {
+    border-radius: 8px;
+    font-size: 0.875rem;
+    padding: 6px 14px;
+}
+
+/* ----------------------------------------------------------------
+   INVITE WIZARD
+   ---------------------------------------------------------------- */
+.o_knowledge_invite_wizard .modal-body {
+    padding: 24px;
+}
+
+.o_invite_header {
+    padding: 16px 0;
+}
+
+/* ----------------------------------------------------------------
+   BADGES
+   ---------------------------------------------------------------- */
+.badge[data-field="article_type"][data-value="workspace"] {
+    background-color: #0d6efd20 !important;
+    color: #0d6efd !important;
+}
+
+.badge[data-field="article_type"][data-value="shared"] {
+    background-color: #fd7e1420 !important;
+    color: #fd7e14 !important;
+}
+
+.badge[data-field="article_type"][data-value="private"] {
+    background-color: #dc354520 !important;
+    color: #dc3545 !important;
+}
+
+/* ----------------------------------------------------------------
+   RESPONSIVE
+   ---------------------------------------------------------------- */
+@media (max-width: 992px) {
+    .o_knowledge_title_input {
+        font-size: 1.75rem !important;
+    }
+
+    .o_knowledge_content_wrapper {
+        padding: 24px 24px 48px;
+    }
+}
+
+@media (max-width: 576px) {
+    .o_knowledge_title_input {
+        font-size: 1.5rem !important;
+    }
+
+    .o_knowledge_icon_field {
+        font-size: 2.5rem !important;
+    }
+
+    .o_knowledge_cover {
+        height: 140px;
+    }
+
+    .o_knowledge_cover_image {
+        height: 140px !important;
+    }
+}

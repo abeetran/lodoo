@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ROOT MENU -->
+    <menuitem id="menu_knowledge_root"
+              name="Knowledge"
+              sequence="30"
+              web_icon="knowledge,static/description/icon.png"
+              groups="knowledge.group_knowledge_user"/>
+
+    <!-- TRANG CHỦ -->
+    <menuitem id="menu_knowledge_home"
+              name="Trang chủ"
+              parent="menu_knowledge_root"
+              action="action_knowledge_article_all"
+              sequence="1"
+              groups="knowledge.group_knowledge_user"/>
+
+    <!-- KHÔNG GIAN LÀM VIỆC -->
+    <menuitem id="menu_knowledge_workspace"
+              name="Workspace"
+              parent="menu_knowledge_root"
+              action="action_knowledge_workspace"
+              sequence="5"
+              groups="knowledge.group_knowledge_user"/>
+
+    <!-- BÀI CỦA TÔI -->
+    <menuitem id="menu_knowledge_mine"
+              name=" Bài của tôi"
+              parent="menu_knowledge_root"
+              action="action_knowledge_article_mine"
+              sequence="10"
+              groups="knowledge.group_knowledge_user"/>
+
+    <!-- YÊU THÍCH -->
+    <menuitem id="menu_knowledge_favorites"
+              name="Yêu thích"
+              parent="menu_knowledge_root"
+              action="action_knowledge_article_favorites"
+              sequence="15"
+              groups="knowledge.group_knowledge_user"/>
+
+    <!-- BÀI RIÊNG TƯ -->
+    <menuitem id="menu_knowledge_private"
+              name="Riêng tư"
+              parent="menu_knowledge_root"
+              action="action_knowledge_private"
+              sequence="20"
+              groups="knowledge.group_knowledge_user"/>
+
+    <!-- TẤT CẢ (dành cho admin) -->
+    <menuitem id="menu_knowledge_all"
+              name="Tất cả bài viết"
+              parent="menu_knowledge_root"
+              action="action_knowledge_article_all"
+              sequence="30"
+              groups="knowledge.group_knowledge_manager"/>
+
+    <!-- SEPARATOR - ADMIN -->
+    <menuitem id="menu_knowledge_admin"
+              name="Cấu hình"
+              parent="menu_knowledge_root"
+              sequence="100"
+              groups="knowledge.group_knowledge_manager"/>
+
+    <menuitem id="menu_knowledge_members"
+              name="Quản lý thành viên"
+              parent="menu_knowledge_admin"
+              action="action_knowledge_members"
+              sequence="1"
+              groups="knowledge.group_knowledge_manager"/>
+    <menuitem id="menu_knowledge_templates"
+          name="Thư viện mẫu"
+          parent="menu_knowledge_root"
+          action="action_knowledge_templates"
+          sequence="25"
+          groups="knowledge.group_knowledge_user"/>
+</odoo> 

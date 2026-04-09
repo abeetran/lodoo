@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_knowledge_article_member_tree" model="ir.ui.view">
+        <field name="name">knowledge.article.member.tree</field>
+        <field name="model">knowledge.article.member</field>
+        <field name="arch" type="xml">
+            <tree string="Thành viên" editable="bottom">
+                <field name="article_id" optional="show"/>
+                <field name="partner_id"/>
+                <field name="permission" widget="badge"
+                       decoration-success="permission == 'write'"
+                       decoration-info="permission == 'read'"/>
+                <field name="article_type" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_knowledge_article_member_search" model="ir.ui.view">
+        <field name="name">knowledge.article.member.search</field>
+        <field name="model">knowledge.article.member</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="partner_id"/>
+                <field name="article_id"/>
+                <filter string="Quyền chỉnh sửa" name="write"
+                        domain="[('permission', '=', 'write')]"/>
+                <filter string="Chỉ xem" name="read"
+                        domain="[('permission', '=', 'read')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION: Quản lý thành viên (menu admin) -->
+    <record id="action_knowledge_members" model="ir.actions.act_window">
+        <field name="name">Quản lý thành viên</field>
+        <field name="res_model">knowledge.article.member</field>
+        <field name="view_mode">tree</field>
+        <field name="search_view_id" ref="view_knowledge_article_member_search"/>
+    </record>
+
+</odoo>

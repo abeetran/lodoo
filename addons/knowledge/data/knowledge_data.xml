@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Bài viết mẫu gốc: Workspace -->
+    <record id="article_welcome" model="knowledge.article">
+        <field name="name">🏠 Chào mừng đến với Knowledge Base</field>
+        <field name="icon">🏠</field>
+        <field name="article_type">workspace</field>
+        <field name="sequence">1</field>
+        <field name="body"><![CDATA[
+<div class="o_knowledge_editor" style="max-width:860px;margin:0 auto;padding:32px 0;">
+    <h1 style="font-size:2.5rem;font-weight:700;margin-bottom:8px;">🏠 Chào mừng đến với Knowledge Base</h1>
+    <p style="color:#888;margin-bottom:32px;">Đây là trung tâm tri thức của tổ chức bạn. Hãy bắt đầu tạo, tổ chức và chia sẻ kiến thức!</p>
+
+    <h2>🚀 Bắt đầu nhanh</h2>
+    <ul>
+        <li>Nhấn nút <b>+ Bài viết mới</b> để tạo bài viết đầu tiên</li>
+        <li>Kéo thả để sắp xếp bài viết trong sidebar</li>
+        <li>Dùng <b>/</b> trong editor để chèn block nhanh</li>
+        <li>⭐ Đánh dấu yêu thích các bài viết quan trọng</li>
+    </ul>
+
+    <h2>📂 Không gian làm việc</h2>
+    <ul>
+        <li><b>🌐 Workspace</b> – Bài viết dùng chung cho toàn công ty</li>
+        <li><b>🤝 Shared</b> – Chỉ chia sẻ với thành viên được mời</li>
+        <li><b>🔒 Private</b> – Chỉ mình bạn thấy</li>
+    </ul>
+</div>
+        ]]></field>
+    </record>
+
+    <record id="article_hr" model="knowledge.article">
+        <field name="name">Nhân sự &amp; Tuyển dụng</field>
+        <field name="icon">👥</field>
+        <field name="article_type">workspace</field>
+        <field name="sequence">5</field>
+        <field name="body"><![CDATA[<h1>👥 Nhân sự &amp; Tuyển dụng</h1><p>Tổng hợp tài liệu về chính sách nhân sự, quy trình tuyển dụng và onboarding.</p>]]></field>
+    </record>
+
+    <record id="article_onboarding" model="knowledge.article">
+        <field name="name">Onboarding nhân viên mới</field>
+        <field name="icon">🎉</field>
+        <field name="article_type">workspace</field>
+        <field name="parent_id" ref="article_hr"/>
+        <field name="sequence">1</field>
+        <field name="body"><![CDATA[
+<h1>🎉 Onboarding nhân viên mới</h1>
+<h2>Checklist ngày đầu</h2>
+<ul>
+    <li>☐ Tạo tài khoản email công ty</li>
+    <li>☐ Cài đặt phần mềm cần thiết</li>
+    <li>☐ Giới thiệu với team</li>
+    <li>☐ Đọc nội quy công ty</li>
+    <li>☐ Cài Odoo và đăng nhập hệ thống</li>
+</ul>
+        ]]></field>
+    </record>
+
+    <record id="article_it" model="knowledge.article">
+        <field name="name">IT &amp; Hạ tầng</field>
+        <field name="icon">💻</field>
+        <field name="article_type">workspace</field>
+        <field name="sequence">10</field>
+        <field name="body"><![CDATA[<h1>💻 IT &amp; Hạ tầng</h1><p>Tài liệu kỹ thuật, hướng dẫn cài đặt và bảo trì hệ thống.</p>]]></field>
+    </record>
+</odoo>

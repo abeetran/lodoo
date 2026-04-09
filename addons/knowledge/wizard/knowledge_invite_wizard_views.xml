@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_knowledge_invite_wizard_form" model="ir.ui.view">
+        <field name="name">knowledge.invite.wizard.form</field>
+        <field name="model">knowledge.invite.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Mời thành viên" class="o_knowledge_invite_wizard">
+                <sheet>
+                    <div class="o_invite_header text-center mb-4">
+                        <i class="fa fa-users fa-3x text-primary mb-2" style="display:block;"/>
+                        <h3>Mời thành viên</h3>
+                        <p class="text-muted">
+                            Mời người dùng tham gia bài viết
+                            <strong><field name="article_id" nolabel="1" readonly="1"/></strong>
+                        </p>
+                    </div>
+
+                    <group>
+                        <field name="article_id" invisible="1"/>
+                        <field name="partner_ids"
+                               widget="many2many_tags"
+                               string="Thành viên được mời"
+                               placeholder="Tìm kiếm người dùng..."
+                               options="{'no_create': True}"
+                               required="1"/>
+                        <field name="permission"
+                               widget="radio"
+                               string="Cấp quyền"/>
+                        <field name="send_mail"
+                               string="Gửi email thông báo"/>
+                    </group>
+
+                    <div class="alert alert-info mt-3" role="alert">
+                        <i class="fa fa-info-circle me-2"/>
+                        <strong>Lưu ý:</strong> Nếu bài viết đang ở chế độ <em>Private</em>,
+                        nó sẽ được tự động chuyển thành <em>Shared</em> khi có thành viên được mời.
+                    </div>
+                </sheet>
+                <footer>
+                    <button name="action_invite" type="object"
+                            string="Mời ngay"
+                            class="btn-primary"
+                            />
+                    <button string="Hủy" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

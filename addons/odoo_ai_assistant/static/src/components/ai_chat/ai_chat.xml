@@ -176,9 +176,8 @@
                             <div class="input-row"><textarea class="chat-input" placeholder="Nhắn tin cho AI Assistant..." t-model="state.inputText" t-on-keydown="onKeydown" rows="1" t-ref="chatInput"/></div>
                             <div class="footer-actions">
                                 <div class="footer-left">
-                                    <input type="file" t-ref="fileInput" t-on-change="onFileChange" multiple="multiple" style="display: none;"/>
-                                    <button class="tool-btn" title="Đính kèm tệp (CSV, PDF...)" t-on-click="triggerFileInput">📎</button>
-                                    <button class="tool-btn" title="Gửi hình ảnh" t-on-click="triggerFileInput">🖼️</button>
+                                    <input type="file" t-ref="fileInput" t-on-change="onFileChange" multiple="multiple" accept=".csv,.txt,.md,.json,.xml,.yaml,.yml,.pdf,.docx,.xlsx,image/*" style="display: none;"/>
+                                    <button class="tool-btn" title="Đính kèm tệp (CSV, PDF, DOCX, XLSX, JSON, XML...)" t-on-click="triggerFileInput">📎</button>
                                 </div>
                                 <button class="send-btn" t-on-click="sendMessage" t-att-disabled="state.isLoading or (!state.inputText.trim() and state.attachments.length === 0)">↑</button>
                             </div>

@@ -6,7 +6,7 @@
               name="Knowledge"
               sequence="30"
               web_icon="knowledge,static/description/icon.png"
-              groups="knowledge.group_knowledge_user"/>
+              groups="knowledge."/>
 
     <!-- TRANG CHỦ -->
     <menuitem id="menu_knowledge_home"
@@ -14,7 +14,7 @@
               parent="menu_knowledge_root"
               action="action_knowledge_article_all"
               sequence="1"
-              groups="knowledge.group_knowledge_user"/>
+              groups="knowledge."/>
 
     <!-- KHÔNG GIAN LÀM VIỆC -->
     <menuitem id="menu_knowledge_workspace"
@@ -22,7 +22,7 @@
               parent="menu_knowledge_root"
               action="action_knowledge_workspace"
               sequence="5"
-              groups="knowledge.group_knowledge_user"/>
+              groups="knowledge."/>
 
     <!-- BÀI CỦA TÔI -->
     <menuitem id="menu_knowledge_mine"
@@ -30,7 +30,7 @@
               parent="menu_knowledge_root"
               action="action_knowledge_article_mine"
               sequence="10"
-              groups="knowledge.group_knowledge_user"/>
+              groups="knowledge."/>
 
     <!-- YÊU THÍCH -->
     <menuitem id="menu_knowledge_favorites"
@@ -38,7 +38,7 @@
               parent="menu_knowledge_root"
               action="action_knowledge_article_favorites"
               sequence="15"
-              groups="knowledge.group_knowledge_user"/>
+              groups="knowledge."/>
 
     <!-- BÀI RIÊNG TƯ -->
     <menuitem id="menu_knowledge_private"
@@ -46,7 +46,7 @@
               parent="menu_knowledge_root"
               action="action_knowledge_private"
               sequence="20"
-              groups="knowledge.group_knowledge_user"/>
+              groups="knowledge."/>
 
     <!-- TẤT CẢ (dành cho admin) -->
     <menuitem id="menu_knowledge_all"
@@ -74,5 +74,5 @@
           parent="menu_knowledge_root"
           action="action_knowledge_templates"
           sequence="25"
-          groups="knowledge.group_knowledge_user"/>
+          groups="knowledge."/>
 </odoo> 

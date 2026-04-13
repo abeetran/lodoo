@@ -54,21 +54,21 @@
               parent="menu_knowledge_root"
               action="action_knowledge_article_all"
               sequence="30"
-              groups="knowledge.group_knowledge_manager"/>
+              />
 
     <!-- SEPARATOR - ADMIN -->
     <menuitem id="menu_knowledge_admin"
               name="Cấu hình"
               parent="menu_knowledge_root"
               sequence="100"
-              groups="knowledge.group_knowledge_manager"/>
+              />
 
     <menuitem id="menu_knowledge_members"
               name="Quản lý thành viên"
               parent="menu_knowledge_admin"
               action="action_knowledge_members"
               sequence="1"
-              groups="knowledge.group_knowledge_manager"/>
+              />
     <menuitem id="menu_knowledge_templates"
           name="Thư viện mẫu"
           parent="menu_knowledge_root"

@@ -21,7 +21,7 @@
     """,
     'author': 'Custom Dev',
     'category': 'Productivity/Knowledge',
-    'depends': ['base', 'mail', 'web', 'knowledge'],
+    'depends': ['base', 'mail', 'web'],
     'data': [
         'security/knowledge_security.xml',
         'security/ir.model.access.csv',

@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y sassc
 COPY . /mnt/extra-addons
 
 # Copy config if any
-# COPY config/odoo.conf /etc/odoo/odoo.conf
+COPY config/odoo.conf /etc/odoo/odoo.conf
 
 RUN chown -R odoo:odoo /mnt/extra-addons /etc/odoo
 

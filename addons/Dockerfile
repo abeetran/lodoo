@@ -2,6 +2,10 @@ FROM odoo:17
 
 USER root
 
+# Install đầy đủ SCSS compiler (QUAN TRỌNG)
+RUN pip3 install libsass
+RUN apt-get update && apt-get install -y sassc
+
 # Copy custom addons
 COPY . /mnt/extra-addons
 

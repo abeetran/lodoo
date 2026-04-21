@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
     <record id="mcp_prompt_view_tree" model="ir.ui.view">
-        <field name="name">mcp.prompt.list</field>
+        <field name="name">mcp.prompt.tree</field>
         <field name="model">mcp.prompt</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="sequence" widget="handle" />
-                <field name="name" />
-                <field name="title" />
-                <field name="is_global" />
-                <field name="user_id" />
-                <field name="role" />
-                <field name="active" widget="boolean_toggle" />
-            </list>
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="title"/>
+                <field name="is_global"/>
+                <field name="user_id"/>
+                <field name="role"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
         </field>
     </record>
 
@@ -22,40 +22,27 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active" />
+                    <widget name="web_ribbon"
+                            title="Archived"
+                            bg_color="text-bg-danger"
+                            attrs="{'invisible': [('active','=',True)]}"/>
+
                     <group>
                         <group>
-                            <field name="name" />
-                            <field name="title" />
-                            <field name="role" />
+                            <field name="name"/>
+                            <field name="title"/>
+                            <field name="role"/>
                         </group>
                         <group>
-                            <field name="is_global" widget="boolean_toggle" />
-                            <field name="user_id" invisible="is_global" required="not is_global" />
-                            <field name="sequence" />
-                            <field name="active" widget="boolean_toggle" />
+                            <field name="is_global"/>
+                            <field name="user_id"/>
+                            <field name="sequence"/>
+                            <field name="active" widget="boolean_toggle"/>
                         </group>
                     </group>
-                    <group string="Description">
-                        <field name="description" nolabel="1" colspan="2" />
-                    </group>
-                    <group string="Message Template">
-                        <field
-              name="message_template"
-              nolabel="1"
-              colspan="2"
-              placeholder="Use {argument_name} placeholders for dynamic content..."
-            />
-                    </group>
-                    <group string="Arguments">
-                        <field name="argument_ids" nolabel="1" colspan="2">
-                            <list editable="bottom">
-                                <field name="sequence" widget="handle" />
-                                <field name="name" />
-                                <field name="description" />
-                                <field name="required" />
-                            </list>
-                        </field>
+
+                    <group>
+                        <field name="content"/>
                     </group>
                 </sheet>
             </form>
@@ -67,34 +54,20 @@
         <field name="model">mcp.prompt</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name" />
-                <field name="title" />
-                <filter name="global" string="Global" domain="[('is_global', '=', True)]" />
-                <filter name="personal" string="Personal" domain="[('is_global', '=', False)]" />
-                <filter name="my_prompts" string="My Prompts" domain="[('user_id', '=', uid)]" />
-                <group>
-                    <filter name="group_global" string="Scope" context="{'group_by': 'is_global'}" />
-                    <filter name="group_user" string="Owner" context="{'group_by': 'user_id'}" />
-                </group>
+                <field name="name"/>
+                <field name="title"/>
+                <filter name="global" string="Global" domain="[('is_global','=',True)]"/>
+                <filter name="my" string="My Prompts" domain="[('user_id','=',uid)]"/>
+                <filter name="active" string="Active" domain="[('active','=',True)]"/>
+                <filter name="archived" string="Archived" domain="[('active','=',False)]"/>
             </search>
         </field>
     </record>
 
-    <!-- Global prompts action (admin) -->
-    <record id="action_mcp_prompt_global" model="ir.actions.act_window">
-        <field name="name">Global Prompts</field>
+    <record id="action_mcp_prompt" model="ir.actions.act_window">
+        <field name="name">MCP Prompts</field>
         <field name="res_model">mcp.prompt</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('is_global', '=', True)]</field>
-        <field name="context">{'default_is_global': True}</field>
-    </record>
-
-    <!-- My prompts action (user) -->
-    <record id="action_mcp_prompt_my" model="ir.actions.act_window">
-        <field name="name">My Prompts</field>
-        <field name="res_model">mcp.prompt</field>
-        <field name="view_mode">list,form</field>
-        <field name="domain">[('user_id', '=', uid)]</field>
-        <field name="context">{'default_is_global': False, 'default_user_id': uid}</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_active': 1}</field>
     </record>
 </odoo>

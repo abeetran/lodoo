@@ -6,13 +6,16 @@
         <field name="name">mcp.audit.log.list</field>
         <field name="model">mcp.audit.log</field>
         <field name="arch" type="xml">
-            <list
+
+            <!-- FIX: list -> tree -->
+            <tree
                 create="0"
                 edit="0"
                 decoration-success="response_status == 'success'"
                 decoration-warning="response_status == 'error'"
                 decoration-danger="response_status == 'denied'"
             >
+
                 <field name="timestamp"/>
                 <field name="user_id"/>
                 <field name="method"/>
@@ -21,14 +24,16 @@
                 <field name="prompt_name"/>
 
                 <field name="response_status"
-                       widget="badge"
-                       decoration-success="response_status == 'success'"
-                       decoration-warning="response_status == 'error'"
-                       decoration-danger="response_status == 'denied'"/>
+                    widget="badge"
+                    decoration-success="response_status == 'success'"
+                    decoration-warning="response_status == 'error'"
+                    decoration-danger="response_status == 'denied'"/>
 
                 <field name="duration_ms" string="ms"/>
                 <field name="ip_address"/>
-            </list>
+
+            </tree>
+
         </field>
     </record>
 

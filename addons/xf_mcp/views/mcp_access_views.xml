@@ -1,52 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+    <!-- TREE VIEW -->
     <record id="mcp_access_view_tree" model="ir.ui.view">
-        <field name="name">mcp.access.list</field>
+        <field name="name">mcp.access.tree</field>
         <field name="model">mcp.access</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="model_name" />
-                <field name="read_access" widget="boolean_toggle" />
-                <field name="write_access" widget="boolean_toggle" />
-                <field name="create_access" widget="boolean_toggle" />
-                <field name="delete_access" widget="boolean_toggle" />
-                <field name="method_call_access" widget="boolean_toggle" />
-                <field name="active" widget="boolean_toggle" />
-            </list>
+            <tree>
+                <field name="model_name"/>
+                <field name="read_access" widget="boolean_toggle"/>
+                <field name="write_access" widget="boolean_toggle"/>
+                <field name="create_access" widget="boolean_toggle"/>
+                <field name="delete_access" widget="boolean_toggle"/>
+                <field name="method_call_access" widget="boolean_toggle"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
         </field>
     </record>
 
+    <!-- FORM VIEW -->
     <record id="mcp_access_view_form" model="ir.ui.view">
         <field name="name">mcp.access.form</field>
         <field name="model">mcp.access</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <widget name="web_ribbon" title="Blocked" bg_color="text-bg-danger" invisible="active" />
+                    <widget name="web_ribbon"
+                            title="Blocked"
+                            bg_color="text-bg-danger"
+                            invisible="active"/>
+
                     <group>
                         <group string="Model">
-                            <field name="model_id" />
-                            <field name="model_name" />
-                            <field name="active" widget="boolean_toggle" />
+                            <field name="model_id"/>
+                            <field name="model_name"/>
+                            <field name="active" widget="boolean_toggle"/>
                         </group>
+
                         <group string="Permissions">
-                            <field name="read_access" widget="boolean_toggle" />
-                            <field name="write_access" widget="boolean_toggle" />
-                            <field name="create_access" widget="boolean_toggle" />
-                            <field name="delete_access" widget="boolean_toggle" />
-                            <field name="method_call_access" widget="boolean_toggle" />
+                            <field name="read_access" widget="boolean_toggle"/>
+                            <field name="write_access" widget="boolean_toggle"/>
+                            <field name="create_access" widget="boolean_toggle"/>
+                            <field name="delete_access" widget="boolean_toggle"/>
+                            <field name="method_call_access" widget="boolean_toggle"/>
                         </group>
                     </group>
+
                     <notebook>
                         <page string="Restrictions">
                             <group>
-                                <field name="group_ids" widget="many2many_tags" colspan="2" />
-                                <field name="allowed_fields" placeholder='["name", "email", "phone"]' colspan="2" />
-                                <field name="blocked_methods" placeholder='["action_dangerous_method"]' colspan="2" />
+                                <field name="group_ids" widget="many2many_tags" colspan="2"/>
+                                <field name="allowed_fields" placeholder='["name","email","phone"]' colspan="2"/>
+                                <field name="blocked_methods" placeholder='["action_dangerous_method"]' colspan="2"/>
                             </group>
                         </page>
+
                         <page string="Notes">
-                            <field name="description" />
+                            <field name="description"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -54,21 +63,23 @@
         </field>
     </record>
 
+    <!-- SEARCH VIEW -->
     <record id="mcp_access_view_search" model="ir.ui.view">
         <field name="name">mcp.access.search</field>
         <field name="model">mcp.access</field>
         <field name="arch" type="xml">
             <search>
-                <field name="model_name" />
-                <filter name="active" string="Active" domain="[('active', '=', True)]" />
-                <filter name="blocked" string="Blocked" domain="[('active', '=', False)]" />
+                <field name="model_name"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="blocked" string="Blocked" domain="[('active', '=', False)]"/>
             </search>
         </field>
     </record>
 
+    <!-- ACTION -->
     <record id="action_mcp_access" model="ir.actions.act_window">
         <field name="name">Model Access Overrides</field>
         <field name="res_model">mcp.access</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
 </odoo>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.xf_mcp</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app name="xf_mcp" string="MCP Server">
+                    <!-- General -->
+                    <block title="General" name="mcp_general">
+                        <setting string="MCP Server" help="Enable or disable the MCP server endpoint (/mcp)">
+                            <field name="mcp_enabled" />
+                        </setting>
+                        <setting
+              string="SSE Transport"
+              help="Enable HTTP+SSE transport (GET /mcp + POST /mcp/message) for LM Studio and legacy MCP clients. Streamable HTTP (POST /mcp) is always available."
+              invisible="not mcp_enabled"
+            >
+                            <field name="mcp_sse_enabled" />
+                        </setting>
+                        <setting
+              string="System Instructions"
+              help="Instructions sent to AI agents on initialize and via odoo://system/prompt resource. Leave empty for defaults."
+              invisible="not mcp_enabled"
+            >
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <field
+                    name="mcp_system_instructions"
+                    class="col-lg-9"
+                    placeholder="Optional: custom instructions for AI agents connecting to this server..."
+                  />
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <!-- Security -->
+                    <block title="Security" name="mcp_security" invisible="not mcp_enabled">
+                        <setting string="Rate Limit" help="Maximum requests per minute per user">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="mcp_rate_limit" class="col-lg-3" />
+                                    <field name="mcp_rate_limit" class="col-lg-2" />
+                                    <span class="col-lg-4">requests/minute</span>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Max Records" help="Maximum records returned per request">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="mcp_max_records" class="col-lg-3" />
+                                    <field name="mcp_max_records" class="col-lg-2" />
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="IP Filtering" help="Restrict access by IP address or network mask">
+                            <field name="mcp_ip_filtering_enabled" />
+                            <div class="content-group" invisible="not mcp_ip_filtering_enabled">
+                                <div class="row mt8">
+                                    <label for="mcp_ip_filtering_strategy" class="col-lg-3" />
+                                    <field name="mcp_ip_filtering_strategy" class="col-lg-4" />
+                                </div>
+                                <div class="row mt8">
+                                    <label for="mcp_ip_list" class="col-lg-3" />
+                                    <field
+                    name="mcp_ip_list"
+                    class="col-lg-6"
+                    placeholder="192.168.1.0/24&#10;10.0.0.0/8&#10;203.0.113.50"
+                  />
+                                </div>
+                            </div>
+                        </setting>
+                        <setting
+              string="Allowed Origins"
+              help="CORS: comma-separated allowed origins. Empty = allow all."
+            >
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="mcp_allowed_origins" class="col-lg-3" />
+                                    <field
+                    name="mcp_allowed_origins"
+                    class="col-lg-6"
+                    placeholder="https://example.com, https://app.example.com"
+                  />
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <!-- Audit -->
+                    <block title="Audit &amp; Logging" name="mcp_audit" invisible="not mcp_enabled">
+                        <setting string="Audit Logging" help="Log all MCP requests for monitoring and compliance">
+                            <field name="mcp_logging_enabled" />
+                            <div class="content-group" invisible="not mcp_logging_enabled">
+                                <div class="row mt8">
+                                    <label for="mcp_log_retention_days" class="col-lg-3" />
+                                    <field name="mcp_log_retention_days" class="col-lg-2" />
+                                    <span class="col-lg-4">days retention</span>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Session TTL" help="Inactive sessions are automatically cleaned up">
+                            <div class="content-group">
+                                <div class="row mt8">
+                                    <label for="mcp_session_ttl_hours" class="col-lg-3" />
+                                    <field name="mcp_session_ttl_hours" class="col-lg-2" />
+                                    <span class="col-lg-4">hours</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+
+                    <!-- Quick Links -->
+                    <block title="Quick Links" name="mcp_links" invisible="not mcp_enabled">
+                        <setting>
+                            <div class="content-group">
+                                <div class="mt8">
+                                    <button
+                    name="%(action_mcp_tool)d"
+                    type="action"
+                    string="Configure Tools"
+                    class="btn-link"
+                    icon="fa-wrench"
+                  />
+                                </div>
+                                <div class="mt8">
+                                    <button
+                    name="%(action_mcp_resource)d"
+                    type="action"
+                    string="Configure Resources"
+                    class="btn-link"
+                    icon="fa-database"
+                  />
+                                </div>
+                                <div class="mt8">
+                                    <button
+                    name="%(action_mcp_access)d"
+                    type="action"
+                    string="Model Access Overrides"
+                    class="btn-link"
+                    icon="fa-lock"
+                  />
+                                </div>
+                                <div class="mt8">
+                                    <button
+                    name="%(action_mcp_prompt_global)d"
+                    type="action"
+                    string="Global Prompts"
+                    class="btn-link"
+                    icon="fa-terminal"
+                  />
+                                </div>
+                                <div class="mt8">
+                                    <button
+                    name="%(action_mcp_audit_log)d"
+                    type="action"
+                    string="Audit Logs"
+                    class="btn-link"
+                    icon="fa-list-alt"
+                  />
+                                </div>
+                                <div class="mt8">
+                                    <button
+                    name="%(action_mcp_session)d"
+                    type="action"
+                    string="Active Sessions"
+                    class="btn-link"
+                    icon="fa-plug"
+                  />
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

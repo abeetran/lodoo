@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="mcp_audit_log_view_tree" model="ir.ui.view">
+        <field name="name">mcp.audit.log.list</field>
+        <field name="model">mcp.audit.log</field>
+        <field name="arch" type="xml">
+            <list
+        create="0"
+        edit="0"
+        decoration-success="response_status == 'success'"
+        decoration-warning="response_status == 'error'"
+        decoration-danger="response_status == 'denied'"
+      >
+                <field name="timestamp" />
+                <field name="user_id" />
+                <field name="method" />
+                <field name="tool_name" />
+                <field name="resource_uri" />
+                <field name="prompt_name" />
+                <field
+          name="response_status"
+          widget="badge"
+          decoration-success="response_status == 'success'"
+          decoration-warning="response_status == 'error'"
+          decoration-danger="response_status == 'denied'"
+        />
+                <field name="duration_ms" string="ms" />
+                <field name="ip_address" />
+            </list>
+        </field>
+    </record>
+
+    <record id="mcp_audit_log_view_form" model="ir.ui.view">
+        <field name="name">mcp.audit.log.form</field>
+        <field name="model">mcp.audit.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0">
+                <sheet>
+                    <group>
+                        <group string="Request">
+                            <field name="timestamp" />
+                            <field name="user_id" />
+                            <field name="session_id" />
+                            <field name="ip_address" />
+                            <field name="user_agent" />
+                        </group>
+                        <group string="Operation">
+                            <field name="method" />
+                            <field name="tool_name" />
+                            <field name="resource_uri" />
+                            <field name="prompt_name" />
+                            <field name="response_status" widget="badge" />
+                            <field name="duration_ms" />
+                        </group>
+                    </group>
+                    <group string="Request Data" invisible="not request_data">
+                        <field name="request_data" nolabel="1" colspan="2" />
+                    </group>
+                    <group string="Error" invisible="not error_message">
+                        <field name="error_message" nolabel="1" colspan="2" />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mcp_audit_log_view_search" model="ir.ui.view">
+        <field name="name">mcp.audit.log.search</field>
+        <field name="model">mcp.audit.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="user_id" />
+                <field name="method" />
+                <field name="tool_name" />
+                <field name="ip_address" />
+                <separator />
+                <filter name="success" string="Success" domain="[('response_status', '=', 'success')]" />
+                <filter name="errors" string="Errors" domain="[('response_status', '=', 'error')]" />
+                <filter name="denied" string="Denied" domain="[('response_status', '=', 'denied')]" />
+                <separator />
+                <filter
+          name="today"
+          string="Today"
+          domain="[('timestamp', '&gt;=', (context_today()).strftime('%%Y-%%m-%%d'))]"
+        />
+                <filter
+          name="last_7_days"
+          string="Last 7 Days"
+          domain="[('timestamp', '&gt;=', (context_today() - datetime.timedelta(days=7)).strftime('%%Y-%%m-%%d'))]"
+        />
+                <group>
+                    <filter name="group_user" string="User" context="{'group_by': 'user_id'}" />
+                    <filter name="group_method" string="Method" context="{'group_by': 'method'}" />
+                    <filter name="group_status" string="Status" context="{'group_by': 'response_status'}" />
+                    <filter name="group_day" string="Day" context="{'group_by': 'timestamp:day'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="mcp_audit_log_view_graph" model="ir.ui.view">
+        <field name="name">mcp.audit.log.graph</field>
+        <field name="model">mcp.audit.log</field>
+        <field name="arch" type="xml">
+            <graph type="bar">
+                <field name="timestamp" interval="day" />
+                <field name="response_status" />
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_mcp_audit_log" model="ir.actions.act_window">
+        <field name="name">Audit Logs</field>
+        <field name="res_model">mcp.audit.log</field>
+        <field name="view_mode">list,form,graph</field>
+        <field name="context">{'search_default_today': 1}</field>
+    </record>
+</odoo>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <!-- Static Resources -->
+    <record id="resource_system_info" model="mcp.resource">
+        <field name="name">System Information</field>
+        <field
+      name="description"
+    >Odoo version, database name, company info, installed modules count, MCP server version</field>
+        <field name="uri_pattern">odoo://system/info</field>
+        <field name="method_name">_resolve_system_info</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="resource_user_me" model="mcp.resource">
+        <field name="name">Current User</field>
+        <field
+      name="description"
+    >Current authenticated user info: name, login, email, language, timezone, company, groups, admin status</field>
+        <field name="uri_pattern">odoo://user/me</field>
+        <field name="method_name">_resolve_user_me</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="resource_system_prompt" model="mcp.resource">
+        <field name="name">System Prompt</field>
+        <field
+      name="description"
+    >Configurable system instructions for AI agents. Returns admin-configured instructions or sensible defaults covering multi-language and multi-company guidance.</field>
+        <field name="uri_pattern">odoo://system/prompt</field>
+        <field name="method_name">_resolve_system_prompt</field>
+        <field name="mime_type">text/plain</field>
+        <field name="sequence">3</field>
+    </record>
+
+    <!-- Resource Templates -->
+    <record id="resource_model_schema" model="mcp.resource">
+        <field name="name">Model Schema</field>
+        <field
+      name="description"
+    >Field definitions, types, relations, constraints, and help text for an Odoo model. Use to understand model structure before querying.</field>
+        <field name="uri_pattern">odoo://model/{model}/schema</field>
+        <field name="method_name">_resolve_model_schema</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <record id="resource_model_access" model="mcp.resource">
+        <field name="name">Model Access</field>
+        <field
+      name="description"
+    >Current user's CRUD permissions on a model, including both Odoo native ACL and MCP access overrides</field>
+        <field name="uri_pattern">odoo://model/{model}/access</field>
+        <field name="method_name">_resolve_model_access</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">11</field>
+    </record>
+
+    <record id="resource_module_info" model="mcp.resource">
+        <field name="name">Module Info</field>
+        <field name="description">Module metadata: name, description, version, author, state, dependencies</field>
+        <field name="uri_pattern">odoo://module/{module}/info</field>
+        <field name="method_name">_resolve_module_info</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">12</field>
+    </record>
+
+    <record id="resource_record" model="mcp.resource">
+        <field name="name">Record</field>
+        <field
+      name="description"
+    >Read a single record with all accessible fields. Use when you know the exact model and record ID.</field>
+        <field name="uri_pattern">odoo://record/{model}/{id}</field>
+        <field name="method_name">_resolve_record</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">13</field>
+    </record>
+
+    <record id="resource_record_fields" model="mcp.resource">
+        <field name="name">Record (selected fields)</field>
+        <field
+      name="description"
+    >Read a single record with only specified fields. Provide comma-separated field names in the URI: odoo://record/res.partner/1/fields/name,email,phone. Use to avoid large responses when a model has many fields.</field>
+        <field name="uri_pattern">odoo://record/{model}/{id}/fields/{fields}</field>
+        <field name="method_name">_resolve_record_fields</field>
+        <field name="mime_type">application/json</field>
+        <field name="sequence">14</field>
+    </record>
+</odoo>

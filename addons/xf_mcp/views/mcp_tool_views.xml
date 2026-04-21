@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="mcp_tool_view_tree" model="ir.ui.view">
+        <field name="name">mcp.tool.list</field>
+        <field name="model">mcp.tool</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle" />
+                <field name="name" />
+                <field name="title" />
+                <field name="category" />
+                <field name="method_name" />
+                <field name="active" widget="boolean_toggle" />
+            </list>
+        </field>
+    </record>
+
+    <record id="mcp_tool_view_form" model="ir.ui.view">
+        <field name="name">mcp.tool.form</field>
+        <field name="model">mcp.tool</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_button_box" name="button_box" />
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active" />
+                    <group>
+                        <group>
+                            <field name="name" />
+                            <field name="title" />
+                            <field name="category" />
+                            <field name="method_name" />
+                        </group>
+                        <group>
+                            <field name="sequence" />
+                            <field name="active" widget="boolean_toggle" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Description">
+                            <field name="description" />
+                        </page>
+                        <page string="Input Schema">
+                            <field name="input_schema" widget="ace" options="{'mode': 'json'}" />
+                        </page>
+                        <page string="Output Schema">
+                            <field name="output_schema" widget="ace" options="{'mode': 'json'}" />
+                        </page>
+                        <page string="Annotations">
+                            <field name="annotations" widget="ace" options="{'mode': 'json'}" />
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mcp_tool_view_search" model="ir.ui.view">
+        <field name="name">mcp.tool.search</field>
+        <field name="model">mcp.tool</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" />
+                <field name="title" />
+                <filter name="active" string="Active" domain="[('active', '=', True)]" />
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]" />
+                <separator />
+                <filter name="crud" string="CRUD" domain="[('category', '=', 'crud')]" />
+                <filter name="discovery" string="Discovery" domain="[('category', '=', 'discovery')]" />
+                <filter name="custom" string="Custom" domain="[('category', '=', 'custom')]" />
+                <group>
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}" />
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_mcp_tool" model="ir.actions.act_window">
+        <field name="name">MCP Tools</field>
+        <field name="res_model">mcp.tool</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+</odoo>

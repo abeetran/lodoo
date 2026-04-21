@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Top-level MCP menu -->
+    <menuitem
+    id="menu_mcp_root"
+    name="MCP Server"
+    web_icon="xf_mcp,static/description/icon.png"
+    groups="xf_mcp.group_mcp_admin"
+    sequence="100"
+  />
+
+    <!-- Configuration -->
+    <menuitem id="menu_mcp_config" name="Configuration" parent="menu_mcp_root" sequence="10" />
+
+    <menuitem id="menu_mcp_config_tools" name="Tools" parent="menu_mcp_config" action="action_mcp_tool" sequence="2" />
+
+    <menuitem
+    id="menu_mcp_config_resources"
+    name="Resources"
+    parent="menu_mcp_config"
+    action="action_mcp_resource"
+    sequence="3"
+  />
+
+    <menuitem
+    id="menu_mcp_config_access"
+    name="Model Access"
+    parent="menu_mcp_config"
+    action="action_mcp_access"
+    sequence="4"
+  />
+
+    <!-- Prompts -->
+    <menuitem id="menu_mcp_prompts" name="Prompts" parent="menu_mcp_root" sequence="20" />
+
+    <menuitem
+    id="menu_mcp_prompts_global"
+    name="Global Prompts"
+    parent="menu_mcp_prompts"
+    action="action_mcp_prompt_global"
+    groups="xf_mcp.group_mcp_admin"
+    sequence="1"
+  />
+
+    <menuitem
+    id="menu_mcp_prompts_my"
+    name="My Prompts"
+    parent="menu_mcp_prompts"
+    action="action_mcp_prompt_my"
+    groups="xf_mcp.group_mcp_user"
+    sequence="2"
+  />
+
+    <!-- Monitoring -->
+    <menuitem id="menu_mcp_monitoring" name="Monitoring" parent="menu_mcp_root" sequence="30" />
+
+    <menuitem
+    id="menu_mcp_monitoring_sessions"
+    name="Sessions"
+    parent="menu_mcp_monitoring"
+    action="action_mcp_session"
+    sequence="1"
+  />
+
+    <menuitem
+    id="menu_mcp_monitoring_audit"
+    name="Audit Logs"
+    parent="menu_mcp_monitoring"
+    action="action_mcp_audit_log"
+    sequence="2"
+  />
+</odoo>

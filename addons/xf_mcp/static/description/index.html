@@ -1,0 +1,501 @@
+<div class="container">
+
+    <!-- Title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="oe_slogan">
+                <h2 class="oe_slogan">MCP Server for Odoo</h2>
+                <div>
+                    Native Model Context Protocol (MCP) server built directly into Odoo.
+                    Expose your ERP data, operations, and prompts to AI assistants -Claude, Cursor,
+                    VS Code Copilot, and any MCP-compatible client -over Streamable HTTP transport.
+                    No external services, no proxies: the AI connects straight to your Odoo instance.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Features -->
+    <div class="row">
+        <div class="col-12">
+            <h4>Key Features:</h4>
+            <ul>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Native MCP protocol</strong> - Streamable HTTP transport and HTTP+SSE transport,
+                    JSON-RPC 2.0, protocol version 2024-11-05.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Bearer token authentication</strong> - Odoo API key via
+                    <code>Authorization: Bearer</code> header. Brute-force protection with per-IP lockout.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Full CRUD toolset</strong> -search, read, create, write, unlink, count,
+                    default_get, method_call, list_modules, list_companies -all configurable from the UI.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>MCP Resources</strong> -expose system info, model field schemas,
+                    per-model access info, module metadata, and individual record data as
+                    structured resources discoverable by the AI.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Custom Prompts</strong> -admin-managed global prompts and
+                    user-created personal prompt templates with named argument substitution.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Odoo-native ACL</strong> -the same access rights the user has in the browser
+                    are enforced for every MCP operation. No privilege escalation possible.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Per-model MCP overrides</strong> -optional Access Control records let admins
+                    further restrict models: limit operations, filter fields, block methods, restrict groups.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Full audit trail</strong> -every MCP request is logged with user, session,
+                    method, tool name, IP address, duration, and response status. Configurable retention.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Session management</strong> -TTL-based MCP sessions with automatic expiry
+                    and manual termination via the DELETE endpoint.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Rate limiting</strong> -per-user configurable request rate cap.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>IP filtering</strong> -allow-list or deny-list strategy with CIDR support.
+                </li>
+                <li>
+                    <i class="fa fa-check-circle"></i>
+                    <strong>Timezone-aware datetimes</strong> -reads return values in the user's local
+                    timezone; writes accept local-timezone strings and convert to UTC automatically,
+                    mirroring browser behaviour.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="row">
+        <div class="col-12">
+            <h2>How It Works</h2>
+            <p>
+                After installing the module, Odoo exposes a single MCP endpoint at <code>/mcp</code>.
+                Any MCP-compatible AI client (Claude Desktop, Cursor, VS Code with the MCP extension, etc.)
+                can connect using your Odoo URL and an API key as Bearer token, and start interacting
+                with your ERP data through natural language.
+            </p>
+            <p>
+                The AI discovers available tools, resources, and prompts automatically through the MCP
+                protocol's capability exchange. It can then search records, read field values, create or
+                update data, call business methods -all subject to the same Odoo access rights as
+                the authenticated user.
+            </p>
+        </div>
+    </div>
+
+    <!-- Compatible AI Clients -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Compatible AI Clients and IDEs</h2>
+            <p>
+                The MCP Server for Odoo works out of the box with any tool that supports the
+                Model Context Protocol. This includes desktop AI assistants, AI-powered code editors,
+                browser extensions, and custom agent frameworks.
+            </p>
+            <ul>
+                <li>
+                    <strong>Claude Desktop and Claude.ai</strong> - Connect Anthropic's Claude directly
+                    to your live Odoo data. Ask Claude to summarize sales pipelines, find overdue invoices,
+                    create new partners, or explain field relationships - all without leaving the chat interface.
+                </li>
+                <li>
+                    <strong>Cursor AI</strong> - Odoo developers using Cursor can connect the editor directly
+                    to a staging or production instance and have the AI read model definitions, search records,
+                    or validate business logic against real data while coding.
+                </li>
+                <li>
+                    <strong>VS Code with MCP extension / GitHub Copilot</strong> - Any VS Code AI extension
+                    that supports MCP tool calls can use this server to query Odoo models, retrieve field schemas,
+                    or run searches as part of an agentic workflow.
+                </li>
+                <li>
+                    <strong>Codex, Windsurf, Cline</strong> - AI coding agents like Codex, Windsurf and Cline can
+                    connect to Odoo to explore module structure, read configuration records, or automate
+                    repetitive ERP data tasks directly from the editor sidebar.
+                </li>
+                <li>
+                    <strong>Continue.dev and open-source MCP clients</strong> - Any open-source AI agent
+                    or MCP host that speaks Streamable HTTP or SSE transport is compatible.
+                </li>
+                <li>
+                    <strong>ChatGPT and OpenAI Codex</strong> - Connect ChatGPT (via OpenAI's MCP
+                    client support) or Codex-powered agents to Odoo for natural language ERP queries,
+                    record creation, and data retrieval workflows.
+                </li>
+                <li>
+                    <strong>Local AI models via LM Studio and Ollama</strong> - Run fully private,
+                    on-premise AI workflows by connecting LM Studio or Ollama (with an MCP-compatible
+                    agent layer) to Odoo. Your data never leaves your network.
+                </li>
+                <li>
+                    <strong>Custom AI agents and automation scripts</strong> - Build your own AI-powered
+                    Odoo automation using the MCP protocol with any LLM provider: OpenAI, Anthropic,
+                    Google Gemini, Mistral, or local models via Ollama and LM Studio.
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Tools screenshot -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Configurable Tools</h2>
+            <p>
+                All MCP tools are stored as Odoo records and can be reviewed, reordered, or extended
+                from the <strong>MCP &rarr; Configuration &rarr; Tools</strong> menu.
+                Each tool has a name, description, JSON Schema for its parameters, and maps to a
+                Python method on the <code>mcp.tool</code> model.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_01_tools_list.png"
+                    alt="MCP Tools list view showing all available tools: search, read, create, write, unlink, count, default_get, method_call, list_modules, list_companies"
+                    title="MCP Tools list -all available CRUD and discovery tools"
+                    width="100%"
+                />
+            </p>
+            <p>
+                Each tool record stores the full JSON Schema used to describe parameters to the AI,
+                the display title, description, category, and optional structured output schema.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_02_tool_form.png"
+                    alt="MCP Tool form view showing the 'search' tool with its JSON Schema input definition, description, method name, and category fields"
+                    title="MCP Tool form -search tool configuration with JSON Schema"
+                    width="100%"
+                />
+            </p>
+        </div>
+    </div>
+
+    <!-- Resources screenshot -->
+    <div class="row">
+        <div class="col-12">
+            <h2>MCP Resources</h2>
+            <p>
+                Resources provide structured, readable information to the AI without requiring a tool call.
+                Manage them under <strong>MCP &rarr; Configuration &rarr; Resources</strong>.
+                Built-in resources include system information, model field schemas, access metadata,
+                module details, and dynamic record templates.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_03_resources_list.png"
+                    alt="MCP Resources list view showing all built-in resources including system info, model schema, record access, module info, and record templates"
+                    title="MCP Resources list -built-in system and model resources"
+                    width="100%"
+                />
+            </p>
+        </div>
+    </div>
+
+    <!-- Prompts screenshot -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Custom Prompts</h2>
+            <p>
+                Prompt templates let admins define reusable instructions for the AI that users can invoke
+                by name. Manage global prompts under <strong>MCP &rarr; Configuration &rarr; Global Prompts</strong>.
+                Users can also create their own personal prompts from <strong>MCP &rarr; My Prompts</strong>.
+            </p>
+            <p>
+                Templates support named argument placeholders (<code>{argument_name}</code>) with required/optional
+                validation. The AI receives the rendered prompt as a structured message.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_04_prompts_list.png"
+                    alt="MCP Global Prompts list view showing prompt templates with their names, titles, roles, and active status"
+                    title="MCP Global Prompts list -reusable AI prompt templates"
+                    width="100%"
+                />
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_05_prompt_form.png"
+                    alt="MCP Prompt form view showing a prompt template with message template field, argument list, global/personal toggle, and role selection"
+                    title="MCP Prompt form -template with named arguments"
+                    width="100%"
+                />
+            </p>
+        </div>
+    </div>
+
+    <!-- Access Control screenshot -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Per-Model Access Control</h2>
+            <p>
+                While Odoo's native ACL is always enforced as the primary security layer, the optional
+                MCP Access Control records let administrators add an additional restriction layer per model:
+                disable specific operations (read, write, create, delete, method calls), whitelist
+                allowed fields, block specific methods, or restrict access to certain security groups.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_06_access_control.png"
+                    alt="MCP Access Control form view showing per-model permission toggles for read, write, create, delete, method_call operations and field restrictions"
+                    title="MCP Access Control -per-model operation and field restrictions"
+                    width="100%"
+                />
+            </p>
+        </div>
+    </div>
+
+    <!-- Audit Log screenshot -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Audit Trail</h2>
+            <p>
+                Every MCP request is recorded in the audit log -accessible under
+                <strong>MCP &rarr; Monitoring &rarr; Audit Logs</strong>.
+                Each entry captures the authenticated user, session ID, MCP method,
+                tool or resource name, request data, response status, IP address, user agent,
+                and processing duration.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_07_audit_log.png"
+                    alt="MCP Audit Log list view showing request history with columns for date, user, method, tool name, status, IP address, and duration in milliseconds"
+                    title="MCP Audit Log -full request history with user, method, and timing"
+                    width="100%"
+                />
+            </p>
+        </div>
+    </div>
+
+    <!-- Settings screenshot -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Configuration &amp; Settings</h2>
+            <p>
+                The MCP server is configured from <strong>Settings &rarr; General Settings &rarr; MCP Server</strong>.
+                Options include enabling/disabling the server, setting the rate limit, session TTL,
+                maximum records per response, audit log retention, allowed CORS origins, and IP filtering rules.
+            </p>
+            <p>
+                <img
+                    class="oe_screenshot"
+                    src="screenshot_08_settings.png"
+                    alt="Odoo General Settings page showing the MCP Server configuration section with toggles for enabled state, rate limit, session TTL, max records, audit log retention, and IP filtering options"
+                    title="MCP Server settings in Odoo General Settings"
+                    width="100%"
+                />
+            </p>
+        </div>
+    </div>
+
+    <!-- Use Cases -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Use Cases</h2>
+            <p>
+                <strong>Odoo AI integration for developers.</strong>
+                Connect Cursor, VS Code Copilot, or any MCP-compatible IDE to a live Odoo instance
+                while building custom modules. Ask the AI to describe model field schemas, search for
+                existing records to validate logic, or read configuration data - all without switching
+                context from the editor.
+            </p>
+            <p>
+                <strong>Business intelligence and natural language queries.</strong>
+                Let non-technical users ask plain-English questions about ERP data through Claude Desktop
+                or a similar AI chat interface. "Show me all unpaid invoices from last month" or
+                "Which sales orders are still in draft?" - the AI translates the request into Odoo
+                domain queries and returns structured results.
+            </p>
+            <p>
+                <strong>AI agent automation for routine ERP tasks.</strong>
+                Build agentic workflows that create records, update statuses, or process bulk operations
+                using any MCP-compatible AI agent framework. The Odoo native ACL ensures the agent can
+                only touch what the authenticated user is permitted to access.
+            </p>
+            <p>
+                <strong>Secure AI access for multi-company and multi-user Odoo setups.</strong>
+                Each AI client authenticates with its own API key or credentials, inheriting exactly
+                the same access rights as the corresponding Odoo user. Per-model MCP overrides let
+                admins add extra restrictions on top of ACL without modifying security groups.
+            </p>
+            <p>
+                <strong>Private on-premise AI with local models.</strong>
+                Run fully air-gapped AI workflows by pairing the MCP server with a local language
+                model served via Ollama or LM Studio. Your Odoo data never leaves the network -
+                the AI assistant runs on your own hardware while still accessing live ERP records
+                through the MCP protocol. Ideal for organizations with strict data residency or
+                confidentiality requirements.
+            </p>
+            <p>
+                <strong>Audit-ready AI usage in regulated environments.</strong>
+                The full audit trail records every AI request - who asked, what was read or changed,
+                from which IP address, and with what result. This makes the module suitable for
+                organizations that need traceability of AI-driven ERP interactions.
+            </p>
+        </div>
+    </div>
+
+    <!-- Quick start -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Quick Start</h2>
+            <ol>
+                <li>Install the <strong>MCP Server</strong> module.</li>
+                <li>
+                    Generate an API key for your user: <em>Settings &rarr; My Profile &rarr; API Keys &rarr; New</em>.
+                </li>
+                <li>
+                    Add your Odoo instance to your MCP client configuration:
+                    <ul>
+                        <li><strong>URL</strong>: <code>https://&lt;your-odoo-host&gt;/mcp</code></li>
+                        <li><strong>Authorization</strong>: <code>Bearer &lt;your-api-key&gt;</code></li>
+                    </ul>
+                </li>
+                <li>
+                    Ensure your user belongs to the <strong>MCP User</strong> or
+                    <strong>MCP Administrator</strong> security group.
+                </li>
+                <li>Start chatting -ask the AI to search records, summarise data, or update fields.</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Technical: Multi-Database Setup (optional) -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Technical: Multi-Database Setup <small class="text-muted">(optional)</small></h2>
+            <p>
+                This section is only relevant for Odoo installations that serve
+                <strong>multiple databases</strong> from a single server. Single-database setups
+                (<code>db_name</code> set in <code>odoo.conf</code>) can skip this.
+            </p>
+            <p>
+                In a multi-database setup the MCP endpoint must be reachable before a database
+                registry is loaded - for example when an MCP client connects without a browser
+                session and passes the target database via the <code>?db=</code> query parameter.
+                Without the fix below, such clients receive a <strong>404 Not Found</strong>.
+            </p>
+            <p>
+                Add <code>xf_mcp</code> to <code>server_wide_modules</code> in
+                <code>odoo.conf</code>:
+            </p>
+            <pre style="background:#f5f5f5;padding:12px;border-radius:4px;">server_wide_modules = base,web,xf_mcp</pre>
+            <p>
+                This causes Odoo to load the module at server startup via its
+                <code>post_load</code> hook, which patches the HTTP dispatcher to resolve
+                <code>?db=</code> for any path starting with <code>/mcp</code>.
+            </p>
+            <p>
+                Example MCP client URL for a multi-database setup:
+            </p>
+            <pre style="background:#f5f5f5;padding:12px;border-radius:4px;">https://odoo.example.com/mcp?db=my_production_db</pre>
+        </div>
+    </div>
+
+    <!-- Technical: Nginx Configuration (optional) -->
+    <div class="row">
+        <div class="col-12">
+            <h2>Technical: Nginx Configuration <small class="text-muted">(optional)</small></h2>
+            <p>
+                This section is only relevant when Odoo is served behind an <strong>Nginx reverse
+                proxy</strong> and the HTTP+SSE transport is in use. Direct connections and the
+                Streamable HTTP transport (POST /mcp) work without any Nginx changes.
+            </p>
+            <p>
+                Standard Nginx proxy settings buffer responses and close idle connections, which
+                breaks SSE streams and causes timeouts on slow tool calls. Add a dedicated
+                <code>location /mcp</code> block <strong>before</strong> the generic
+                <code>location /</code> block:
+            </p>
+            <pre style="background:#f5f5f5;padding:12px;border-radius:4px;"># MCP endpoints - SSE requires no buffering and long timeouts
+location /mcp {
+    proxy_pass              http://odoo-upstream;
+    proxy_buffering         off;
+    proxy_cache             off;
+    proxy_read_timeout      3600s;
+    proxy_set_header        Connection '';
+    chunked_transfer_encoding on;
+}</pre>
+            <p>Key settings explained:</p>
+            <ul>
+                <li>
+                    <code>proxy_buffering off</code> - Forwards SSE events to the client
+                    immediately instead of holding them in the buffer.
+                </li>
+                <li>
+                    <code>proxy_cache off</code> - Prevents caching of the streaming response.
+                </li>
+                <li>
+                    <code>proxy_read_timeout 3600s</code> - Keeps SSE connections open for up to
+                    one hour. The default 60 s would close idle streams between keep-alive pings.
+                </li>
+                <li>
+                    <code>proxy_set_header Connection ''</code> - Removes the
+                    <code>Connection: close</code> header so the upstream keep-alive connection
+                    stays open.
+                </li>
+                <li>
+                    <code>chunked_transfer_encoding on</code> - Required for streaming chunked
+                    responses through the proxy.
+                </li>
+            </ul>
+            <p>
+                The <code>/mcp/message</code> path (HTTP+SSE transport) is covered by the same
+                block because Nginx prefix matching applies to all paths starting with
+                <code>/mcp</code>.
+            </p>
+        </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="row">
+        <div class="col-12 oe_spaced">
+            <hr/>
+            <div class="text-center">
+                <img src="https://erp.xfanis.dev/web/logo/xf_mcp/17"
+                     alt="Logo"
+                     width="200"
+                     style="display: inline-block;" />
+            </div>
+            <div class="oe_slogan text-center">
+                <div>Need a demo, discount or any other help?</div>
+                <div>
+                    Reach me on <b><span style="color: #24A1DE">T</span>ele<span style="color: #24A1DE">g</span>ram</b>:
+                    <a href="https://t.me/xfanis">https://t.me/xfanis</a>
+                </div>
+                <br/>
+                <div>Contact me for Support, Customization, Implementation:</div>
+                <div><b>Email</b>: <a href="mailto:xfanis.dev@gmail.com">xfanis.dev@gmail.com</a></div>
+                <br/>
+                <div>Stay in touch and updated:</div>
+                <div><b>Twitter</b>: <a href="https://twitter.com/XFanis_Dev">https://twitter.com/XFanis_Dev</a></div>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <!-- System Parameters (defaults) -->
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.enabled', 'True')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.rate_limit', '60')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.max_records', '200')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.sse_enabled', 'True')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.ip_filtering_enabled', 'False')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.ip_filtering_strategy', 'allow_list')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.ip_list', '')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.logging_enabled', 'True')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.log_retention_days', '90')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.session_ttl_hours', '24')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.allowed_origins', '')" />
+    <function model="ir.config_parameter" name="set_param" eval="('xf_mcp.system_instructions', '')" />
+
+    <!-- Cron: Cleanup audit logs -->
+    <record id="cron_mcp_audit_log_cleanup" model="ir.cron">
+        <field name="name">MCP: Cleanup old audit logs</field>
+        <field name="model_id" ref="model_mcp_audit_log" />
+        <field name="state">code</field>
+        <field name="code">model.cron_cleanup_old_logs()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True" />
+    </record>
+
+    <!-- Cron: Cleanup expired sessions -->
+    <record id="cron_mcp_session_cleanup" model="ir.cron">
+        <field name="name">MCP: Cleanup expired sessions</field>
+        <field name="model_id" ref="model_mcp_session" />
+        <field name="state">code</field>
+        <field
+      name="code"
+    >model.cleanup_expired(int(env['ir.config_parameter'].sudo().get_param('xf_mcp.session_ttl_hours', '24')))</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True" />
+    </record>
+</odoo>

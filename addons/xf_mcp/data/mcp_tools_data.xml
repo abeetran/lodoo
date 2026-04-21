@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo noupdate="1">
+    <!-- CRUD Tools -->
+    <record id="tool_search" model="mcp.tool">
+        <field name="name">search</field>
+        <field name="title">Search Records</field>
+        <field
+      name="description"
+    >Search records in an Odoo model using domain filters. Returns matching records with specified fields. Use this to find records that match certain criteria.</field>
+        <field name="method_name">_execute_search</field>
+        <field name="category">crud</field>
+        <field name="sequence">1</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name (e.g., 'res.partner', 'sale.order')"},
+        "domain": {"type": "array", "description": "Odoo domain filter (e.g., [['is_company','=',true]])", "default": []},
+        "fields": {"type": "array", "items": {"type": "string"}, "description": "Fields to return. Empty = smart defaults (excludes binary/metadata)."},
+        "limit": {"type": "integer", "description": "Max records to return (default 10, max configurable)", "default": 10},
+        "offset": {"type": "integer", "description": "Number of records to skip for pagination", "default": 0},
+        "order": {"type": "string", "description": "Sort order (e.g., 'name asc, id desc')"},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model"]
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+
+    <record id="tool_read" model="mcp.tool">
+        <field name="name">read</field>
+        <field name="title">Read Records</field>
+        <field
+      name="description"
+    >Read specific records by their IDs with selected fields. Use when you already know exact record IDs from a previous search or reference.</field>
+        <field name="method_name">_execute_read</field>
+        <field name="category">crud</field>
+        <field name="sequence">2</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "ids": {"type": "array", "items": {"type": "integer"}, "description": "Record IDs to read"},
+        "fields": {"type": "array", "items": {"type": "string"}, "description": "Fields to return. Empty = smart defaults."},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model", "ids"]
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+
+    <record id="tool_create" model="mcp.tool">
+        <field name="name">create</field>
+        <field name="title">Create Records</field>
+        <field
+      name="description"
+    >Create one or more records in an Odoo model. Use 'values' for a single record or 'values_list' for batch creation. Returns created record IDs.</field>
+        <field name="method_name">_execute_create</field>
+        <field name="category">crud</field>
+        <field name="sequence">3</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "values": {"type": "object", "description": "Field values for a single new record"},
+        "values_list": {"type": "array", "items": {"type": "object"}, "description": "List of value dicts for batch create"},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model"]
+}</field>
+        <field name="annotations">{"readOnlyHint": false, "destructiveHint": false, "idempotentHint": false}</field>
+    </record>
+
+    <record id="tool_write" model="mcp.tool">
+        <field name="name">write</field>
+        <field name="title">Update Records</field>
+        <field
+      name="description"
+    >Update existing records by IDs with new field values. All specified records receive the same values.</field>
+        <field name="method_name">_execute_write</field>
+        <field name="category">crud</field>
+        <field name="sequence">4</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "ids": {"type": "array", "items": {"type": "integer"}, "description": "Record IDs to update"},
+        "values": {"type": "object", "description": "Field values to set"},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model", "ids", "values"]
+}</field>
+        <field name="annotations">{"readOnlyHint": false, "destructiveHint": false, "idempotentHint": true}</field>
+    </record>
+
+    <record id="tool_unlink" model="mcp.tool">
+        <field name="name">unlink</field>
+        <field name="title">Delete Records</field>
+        <field
+      name="description"
+    >Delete records by IDs. This is a destructive operation — use with caution. Consider archiving (write active=false) instead of deleting when possible.</field>
+        <field name="method_name">_execute_unlink</field>
+        <field name="category">crud</field>
+        <field name="sequence">5</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "ids": {"type": "array", "items": {"type": "integer"}, "description": "Record IDs to delete"},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model", "ids"]
+}</field>
+        <field name="annotations">{"readOnlyHint": false, "destructiveHint": true, "idempotentHint": true}</field>
+    </record>
+
+    <record id="tool_count" model="mcp.tool">
+        <field name="name">count</field>
+        <field name="title">Count Records</field>
+        <field
+      name="description"
+    >Count records matching a domain filter without fetching data. Efficient for checking how many records match criteria.</field>
+        <field name="method_name">_execute_count</field>
+        <field name="category">crud</field>
+        <field name="sequence">6</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "domain": {"type": "array", "description": "Odoo domain filter", "default": []},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model"]
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+
+    <record id="tool_read_group" model="mcp.tool">
+        <field name="name">read_group</field>
+        <field name="title">Group and Aggregate Records</field>
+        <field
+      name="description"
+    >Group records by fields and compute aggregates (sum, count, avg, min, max). Use for analytics: totals by partner, counts by status, revenue by month. Specify groupby fields and optional aggregate expressions in fields (e.g. 'amount_total:sum', 'id:count_distinct'). Date/datetime fields support granularity: 'date:month', 'date:year', 'date:week'.</field>
+        <field name="method_name">_execute_read_group</field>
+        <field name="category">crud</field>
+        <field name="sequence">7</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name (e.g., 'sale.order', 'account.move')"},
+        "groupby": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Fields to group by. Date fields support granularity suffix: 'date_order:month', 'invoice_date:year'. Many2one fields group by related record."
+        },
+        "fields": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Aggregate expressions: 'field' (default agg), 'field:sum', 'field:avg', 'field:min', 'field:max', 'field:count_distinct'. Empty = only __count per group.",
+            "default": []
+        },
+        "domain": {"type": "array", "description": "Odoo domain filter to limit records before grouping", "default": []},
+        "limit": {"type": "integer", "description": "Max number of groups to return"},
+        "offset": {"type": "integer", "description": "Number of groups to skip", "default": 0},
+        "orderby": {"type": "string", "description": "Sort order for groups (e.g., 'amount_total:sum desc')"},
+        "lazy": {"type": "boolean", "description": "If true, group only by first groupby field; remaining go into __context. Default false (all groupby applied at once).", "default": false},
+        "context": {"type": "object", "description": "Optional ORM context dict (lang, tz, allowed_company_ids)"}
+    },
+    "required": ["model", "groupby"]
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+
+    <!-- Discovery Tools -->
+    <record id="tool_default_get" model="mcp.tool">
+        <field name="name">default_get</field>
+        <field name="title">Get Default Values</field>
+        <field
+      name="description"
+    >Get default field values for a model before creating a record. Helps understand required fields, auto-filled values, and proper field formats. Always call this before creating a record in an unfamiliar model.</field>
+        <field name="method_name">_execute_default_get</field>
+        <field name="category">discovery</field>
+        <field name="sequence">10</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "fields": {"type": "array", "items": {"type": "string"}, "description": "Fields to get defaults for. Empty = all fields."},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model"]
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+
+    <record id="tool_list_modules" model="mcp.tool">
+        <field name="name">list_modules</field>
+        <field name="title">List Modules</field>
+        <field
+      name="description"
+    >List Odoo modules filtered by keyword and state. Use to discover available functionality and installed apps.</field>
+        <field name="method_name">_execute_list_modules</field>
+        <field name="category">discovery</field>
+        <field name="sequence">11</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "keyword": {"type": "string", "description": "Optional search keyword for module name"},
+        "state": {"type": "string", "enum": ["installed", "uninstalled", "to install", "to upgrade"], "default": "installed", "description": "Module state filter"}
+    }
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+
+    <record id="tool_method_call" model="mcp.tool">
+        <field name="name">method_call</field>
+        <field name="title">Call Method</field>
+        <field
+      name="description"
+    >Call a public method on model records. Only public methods (not starting with _) are allowed. Use method='get_methods' with no ids to discover available methods on any model. Common patterns: action_confirm, action_done, button_validate, action_cancel, action_draft.</field>
+        <field name="method_name">_execute_method_call</field>
+        <field name="category">discovery</field>
+        <field name="sequence">12</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {
+        "model": {"type": "string", "description": "Technical model name"},
+        "method": {"type": "string", "description": "Public method name (e.g., action_confirm, button_validate, get_methods)"},
+        "ids": {"type": "array", "items": {"type": "integer"}, "description": "Record IDs to call method on. Empty for model-level methods.", "default": []},
+        "args": {"type": "array", "description": "Positional arguments", "default": []},
+        "kwargs": {"type": "object", "description": "Keyword arguments", "default": {}},
+        "context": {"type": "object", "description": "Optional ORM context dict. Use 'lang' for language (e.g. 'en_US'), 'tz' for timezone, 'allowed_company_ids' for multi-company operations (e.g. [1]). Example: {\"lang\": \"en_US\", \"allowed_company_ids\": [1]}"}
+    },
+    "required": ["model", "method"]
+}</field>
+        <field name="annotations">{"readOnlyHint": false, "destructiveHint": true}</field>
+    </record>
+
+    <record id="tool_list_companies" model="mcp.tool">
+        <field name="name">list_companies</field>
+        <field name="title">List Companies</field>
+        <field
+      name="description"
+    >List companies accessible to the current user. Returns the current active company and all accessible companies. Use company IDs with context={'allowed_company_ids': [id]} on create/write/method_call tools to operate in a specific company.</field>
+        <field name="method_name">_execute_list_companies</field>
+        <field name="category">discovery</field>
+        <field name="sequence">13</field>
+        <field name="input_schema">{
+    "type": "object",
+    "properties": {}
+}</field>
+        <field name="annotations">{"readOnlyHint": true, "openWorldHint": false}</field>
+    </record>
+</odoo>

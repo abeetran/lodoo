@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 
 from odoo import api, fields, models
 from odoo.exceptions import MissingError, UserError, ValidationError

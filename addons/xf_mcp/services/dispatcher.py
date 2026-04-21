@@ -123,7 +123,7 @@ def handle_initialize(params, env, session_model):
         "serverInfo": {
             "name": "xf_mcp",
             "title": "Odoo MCP Server",
-            "version": "19.0.1.0.0",
+            "version": "17.0.1.0.0",
             "user": {
                 "id": user.id,
                 "name": user.name,

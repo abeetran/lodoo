@@ -161,7 +161,7 @@ class McpResource(models.Model):
                     "installed_modules_count": len(modules),
                     "server_info": {
                         "mcp_module": "xf_mcp",
-                        "mcp_version": "19.0.1.0.0",
+                        "mcp_version": "17.0.1.0.0",
                         "protocol_version": "2025-11-25",
                     },
                 },

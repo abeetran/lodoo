@@ -10,7 +10,7 @@
     <record id="privilege_mcp_user" model="res.groups">
         <field name="name">MCP User</field>
         <field name="category_id" ref="module_category_mcp"/>
-        <field name="sequence">10</field>
+        <field name="sequence">30</field>
     </record>
 
     <record id="privilege_mcp_admin" model="res.groups.privilege">

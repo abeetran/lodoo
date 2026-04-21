@@ -45,10 +45,13 @@ class McpResource(models.Model):
     active = fields.Boolean(string="Active", default=True)
     sequence = fields.Integer(string="Sequence", default=10)
 
-    _uri_pattern_unique = models.Constraint(
-        "unique(uri_pattern)",
-        "URI pattern must be unique!",
-    )
+    # _uri_pattern_unique = models.Constraint(
+    #     "unique(uri_pattern)",
+    #     "URI pattern must be unique!",
+    # )
+    _sql_constraints = [
+        ('uri_pattern_unique', 'unique(uri_pattern)', 'URI pattern must be unique!')
+    ]
 
     @api.depends("uri_pattern")
     def _compute_is_template(self):

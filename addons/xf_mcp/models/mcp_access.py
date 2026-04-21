@@ -48,10 +48,17 @@ class McpAccess(models.Model):
     active = fields.Boolean(string="Active", default=True)
     description = fields.Text(string="Notes")
 
-    _model_id_unique = models.Constraint(
-        "unique(model_id)",
-        "Only one MCP access override per model!",
-    )
+    # _model_id_unique = models.Constraint(
+    #     "unique(model_id)",
+    #     "Only one MCP access override per model!",
+    # )
+    _sql_constraints = [
+        (
+            'model_id_unique',
+            'unique(model_id)',
+            'Only one MCP access override per model!'
+        )
+    ]
 
     @api.depends("model_id")
     def _compute_name(self):

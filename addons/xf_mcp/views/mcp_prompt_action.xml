@@ -1,6 +1,6 @@
 <odoo>
-    <record id="action_mcp_prompt_my" model="ir.actions.act_window">
-        <field name="name">My Prompts</field>
+    <record id="action_mcp_prompt_global" model="ir.actions.act_window">
+        <field name="name">Global Prompts</field>
         <field name="res_model">mcp.prompt</field>
         <field name="view_mode">tree,form</field>
     </record>

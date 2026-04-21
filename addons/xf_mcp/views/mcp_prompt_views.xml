@@ -41,9 +41,30 @@
                         </group>
                     </group>
 
-                    <group>
-                        <field name="content"/>
-                    </group>
+                    <notebook>
+                        <page string="Template">
+                            <!-- ✅ FIX HERE -->
+                            <field name="message_template"
+                                   widget="ace"
+                                   options="{'mode': 'text'}"/>
+                        </page>
+
+                        <page string="Arguments">
+                            <field name="argument_ids">
+                                <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="name"/>
+                                    <field name="description"/>
+                                    <field name="required"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Description">
+                            <field name="description"/>
+                        </page>
+                    </notebook>
+
                 </sheet>
             </form>
         </field>

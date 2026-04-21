@@ -109,6 +109,7 @@ Private on-premise AI workflows using local models via Ollama or LM Studio with 
         "views/mcp_access_views.xml",
         "views/mcp_audit_log_views.xml",
         "views/mcp_session_views.xml",
+        "views/mcp_prompt_action.xml",
         "views/res_config_settings_views.xml",
         "views/menu.xml",
     ],

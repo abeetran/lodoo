@@ -1,16 +1,13 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import timezone
 
 from odoo import api, fields, models
-from odoo.exceptions import MissingError, UserError, ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
-
-# Define UTC (Python 3.10 compatible)
 UTC = timezone.utc
 
-# Keys that must never be passed through to Odoo method kwargs
 _BLOCKED_KWARGS = frozenset({"env", "cr", "uid"})
 
 
@@ -33,7 +30,6 @@ class McpTool(models.Model):
     active = fields.Boolean(default=True)
     sequence = fields.Integer(default=10)
 
-    # ✅ FIX: correct constraint
     _sql_constraints = [
         ("name_unique", "unique(name)", "Tool name must be unique!"),
     ]
@@ -65,47 +61,137 @@ class McpTool(models.Model):
     def _check_method_exists(self):
         for rec in self:
             if rec.method_name and not hasattr(self, rec.method_name):
-                raise ValidationError(f"Method '{rec.method_name}' does not exist on mcp.tool")
-
-    # -------------------------------------------------------------------------
-    # TIMEZONE FIX (IMPORTANT)
-    # -------------------------------------------------------------------------
-
-    def _localize_datetime_values(self, model, values, env):
-        """Convert datetime string from user TZ → UTC (Odoo-safe)."""
-        tz_name = env.context.get("tz") or env.user.tz
-        if not tz_name:
-            return values
-
-        result = dict(values)
-
-        for fname, value in values.items():
-            if fname not in model._fields:
-                continue
-            if model._fields[fname].type != "datetime":
-                continue
-            if not isinstance(value, str) or not value:
-                continue
-
-            try:
-                dt = fields.Datetime.from_string(value)
-
-                # convert local → UTC properly
-                localized = fields.Datetime.context_timestamp(
-                    self.with_context(tz=tz_name),
-                    dt,
+                raise ValidationError(
+                    f"Method '{rec.method_name}' does not exist on mcp.tool"
                 )
 
-                result[fname] = fields.Datetime.to_string(localized)
+    # -------------------------------------------------------------------------
+    # EXECUTION ENTRYPOINT
+    # -------------------------------------------------------------------------
 
-            except Exception:
-                pass
+    def execute(self, arguments=None):
+        """Main dispatcher"""
+        self.ensure_one()
 
-        return result
+        method = getattr(self, self.method_name, None)
+        if not method:
+            raise UserError(f"Method {self.method_name} not found")
+
+        return method(self.env, arguments or {})
 
     # -------------------------------------------------------------------------
-    # Example execution method (kept minimal)
+    # CRUD METHODS
     # -------------------------------------------------------------------------
+
+    def _execute_search(self, env, args):
+        model = args.get("model")
+        domain = args.get("domain", [])
+        fields_list = args.get("fields", [])
+        limit = args.get("limit", 10)
+        offset = args.get("offset", 0)
+        order = args.get("order")
+
+        if not model:
+            raise UserError("Missing model")
+
+        records = env[model].search(domain, limit=limit, offset=offset, order=order)
+
+        return records.read(fields_list) if fields_list else records.read()
+
+    def _execute_read(self, env, args):
+        model = args.get("model")
+        ids = args.get("ids", [])
+        fields_list = args.get("fields", [])
+
+        if not model or not ids:
+            raise UserError("Missing model or ids")
+
+        return env[model].browse(ids).read(fields_list)
+
+    def _execute_create(self, env, args):
+        model = args.get("model")
+        if not model:
+            raise UserError("Missing model")
+
+        Model = env[model]
+
+        if args.get("values_list"):
+            vals_list = args["values_list"]
+            records = Model.create(vals_list)
+        else:
+            values = args.get("values", {})
+            records = Model.create(values)
+
+        return {"ids": records.ids}
+
+    def _execute_write(self, env, args):
+        model = args.get("model")
+        ids = args.get("ids")
+        values = args.get("values")
+
+        if not model or not ids or not values:
+            raise UserError("Missing model, ids or values")
+
+        env[model].browse(ids).write(values)
+        return True
+
+    def _execute_unlink(self, env, args):
+        model = args.get("model")
+        ids = args.get("ids")
+
+        if not model or not ids:
+            raise UserError("Missing model or ids")
+
+        env[model].browse(ids).unlink()
+        return True
+
+    def _execute_count(self, env, args):
+        model = args.get("model")
+        domain = args.get("domain", [])
+
+        if not model:
+            raise UserError("Missing model")
+
+        return env[model].search_count(domain)
+
+    def _execute_read_group(self, env, args):
+        model = args.get("model")
+        groupby = args.get("groupby")
+        fields_list = args.get("fields", [])
+        domain = args.get("domain", [])
+
+        if not model or not groupby:
+            raise UserError("Missing model or groupby")
+
+        return env[model].read_group(domain, fields_list, groupby)
+
+    # -------------------------------------------------------------------------
+    # DISCOVERY METHODS
+    # -------------------------------------------------------------------------
+
+    def _execute_default_get(self, env, args):
+        model = args.get("model")
+        fields_list = args.get("fields", [])
+
+        if not model:
+            raise UserError("Missing model")
+
+        return env[model].default_get(fields_list)
+
+    def _execute_list_modules(self, env, args):
+        keyword = args.get("keyword")
+        state = args.get("state", "installed")
+
+        domain = [("state", "=", state)]
+        if keyword:
+            domain.append(("name", "ilike", keyword))
+
+        modules = env["ir.module.module"].search(domain)
+        return modules.read(["name", "state"])
+
+    def _execute_list_companies(self, env, args):
+        companies = env["res.company"].search([])
+        return companies.read(["id", "name"])
 
     def _execute_method_call(self, env, arguments):
         model_name = arguments.get("model")
@@ -128,7 +214,6 @@ class McpTool(models.Model):
 
         safe_kwargs = {k: v for k, v in kwargs.items() if k not in _BLOCKED_KWARGS}
 
-        # ✅ Logging for debug
         _logger.info(
             "MCP CALL model=%s method=%s ids=%s args=%s kwargs=%s",
             model_name, method_name, ids, args, safe_kwargs

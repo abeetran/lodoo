@@ -117,5 +117,5 @@ Private on-premise AI workflows using local models via Ollama or LM Studio with 
     "post_load": "post_load",
     "auto_install": False,
     "application": True,
-    'installable': True,
+    "installable": True,
 }

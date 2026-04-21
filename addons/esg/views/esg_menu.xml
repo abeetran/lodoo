@@ -1,0 +1,27 @@
+<odoo>
+    <menuitem id="esg_root" name="ESG" sequence="10"/>
+
+    <menuitem id="esg_dashboard_menu"
+              name="Dashboard"
+              parent="esg_root"
+              action="action_esg_report"
+              sequence="1"/>
+
+    <menuitem id="esg_environment_menu"
+              name="Environment"
+              parent="esg_root"
+              action="action_esg_environment"
+              sequence="2"/>
+
+    <menuitem id="esg_social_menu"
+              name="Social"
+              parent="esg_root"
+              action="action_esg_social"
+              sequence="3"/>
+
+    <menuitem id="esg_governance_menu"
+              name="Governance"
+              parent="esg_root"
+              action="action_esg_governance"
+              sequence="4"/>
+</odoo>

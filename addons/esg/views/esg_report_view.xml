@@ -1,0 +1,48 @@
+<odoo>
+
+    <record id="view_esg_report_tree" model="ir.ui.view">
+        <field name="name">esg.report.tree</field>
+        <field name="model">esg.report</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="total_score"/>
+                <field name="co2_emission"/>
+                <field name="social_score"/>
+                <field name="governance_score"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_esg_report_form" model="ir.ui.view">
+        <field name="name">esg.report.form</field>
+        <field name="model">esg.report</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+
+                    <group string="Scores">
+                        <field name="co2_emission"/>
+                        <field name="social_score"/>
+                        <field name="governance_score"/>
+                        <field name="total_score" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_esg_report" model="ir.actions.act_window">
+        <field name="name">ESG Reports</field>
+        <field name="res_model">esg.report</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

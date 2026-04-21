@@ -1,0 +1,37 @@
+<odoo>
+
+    <record id="view_esg_social_tree" model="ir.ui.view">
+        <field name="model">esg.social</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="employee_count"/>
+                <field name="training_hours"/>
+                <field name="accident_count"/>
+                <field name="diversity_ratio"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_esg_social_form" model="ir.ui.view">
+        <field name="model">esg.social</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="employee_count"/>
+                        <field name="training_hours"/>
+                        <field name="accident_count"/>
+                        <field name="diversity_ratio"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_esg_social" model="ir.actions.act_window">
+        <field name="name">Social</field>
+        <field name="res_model">esg.social</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

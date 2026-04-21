@@ -1,0 +1,37 @@
+<odoo>
+
+    <!-- Demo ESG Report -->
+    <record id="esg_report_demo_1" model="esg.report">
+        <field name="name">Q1 ESG Report</field>
+        <field name="date_from">2026-01-01</field>
+        <field name="date_to">2026-03-31</field>
+        <field name="co2_emission">120.5</field>
+        <field name="social_score">80</field>
+        <field name="governance_score">75</field>
+    </record>
+
+    <!-- Environment sample -->
+    <record id="esg_env_demo_1" model="esg.environment">
+        <field name="name">Factory A - Jan</field>
+        <field name="date">2026-01-15</field>
+        <field name="electricity_kwh">5000</field>
+        <field name="water_m3">120</field>
+        <field name="fuel_liter">300</field>
+    </record>
+
+    <!-- Social sample -->
+    <record id="esg_social_demo_1" model="esg.social">
+        <field name="employee_count">120</field>
+        <field name="training_hours">340</field>
+        <field name="accident_count">2</field>
+        <field name="diversity_ratio">0.45</field>
+    </record>
+
+    <!-- Governance sample -->
+    <record id="esg_gov_demo_1" model="esg.governance">
+        <field name="audit_score">85</field>
+        <field name="compliance_rate">92</field>
+        <field name="policy_violations">1</field>
+    </record>
+
+</odoo>

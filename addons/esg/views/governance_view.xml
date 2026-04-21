@@ -1,0 +1,35 @@
+<odoo>
+
+    <record id="view_esg_governance_tree" model="ir.ui.view">
+        <field name="model">esg.governance</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="audit_score"/>
+                <field name="compliance_rate"/>
+                <field name="policy_violations"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_esg_governance_form" model="ir.ui.view">
+        <field name="model">esg.governance</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="audit_score"/>
+                        <field name="compliance_rate"/>
+                        <field name="policy_violations"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_esg_governance" model="ir.actions.act_window">
+        <field name="name">Governance</field>
+        <field name="res_model">esg.governance</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>

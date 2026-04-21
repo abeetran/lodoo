@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_esg_report,esg.report,model_esg_report,,1,1,1,1
+access_esg_environment,esg.environment,model_esg_environment,,1,1,1,1
+access_esg_social,esg.social,model_esg_social,,1,1,1,1
+access_esg_governance,esg.governance,model_esg_governance,,1,1,1,1

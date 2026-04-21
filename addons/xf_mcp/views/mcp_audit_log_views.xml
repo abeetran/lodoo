@@ -42,6 +42,7 @@
         <field name="name">mcp.audit.log.form</field>
         <field name="model">mcp.audit.log</field>
         <field name="arch" type="xml">
+
             <form create="0" edit="0">
                 <sheet>
 
@@ -64,18 +65,21 @@
                         </group>
                     </group>
 
+                    <!-- FIX ODOO 17 -->
                     <group string="Request Data"
-                           attrs="{'invisible': [('request_data', '=', False)]}">
+                        invisible="not request_data">
                         <field name="request_data" nolabel="1" colspan="2"/>
                     </group>
 
+                    <!-- FIX ODOO 17 -->
                     <group string="Error"
-                           attrs="{'invisible': [('error_message', '=', False)]}">
+                        invisible="not error_message">
                         <field name="error_message" nolabel="1" colspan="2"/>
                     </group>
 
                 </sheet>
             </form>
+
         </field>
     </record>
 

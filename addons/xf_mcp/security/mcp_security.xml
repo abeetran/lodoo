@@ -1,82 +1,81 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <!-- MCP Security Groups -->
+    <!-- =========================
+         CATEGORY
+    ========================== -->
     <record id="module_category_mcp" model="ir.module.category">
         <field name="name">MCP</field>
         <field name="description">Model Context Protocol server access control</field>
         <field name="sequence">100</field>
     </record>
 
-    <record id="privilege_mcp_user" model="res.groups">
-        <field name="name">MCP User</field>
-        <field name="category_id" ref="module_category_mcp"/>
-    </record>
-
-    <record id="privilege_mcp_admin" model="res.groups.privilege">
-        <field name="name">MCP Administrator</field>
-        <field name="category_id" ref="module_category_mcp" />
-        <field name="sequence">20</field>
-    </record>
-
+    <!-- =========================
+         GROUPS
+    ========================== -->
     <record id="group_mcp_user" model="res.groups">
         <field name="name">MCP User</field>
-        <field name="privilege_id" ref="privilege_mcp_user" />
+        <field name="category_id" ref="module_category_mcp"/>
         <field name="comment">Can use MCP server: call tools, read resources, use prompts</field>
     </record>
 
     <record id="group_mcp_admin" model="res.groups">
         <field name="name">MCP Administrator</field>
-        <field name="privilege_id" ref="privilege_mcp_admin" />
-        <field name="implied_ids" eval="[(4, ref('group_mcp_user'))]" />
-        <field name="user_ids" eval="[(4, ref('base.user_admin'))]" />
+        <field name="category_id" ref="module_category_mcp"/>
+        <field name="implied_ids" eval="[(4, ref('group_mcp_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
         <field name="comment">Can configure MCP: manage tools, resources, model access, view all audit logs</field>
     </record>
 
-    <!-- Record Rules -->
+    <!-- =========================
+         RECORD RULES
+    ========================== -->
 
-    <!-- Audit logs: users see own, admins see all -->
+    <!-- Audit logs: users see own -->
     <record id="rule_mcp_audit_log_user" model="ir.rule">
         <field name="name">MCP Audit Log: user sees own</field>
-        <field name="model_id" ref="model_mcp_audit_log" />
+        <field name="model_id" ref="model_mcp_audit_log"/>
         <field name="domain_force">[('user_id', '=', user.id)]</field>
-        <field name="groups" eval="[(4, ref('group_mcp_user'))]" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="False" />
-        <field name="perm_create" eval="False" />
-        <field name="perm_unlink" eval="False" />
+        <field name="groups" eval="[(4, ref('group_mcp_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
     </record>
 
+    <!-- Audit logs: admin sees all -->
     <record id="rule_mcp_audit_log_admin" model="ir.rule">
         <field name="name">MCP Audit Log: admin sees all</field>
-        <field name="model_id" ref="model_mcp_audit_log" />
+        <field name="model_id" ref="model_mcp_audit_log"/>
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_mcp_admin'))]" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="False" />
-        <field name="perm_create" eval="True" />
-        <field name="perm_unlink" eval="True" />
+        <field name="groups" eval="[(4, ref('group_mcp_admin'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
 
-    <!-- Prompts: users see global + own, admins see all -->
+    <!-- Prompts: users see global + own -->
     <record id="rule_mcp_prompt_user" model="ir.rule">
         <field name="name">MCP Prompt: user sees global + own</field>
-        <field name="model_id" ref="model_mcp_prompt" />
+        <field name="model_id" ref="model_mcp_prompt"/>
         <field name="domain_force">['|', ('is_global', '=', True), ('user_id', '=', user.id)]</field>
-        <field name="groups" eval="[(4, ref('group_mcp_user'))]" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_create" eval="True" />
-        <field name="perm_unlink" eval="True" />
+        <field name="groups" eval="[(4, ref('group_mcp_user'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
 
+    <!-- Prompts: admin sees all -->
     <record id="rule_mcp_prompt_admin" model="ir.rule">
         <field name="name">MCP Prompt: admin sees all</field>
-        <field name="model_id" ref="model_mcp_prompt" />
+        <field name="model_id" ref="model_mcp_prompt"/>
         <field name="domain_force">[(1, '=', 1)]</field>
-        <field name="groups" eval="[(4, ref('group_mcp_admin'))]" />
-        <field name="perm_read" eval="True" />
-        <field name="perm_write" eval="True" />
-        <field name="perm_create" eval="True" />
-        <field name="perm_unlink" eval="True" />
+        <field name="groups" eval="[(4, ref('group_mcp_admin'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
     </record>
+
 </odoo>

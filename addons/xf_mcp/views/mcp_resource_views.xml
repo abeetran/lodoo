@@ -1,68 +1,79 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
+
+    <!-- TREE VIEW -->
     <record id="mcp_resource_view_tree" model="ir.ui.view">
-        <field name="name">mcp.resource.list</field>
+        <field name="name">mcp.resource.tree</field>
         <field name="model">mcp.resource</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="sequence" widget="handle" />
-                <field name="name" />
-                <field name="uri_pattern" />
-                <field name="is_template" />
-                <field name="mime_type" />
-                <field name="active" widget="boolean_toggle" />
-            </list>
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="uri_pattern"/>
+                <field name="is_template"/>
+                <field name="mime_type"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
         </field>
     </record>
 
+    <!-- FORM VIEW -->
     <record id="mcp_resource_view_form" model="ir.ui.view">
         <field name="name">mcp.resource.form</field>
         <field name="model">mcp.resource</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
-                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active" />
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+
                     <group>
                         <group>
-                            <field name="name" />
-                            <field name="uri_pattern" />
-                            <field name="mime_type" />
-                            <field name="method_name" />
+                            <field name="name"/>
+                            <field name="uri_pattern"/>
+                            <field name="mime_type"/>
+                            <field name="method_name"/>
                         </group>
                         <group>
-                            <field name="is_template" />
-                            <field name="sequence" />
-                            <field name="active" widget="boolean_toggle" />
+                            <field name="is_template"/>
+                            <field name="sequence"/>
+                            <field name="active" widget="boolean_toggle"/>
                         </group>
                     </group>
+
                     <group>
-                        <field name="description" />
+                        <field name="description"/>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- SEARCH VIEW -->
     <record id="mcp_resource_view_search" model="ir.ui.view">
         <field name="name">mcp.resource.search</field>
         <field name="model">mcp.resource</field>
         <field name="arch" type="xml">
             <search>
-                <field name="name" />
-                <field name="uri_pattern" />
-                <filter name="active" string="Active" domain="[('active', '=', True)]" />
-                <filter name="archived" string="Archived" domain="[('active', '=', False)]" />
-                <separator />
-                <filter name="templates" string="URI Templates" domain="[('is_template', '=', True)]" />
+                <field name="name"/>
+                <field name="uri_pattern"/>
+
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+
+                <separator/>
+
+                <filter name="templates" string="URI Templates" domain="[('is_template', '=', True)]"/>
             </search>
         </field>
     </record>
 
+    <!-- ACTION -->
     <record id="action_mcp_resource" model="ir.actions.act_window">
         <field name="name">MCP Resources</field>
         <field name="res_model">mcp.resource</field>
-        <field name="view_mode">list,form</field>
-        <field name="search_view_id" ref="mcp_resource_view_search" />
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="mcp_resource_view_search"/>
         <field name="context">{'search_default_active': 1}</field>
     </record>
+
 </odoo>

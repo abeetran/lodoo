@@ -25,6 +25,7 @@ body {
 }
 
 button[data-menu-xmlid="base.menu_apps"],
+[data-menu-xmlid="mail.menu_root_discuss"],
 .o-mail-DiscussSidebarCategory.o-mail-DiscussSidebarCategory-channel,
 .o-mail-DiscussSidebarCategory.o-mail-DiscussSidebarCategory-chat,
 .o-mail-DiscussSidebarChannel.o-mail-DiscussSidebar-item,

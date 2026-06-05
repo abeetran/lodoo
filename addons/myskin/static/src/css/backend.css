@@ -1,0 +1,33 @@
+:root {
+    --o-brand-primary: #1f2937;
+    --o-brand-secondary: #111827;
+}
+
+/* top bar */
+.o_main_navbar {
+    background: #71639e !important;
+}
+
+/* left menu */
+.o_web_client .o_menu_systray,
+.o_main_navbar {
+    color: white !important;
+}
+
+/* app drawer */
+.o_app {
+    border-radius: 10px;
+}
+
+/* font */
+body {
+    font-family: Inter, sans-serif;
+}
+
+.o-mail-DiscussSidebarCategory.o-mail-DiscussSidebarCategory-channel,
+.o-mail-DiscussSidebarCategory.o-mail-DiscussSidebarCategory-chat,
+.o-mail-DiscussSidebarChannel.o-mail-DiscussSidebar-item,
+.o-mail-Discuss,
+.o_user_menu .dropdown-item[data-menu="account"] {
+    display: none !important;
+}

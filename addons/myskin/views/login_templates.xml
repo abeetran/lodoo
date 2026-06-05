@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Ẩn Login as Superuser -->
+    <template
+        id="hide_superuser_login"
+        inherit_id="web.login"
+        name="Hide Superuser Login">
+
+        <xpath expr="//a[contains(@href,'login?debug=1')]" position="attributes">
+            <attribute name="style">display:none !important;</attribute>
+        </xpath>
+
+    </template>
+
+</odoo>

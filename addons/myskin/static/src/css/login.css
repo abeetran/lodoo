@@ -1,0 +1,27 @@
+/* Manage Database */
+a[href*="/web/database"] {
+    display: none !important;
+}
+
+/* Debug */
+a[href*="debug"] {
+    display: none !important;
+}
+
+/* Powered by Odoo */
+a[href*="odoo.com?utm_source=db"] {
+    display: none !important;
+}
+div.text-center.small.mt-4.pt-3.border-top {
+    display: none !important;
+}
+.o_login_footer,
+footer {
+    display: none !important;
+}
+.o_database_list img,
+.o_login_logo img,
+img[alt="Logo"] {
+    content: url("/myskin/static/src/img/logo-vector.jpg") !important;
+    max-height: 100px;
+}

@@ -24,6 +24,7 @@ body {
     font-family: Inter, sans-serif;
 }
 
+button[data-menu-xmlid="base.menu_apps"],
 .o-mail-DiscussSidebarCategory.o-mail-DiscussSidebarCategory-channel,
 .o-mail-DiscussSidebarCategory.o-mail-DiscussSidebarCategory-chat,
 .o-mail-DiscussSidebarChannel.o-mail-DiscussSidebar-item,

@@ -8,15 +8,14 @@
         "web",
     ],
     "data": [
-        # "views/assets.xml",
-        "views/apps.xml",
+        "views/assets.xml",
     ],
     "assets": {
         "web.assets_backend": [
             "myskin/static/src/css/backend.css",
-            "myskin/static/src/js/backend.js",
-            "myskin/static/src/js/hide_odoo_account.js",
-            "myskin/static/src/js/default_home.js",
+            "myskin/static/src/js/*.js",
+            # "myskin/static/src/js/hide_odoo_account.js",
+            # "myskin/static/src/js/default_home.js",
         ],
         "web.assets_frontend": [
             "myskin/static/src/css/login.css",

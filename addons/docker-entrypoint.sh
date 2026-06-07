@@ -40,10 +40,24 @@ fi
 # 4. Đồng bộ Authentik từ biến môi trường -> ir.config_parameter (cần DB đã init)
 DB_READY=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc "SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='ir_module_module';" 2>/dev/null | tr -d '[:space:]' || echo "0")
 
-# 4b. Cài app business bằng lệnh riêng (không trộn vào setup lần đầu)
+# 4b. Cài app business — chỉ -i module chưa ở trạng thái installed
 if [ "$DB_READY" = "1" ]; then
-  echo "Đang cài app business (nếu chưa có)..."
-  odoo -d odoo -i crm,sale_management,calendar,website,account --stop-after-init
+  BUSINESS_MODULES=(crm sale_management calendar myskin account)
+  TO_INSTALL=""
+  for mod in "${BUSINESS_MODULES[@]}"; do
+    STATE=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc \
+      "SELECT COALESCE(state, 'uninstalled') FROM ir_module_module WHERE name='${mod}';" \
+      2>/dev/null | tr -d '[:space:')
+    if [ "$STATE" != "installed" ]; then
+      TO_INSTALL="${TO_INSTALL:+$TO_INSTALL,}${mod}"
+    fi
+  done
+  if [ -n "$TO_INSTALL" ]; then
+    echo "Đang cài app business: $TO_INSTALL"
+    odoo -d odoo -i "$TO_INSTALL" --stop-after-init
+  else
+    echo "App business đã cài đủ, bỏ qua -i."
+  fi
 fi
 
 if [ "$DB_READY" = "1" ] && [ -n "${AUTHENTIK_CLIENT_ID:-}" ]; then

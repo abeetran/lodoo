@@ -7,6 +7,11 @@ services:
     environment:
       HOST: ${HOST:-db}
       PASSWORD: ${PASSWORD:-odoo}
+      # Bắt buộc khớp domain public (tránh lỗi redirect_uri trên Authentik), ví dụ: https://erp.example.com
+      # ODOO_BASE_URL: ${ODOO_BASE_URL:-}
+      # ODOO_ADMIN_EMAIL: ${ODOO_ADMIN_EMAIL:-}
+      # ODOO_ADMIN_PASSWORD: ${ODOO_ADMIN_PASSWORD:-}
+      # ODOO_ADMIN_NAME: ${ODOO_ADMIN_NAME:-}
     networks:
       - coolify
     volumes:

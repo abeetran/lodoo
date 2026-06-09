@@ -9,8 +9,8 @@ export HOST="${HOST:-db}"
 export PASSWORD="${PASSWORD:-odoo}"
 export DB_NAME="${DB_NAME:-odoo}" # Thêm biến tên DB để linh hoạt
 
-# 1. Xử lý quyền hạn thư mục
-mkdir -p /var/lib/odoo
+# 1. data_dir + sessions (tránh ghi /root/.local/share/Odoo/sessions khi chạy root)
+mkdir -p /var/lib/odoo/sessions
 chown -R odoo:odoo /var/lib/odoo
 
 # 2. Tạo file config từ template

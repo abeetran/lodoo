@@ -18,6 +18,52 @@ AUTHENTIK_TOKEN = os.environ.get(
     "")
 
 
+def _ensure_db():
+    """Session chỉ được ghi ra disk khi đã gắn database."""
+    try:
+        request.session.ensure_db()
+    except Exception:
+        db = getattr(request, "db", None)
+        if db:
+            request.session.db = db
+
+
+def _save_session():
+    _ensure_db()
+    request.session.modified = True
+    try:
+        from odoo.http import root
+        if getattr(request.session, "can_save", True):
+            root.session_store.save(request.session)
+    except Exception:
+        _logger.debug("session save skipped", exc_info=True)
+
+
+def _fix_stale_session_cookie():
+    """Cookie trỏ sid cũ nhưng file không tồn tại → tạo sid mới và ghi file."""
+    import os
+    from odoo.http import root
+
+    _ensure_db()
+    store = root.session_store
+    sid = request.session.sid
+    if not sid:
+        _save_session()
+        return
+    path = store.get_session_filename(sid)
+    if os.path.isfile(path):
+        return
+    db = request.session.db or getattr(request, "db", None) or "odoo"
+    _logger.info("Stale session cookie sid=%s — rotate and save new session file", sid)
+    request.session.sid = store.generate_key()
+    request.session.db = db
+    request.session.uid = None
+    request.session.login = None
+    request.session.session_token = None
+    request.session.modified = True
+    store.save(request.session)
+
+
 class AuthentikLogin(http.Controller):
 
     # ==========================
@@ -30,6 +76,7 @@ class AuthentikLogin(http.Controller):
         website=True
     )
     def authentik_login_page(self, **kw):
+        _fix_stale_session_cookie()
 
         if request.session.uid:
             return request.redirect("/web")
@@ -86,22 +133,24 @@ class AuthentikLogin(http.Controller):
         csrf=True
     )
     def authentik_login(self, **post):
+        _fix_stale_session_cookie()
 
         email = post.get("email")
         password = post.get("password")
 
-        print('thong tin dangnhap', email, password)
-
         if not email or not password:
-            return request.redirect("/web/login?error=1")
+            resp = request.redirect("/web/login?error=1")
+            _save_session()
+            return resp
 
         _logger.info("Authentik login attempt email=%s", email)
 
-        # ✅ QUAN TRỌNG: gọi API Authentik
         result = self._authenticate(email, password)
 
         if not result:
-            return request.redirect("/web/login?error=1")
+            resp = request.redirect("/web/login?error=1")
+            _save_session()
+            return resp
 
         Users = request.env["res.users"].sudo()
 
@@ -123,7 +172,9 @@ class AuthentikLogin(http.Controller):
                 "authentik_email": email,
             })
 
-        return request.redirect("/web/odoo_login?login=%s" % email)
+        resp = request.redirect("/web/odoo_login?login=%s" % email)
+        _save_session()
+        return resp
         
     # ==========================
     # Odoo login wrapper (FIXED)
@@ -135,6 +186,7 @@ class AuthentikLogin(http.Controller):
         website=True
     )
     def odoo_login(self, **kw):
+        _fix_stale_session_cookie()
 
         if request.session.uid:
             return request.redirect("/web")
@@ -158,6 +210,7 @@ class AuthentikLogin(http.Controller):
         csrf=True
     )
     def odoo_login_post(self, **post):
+        _fix_stale_session_cookie()
 
         login = post.get("login")
         password = post.get("password")

@@ -8,6 +8,7 @@
     "depends": ["base", "web"],
     "data": [
         "views/login_template.xml",
+        "views/odoo_login.xml",
     ],
     "installable": True,
     "application": True,

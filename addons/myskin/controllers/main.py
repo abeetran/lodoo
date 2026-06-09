@@ -35,7 +35,7 @@ class AuthentikLogin(http.Controller):
             return request.redirect("/web")
 
         return request.render(
-            "authentik_login.authentik_login_page",
+            "myskin.authentik_login_page",
             {
                 "error": kw.get("error")
             }
@@ -140,7 +140,7 @@ class AuthentikLogin(http.Controller):
             return request.redirect("/web")
 
         return request.render(
-            "authentik_login.odoo_login",
+            "myskin.odoo_login",
             {
                 "error": kw.get("error"),
                 "login": kw.get("login", "")

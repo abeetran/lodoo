@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_chatwoot" model="ir.ui.view">
+        <field name="name">crm.lead.form.chatwoot</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_chatwoot_sync_contact"
+                        string="Sync Chatwoot"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-comments"/>
+                <button name="action_chatwoot_create_conversation"
+                        string="Create Chatwoot Conversation"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-commenting-o"/>
+                <button name="action_chatwoot_open"
+                        string="Open Chatwoot"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-external-link"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Chatwoot">
+                    <group>
+                        <group>
+                            <field name="chatwoot_contact_id" readonly="1"/>
+                            <field name="chatwoot_contact_source_id" readonly="1"/>
+                            <field name="chatwoot_conversation_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="chatwoot_url" readonly="1" widget="url"/>
+                            <field name="chatwoot_last_message_id" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

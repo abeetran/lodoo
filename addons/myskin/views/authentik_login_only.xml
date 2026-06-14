@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="authentik_login_only" inherit_id="web.login">
+
+        <xpath expr="//form" position="replace">
+            <div class="text-center">
+                <a href="/auth/authentik/login"
+                   class="btn btn-primary">
+                    Login with Authentik
+                </a>
+            </div>
+        </xpath>
+
+    </template>
+</odoo>

@@ -10,7 +10,8 @@
     "data": [
         "views/assets.xml",
         "views/login_template.xml",
-        "views/odoo_login.xml",
+        "views/authentik_login_only.xml",
+        "views/odoo_login.xml"
     ],
     "assets": {
         "web.assets_backend": [

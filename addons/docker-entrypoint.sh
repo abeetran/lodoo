@@ -42,7 +42,7 @@ DB_READY=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc "SE
 
 # 4b. Cài app business — chỉ -i module chưa ở trạng thái installed
 if [ "$DB_READY" = "1" ]; then
-  BUSINESS_MODULES=(crm sale_management calendar myskin account authentik_login)
+  BUSINESS_MODULES=(crm sale_management calendar myskin account chatwoot_crm)
   TO_INSTALL=""
   for mod in "${BUSINESS_MODULES[@]}"; do
     STATE=$(PGPASSWORD=$PASSWORD psql -h "$HOST" -U "odoo" -d "$DB_NAME" -tAc \

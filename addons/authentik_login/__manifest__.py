@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Authentik Login From Odoo",
+    "name": "Authentik Login Button",
     "version": "17.0.1.0.0",
-    "category": "AuthentikLogin",
-    "summary": "Login to Odoo using Authentik via OpenID Connect",
+    "category": "Authentication",
+    "summary": "Trang /web/login chỉ có nút chuyển sang Authentik (OIDC qua auth_authentik_sso)",
     "author": "Custom",
-    "depends": ["base", "web"],
+    "license": "LGPL-3",
+    "depends": ["base", "web", "auth_authentik_sso"],
     "data": [
         "views/login_template.xml",
-        "views/odoo_login.xml",
     ],
     "installable": True,
-    "application": True,
+    "application": False,
 }

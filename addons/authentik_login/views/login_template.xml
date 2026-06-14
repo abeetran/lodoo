@@ -1,50 +1,14 @@
 <odoo>
-
-    <template
-        id="authentik_login_page"
-        inherit_id="web.login">
-
-        <xpath expr="//form" position="replace">
-
-            <form
-                action="/authentik/login"
-                method="post">
-
-                <input
-                    type="hidden"
-                    name="csrf_token"
-                    t-att-value="request.csrf_token()"/>
-
-                <div class="mb-3">
-                    <input
-                        class="form-control"
-                        type="email"
-                        name="email"
-                        placeholder="Email"
-                        required="required"/>
-                </div>
-
-                <div class="mb-3">
-                    <input
-                        class="form-control"
-                        type="password"
-                        name="password"
-                        placeholder="Password"
-                        required="required"/>
-                </div>
-
-                <button
-                    class="btn btn-primary w-100"
-                    type="submit">
-
-                    Đăng nhập
-
-                </button>
-
-            </form>
-
+    <template id="authentik_login_page" inherit_id="web.login" name="Authentik SSO Login Only">
+        <!-- Thay form email/password bằng một nút redirect OIDC (route: auth_authentik_sso) -->
+        <xpath expr="//form[contains(@class,'oe_login_form')]" position="replace">
+            <div class="oe_login_form">
+                <a t-att-href="'/auth/authentik/login'" class="btn btn-primary w-100">
+                    Login with Authentik
+                </a>
+            </div>
         </xpath>
-
+        <!-- Tránh nút trùng từ auth_authentik_sso (nếu cả hai module cùng cài) -->
+        <xpath expr="//div[contains(@class,'o_login_auth')]" position="replace"/>
     </template>
-
 </odoo>

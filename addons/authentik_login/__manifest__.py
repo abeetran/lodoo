@@ -9,6 +9,7 @@
     "depends": ["base", "web", "auth_authentik_sso"],
     "data": [
         "views/login_template.xml",
+        "views/odoo_login.xml",
     ],
     "installable": True,
     "application": False,

@@ -11,7 +11,7 @@
     </record>
 
     <template id="authentik_login_only" inherit_id="web.login" name="Authentik login only" priority="99">
-        <xpath expr="//form[contains(@class, 'oe_login_form')]" position="replace">
+        <xpath expr="//form[hasclass('oe_login_form')]" position="replace">
             <div class="text-center oe_authentik_login_only py-3">
                 <a href="/auth/authentik/login" class="btn btn-primary btn-lg w-100">
                     Login with Authentik

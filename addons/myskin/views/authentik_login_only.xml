@@ -1,15 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="authentik_login_only" inherit_id="web.login">
+    <!-- auth_signup xpath vào form/oe_login_buttons — xung đột khi thay form bằng nút SSO -->
+    <record id="auth_signup.login" model="ir.ui.view">
+        <field name="active" eval="False"/>
+    </record>
 
-        <xpath expr="//form" position="replace">
-            <div class="text-center">
-                <a href="/auth/authentik/login"
-                   class="btn btn-primary">
+    <!-- Tránh thêm nút trùng — myskin thay toàn bộ form -->
+    <record id="auth_authentik_sso.authentik_login_button" model="ir.ui.view">
+        <field name="active" eval="False"/>
+    </record>
+
+    <template id="authentik_login_only" inherit_id="web.login" name="Authentik login only" priority="99">
+        <xpath expr="//form[contains(@class, 'oe_login_form')]" position="replace">
+            <div class="text-center oe_authentik_login_only py-3">
+                <a href="/auth/authentik/login" class="btn btn-primary btn-lg w-100">
                     Login with Authentik
                 </a>
             </div>
         </xpath>
-
     </template>
 </odoo>

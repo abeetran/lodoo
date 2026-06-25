@@ -6,10 +6,11 @@
     "license": "LGPL-3",
     "depends": [
         "web",
+        "auth_signup",
+        "auth_authentik_sso",
     ],
     "data": [
         "views/assets.xml",
-        "views/login_template.xml",
         "views/authentik_login_only.xml",
         "views/odoo_login.xml"
     ],

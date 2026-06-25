@@ -11,6 +11,7 @@
     ],
     "data": [
         "views/assets.xml",
+        "views/security_menus.xml",
         "views/authentik_login_page.xml",
         "views/authentik_login_only.xml",
         "views/odoo_login.xml"

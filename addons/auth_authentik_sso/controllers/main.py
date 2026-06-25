@@ -494,6 +494,7 @@ class AuthentikSSOController(http.Controller):
                 "login": email,
                 "email": email,
                 "authentik_sub": sub,
+                "groups_id": [(6, 0, [request.env.ref("base.group_user").id])],
             })
         else:
             # bind sub if missing

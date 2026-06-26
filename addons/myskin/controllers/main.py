@@ -4,7 +4,6 @@ import requests
 
 from odoo import http
 from odoo.http import request
-from odoo.addons.web.controllers.home import Home
 
 _logger = logging.getLogger(__name__)
 
@@ -20,26 +19,7 @@ AUTHENTIK_TOKEN = os.environ.get(
 
 class AuthentikLogin(http.Controller):
 
-    # ==========================
-    # Custom Login Page
-    # ==========================
-    @http.route(
-        "/web/login",
-        auth="public",
-        type="http",
-        website=True
-    )
-    def authentik_login_page(self, **kw):
-
-        if request.session.uid:
-            return request.redirect("/web")
-
-        return request.render(
-            "myskin.authentik_login_page",
-            {
-                "error": kw.get("error")
-            }
-        )
+    # /web/login: Odoo chuẩn — template web.login + inherit authentik_login_only.xml
 
     # ==========================
     # Authentik API Verify

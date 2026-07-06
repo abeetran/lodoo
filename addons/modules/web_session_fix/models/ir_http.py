@@ -19,7 +19,7 @@ class IrHttp(models.AbstractModel):
         if request.session.uid:
             return
         path = request.httprequest.path
-        if path in ("/auth_oauth/signin", "/web/sso/consume"):
+        if path == "/web/sso/consume":
             return
         sid = request.httprequest.cookies.get("session_id")
         if not sid:

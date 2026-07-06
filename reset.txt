@@ -6,7 +6,7 @@ docker compose -f docker-compose.local.yml down -v
 # 2. Xóa dữ liệu Odoo (filestore + session cũ)
 Remove-Item -Recurse -Force .\odoo-web-data -ErrorAction SilentlyContinue
 
-# 3. Khởi động lại (entrypoint: --init=base + auth_oauth từ .env)
+# 3. Khởi động lại (entrypoint: --init=base + business modules + SSO bootstrap)
 docker compose -f docker-compose.local.yml up -d --build
 
 # 4. Theo dõi log init (~2-5 phút)
@@ -14,5 +14,5 @@ docker logs -f odoo_tik
 
 # Nếu vẫn lỗi KeyError ir.http — DB trống, chạy tay:
 # docker exec odoo_tik bash -lc "odoo -d odoo --init=base --stop-after-init"
-# docker exec odoo_tik bash -lc "odoo -d odoo -i crm,sale_management,calendar,account,auth_oauth,auth_oauth_auto_login --stop-after-init"
+# docker exec odoo_tik bash -lc "odoo -d odoo -i crm,sale_management,calendar,account,web_session_fix,center_proxy_sso --stop-after-init"
 # docker restart odoo_tik

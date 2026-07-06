@@ -58,13 +58,8 @@ if [ "$DB_READY" = "1" ]; then
   fi
 fi
 
-if [ "$DB_READY" = "1" ]; then
-  echo "Gỡ auth_oauth / auth_oauth_auto_login (SSO qua Center launch)..."
-  odoo shell -d "$DB_NAME" < /mnt/extra-addons/scripts/uninstall_oauth_modules.py || true
-fi
-
-if [ "$DB_READY" = "1" ] && { [ -n "${CENTER_PUBLIC_BASE_URL:-}" ] || [ -n "${SERVICE_URL_ODOO:-}" ]; }; then
-  echo "Đồng bộ web.base.url (center proxy / SERVICE_URL_ODOO)..."
+if [ "$DB_READY" = "1" ] && [ -n "${SERVICE_URL_ODOO:-}" ]; then
+  echo "Đồng bộ web.base.url (SERVICE_URL_ODOO)..."
   odoo shell -d "$DB_NAME" < /mnt/extra-addons/scripts/center_proxy_sync.py
 fi
 

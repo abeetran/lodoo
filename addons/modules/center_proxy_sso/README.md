@@ -1,48 +1,31 @@
-# Center proxy + SSO launch (iframe center manager)
+# Center SSO launch (Zent Manager)
 
-Odoo chạy sau reverse proxy path `/odoo/{tenant_id}/` trên domain center.
+Odoo nhận one-time JWT từ FastAPI Center Manager, tạo session, mở tab mới (không iframe).
 
-## Nginx (center) — gợi ý
+## Luồng
 
-```nginx
-# TENANT_ID = Mongo tenant id, BACKEND = https://abc123.zent.work
-location /odoo/TENANT_ID/ {
-    rewrite ^/odoo/TENANT_ID/(.*)$ /$1 break;
+1. User đăng nhập Zent Center → bấm **Mở CRM**
+2. FastAPI ký JWT (`email`, `tenant_id`, `jti`, `exp`) với `JWT_SECRET` chung
+3. Browser mở tab mới: `{SERVICE_URL_ODOO}/web/sso/consume?token=...`
+4. Odoo verify JWT, ghi `jti` (one-time), login user → redirect `/web`
 
-    proxy_pass BACKEND;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Script-Name /odoo/TENANT_ID;
+## Biến môi trường container
 
-    proxy_redirect / /odoo/TENANT_ID/;
-    proxy_set_header Accept-Encoding "";
-
-    sub_filter_once off;
-    sub_filter 'href="/' 'href="/odoo/TENANT_ID/';
-    sub_filter 'src="/' 'src="/odoo/TENANT_ID/';
-    sub_filter "url('/" "url('/odoo/TENANT_ID/";
-    sub_filter 'url("/' 'url("/odoo/TENANT_ID/';
-}
-
-location /odoo/TENANT_ID/websocket {
-    rewrite ^/odoo/TENANT_ID/(.*)$ /$1 break;
-    proxy_pass BACKEND;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $connection_upgrade;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
+```env
+JWT_SECRET=...              # Cùng secret với FastAPI
+SERVICE_URL_ODOO=https://trial.example.com
+EMAIL_OWNER=user@example.com   # User trial (bootstrap entrypoint)
+CENTER_TENANT_ID=...           # Tuỳ chọn — kiểm tra tenant_id trong JWT
 ```
 
-Module Odoo bổ sung: rewrite header `Location` cho redirect nội bộ.
+## Dev: password login
 
-## Test consume token (local, không proxy)
+```
+/web/login?sso_login=false
+```
+
+## Test consume token (local)
 
 ```bash
-# Cần JWT_SECRET trong .env container
 curl -v "http://localhost:8069/web/sso/consume?token=JWT_HERE"
 ```

@@ -1,6 +1,6 @@
 # odoo-dl — Odoo 17 Trial Image
 
-Image Odoo 17 tự bootstrap DB, cài module business, SSO Authentik qua `auth_oauth`, dùng cho trial env (Coolify) hoặc dev local.
+Image Odoo 17 tự bootstrap DB, cài module business, SSO qua Zent Center Manager (JWT one-time), dùng cho trial env (Coolify) hoặc dev local.
 
 ## Cấu trúc thư mục
 
@@ -16,127 +16,75 @@ odoo-dl/
     │   ├── docker-entrypoint.sh
     │   └── odoo.conf.template
     ├── modules/
-    │   ├── auth_oauth_auto_login/   # Auto redirect /web/login → OAuth
-    │   ├── center_proxy_sso/        # JWT launch + proxy prefix (iframe center)
+    │   ├── center_proxy_sso/        # JWT launch + login gate Zent
+    │   ├── web_session_fix/         # Fix cookie session sau reset container
     │   └── chatwoot_crm/            # Tùy chọn (chưa auto-cài)
     └── scripts/
-        ├── oauth_provider_sync.py   # Tạo OAuth Provider từ .env
-        ├── center_proxy_sync.py     # web.base.url qua center proxy
-        └── admin_bootstrap.py       # Gán email/password admin
+        ├── center_proxy_sync.py     # web.base.url từ SERVICE_URL_ODOO
+        ├── admin_bootstrap.py       # Gán email/password admin
+        ├── trial_owner_bootstrap.py # User trial (EMAIL_OWNER)
+        └── company_logo_bootstrap.py
 ```
 
-## Sơ đồ module & luồng khởi động
+## Luồng khởi động container
 
 ```mermaid
 flowchart TB
-    subgraph env [Biến môi trường .env]
-        AK[AUTHENTIK_CLIENT_ID / PUBLIC_URL / SLUG]
+    subgraph env [Biến môi trường]
+        JWT[JWT_SECRET]
         SU[SERVICE_URL_ODOO]
-        ADM[ODOO_ADMIN_EMAIL / PASSWORD]
+        EO[EMAIL_OWNER]
+        ADM[ODOO_ADMIN_EMAIL]
         DB[HOST / PASSWORD / DB_NAME]
     end
 
     subgraph entry [docker-entrypoint.sh]
         INIT["--init=base nếu DB trống"]
-        BIZ["Cài: crm, sale_management, calendar, account, auth_oauth, auth_oauth_auto_login"]
-        OAUTH[oauth_provider_sync.py]
+        BIZ["Cài: crm, sale_management, calendar, account, web_session_fix, center_proxy_sso"]
+        SYNC[center_proxy_sync.py]
         BOOT[admin_bootstrap.py]
-    end
-
-    subgraph odoo_official [Odoo official]
-        AO[auth_oauth]
-    end
-
-    subgraph custom [Custom modules]
-        AAL[auth_oauth_auto_login]
-        CW[chatwoot_crm - optional]
+        OWNER[trial_owner_bootstrap.py]
+        LOGO[company_logo_bootstrap.py]
     end
 
     env --> entry
     INIT --> BIZ
-    BIZ --> AO
-    BIZ --> AAL
-    AK --> OAUTH
-    SU --> OAUTH
-    OAUTH --> AO
+    SU --> SYNC
     ADM --> BOOT
+    EO --> OWNER
     DB --> INIT
 ```
 
-## SSO Authentik
+## SSO — Zent Center Manager (`center_proxy_sso`)
 
 | Thành phần | Mô tả |
 |------------|--------|
-| `auth_oauth` | Module chuẩn Odoo — OAuth Provider |
-| `oauth_provider_sync.py` | Tự điền provider từ `.env` khi container start |
-| `auth_oauth_auto_login` | Tự redirect `/web/login` → Authentik (không cần bấm nút) |
+| FastAPI `/api/odoo/launch` | Ký JWT HS256, redirect tab mới tới Odoo |
+| `/web/sso/consume` | Verify JWT, ghi `jti` one-time, tạo session |
+| `login_gate.py` | `/web/login` chỉ hiện form khi `?sso_login=false` |
+| `web_session_fix` | Không reset session giữa lúc consume JWT |
 
-**Biến `.env` cần cho SSO:**
+**Biến `.env` cần cho SSO Odoo:**
 
 ```env
-AUTHENTIK_CLIENT_ID=...
-AUTHENTIK_PUBLIC_URL=https://sso.example.com
-AUTHENTIK_SLUG=your-app-slug
-AUTHENTIK_SCOPE=openid profile email
+JWT_SECRET=...                        # Secret chung với FastAPI
 SERVICE_URL_ODOO=https://trial.example.com
-OAUTH_AUTO_LOGIN=1
+EMAIL_OWNER=trial-user@example.com    # User đăng nhập qua SSO
+CENTER_TENANT_ID=...                  # Tuỳ chọn — validate tenant_id trong JWT
 ```
 
-**Redirect URI trên Authentik:**
+**JWT claims:** `email`, `tenant_id`, `jti`, `exp` (HS256).
+
+**Luồng:**
+
+1. User login Center → **Mở CRM**
+2. Tab mới: `{SERVICE_URL_ODOO}/web/sso/consume?token=...`
+3. Odoo verify → session → `/web`
+
+**Dev bypass (password login):**
 
 ```
-{SERVICE_URL_ODOO}/auth_oauth/signin
-```
-
-**Admin bypass (không qua SSO):**
-
-```
-/web/login?no_sso=1
-```
-
-Tắt auto-redirect: `OAUTH_AUTO_LOGIN=0`
-
-## Center Manager iframe (`center_proxy_sso`)
-
-Odoo embed trong center manager qua reverse proxy: `/odoo/{tenant_id}/` → domain Odoo riêng.
-
-| Thành phần | Mô tả |
-|------------|--------|
-| `center_proxy_sso` | Consume JWT one-time tại `/web/sso/consume`, prefix URL qua proxy |
-| `center_proxy_sync.py` | `web.base.url` = `CENTER_PUBLIC_BASE_URL` khi có |
-
-**Biến môi trường (Coolify / `.env`):**
-
-```env
-# URL public qua center (iframe same-origin)
-CENTER_PUBLIC_BASE_URL=https://admin.zent.work/odoo/MONGO_TENANT_ID
-CENTER_PROXY_PREFIX=/odoo/MONGO_TENANT_ID
-CENTER_TENANT_ID=MONGO_TENANT_ID
-
-# Secret chung với FastAPI (đã có trong deploy)
-JWT_SECRET=...
-
-# URL trực tiếp Odoo (OAuth callback, admin) — giữ nguyên
-SERVICE_URL_ODOO=https://abc123.zent.work
-```
-
-**JWT claims (FastAPI phát — bước sau):** `email`, `tenant_id`, `jti`, `exp` (HS256).
-
-**Luồng iframe:**
-
-1. Center gọi FastAPI → nhận URL  
-   `https://admin.zent.work/odoo/{tenant}/web/sso/consume?token=...`
-2. Nginx proxy tới `https://{tenantDomain}/web/sso/consume?token=...`  
-   + header `X-Script-Name: /odoo/{tenant}`
-3. Odoo verify JWT, ghi `jti` (one-time), tạo session → redirect `/web`
-
-**Nginx center (gợi ý):** cần `proxy_redirect` + `sub_filter` cho asset `/web/static/...`  
-(vì Odoo sinh path tuyệt đối `/web/...`). Xem comment trong module.
-
-**Cài module local:**
-
-```powershell
-docker exec odoo_tik odoo -d odoo -i center_proxy_sso --stop-after-init
+/web/login?sso_login=false
 ```
 
 ## Chạy local
@@ -146,7 +94,7 @@ docker compose -f docker-compose.local.yml up -d --build
 ```
 
 - Odoo: http://localhost:8069
-- `.env`: `HOST=db`, `PASSWORD=odoo`, `SERVICE_URL_ODOO=http://localhost:8069`
+- `.env`: `HOST=db`, `PASSWORD=odoo`, `SERVICE_URL_ODOO=http://localhost:8069`, `JWT_SECRET=...`
 
 Reset sạch: xem `reset.txt`
 
@@ -162,6 +110,6 @@ docker compose up -d --build
 
 ## Module tự cài khi start
 
-`crm`, `sale_management`, `calendar`, `account`, `auth_oauth`, `web_session_fix`, `center_proxy_sso`
+`crm`, `sale_management`, `calendar`, `account`, `web_session_fix`, `center_proxy_sso`
 
 `chatwoot_crm` có trong repo nhưng **không** auto-cài — cài thủ công nếu cần.

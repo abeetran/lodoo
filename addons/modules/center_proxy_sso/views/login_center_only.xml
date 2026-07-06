@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="login_center_only" name="Center SSO login gate">
+        <t t-call="web.login_layout">
+            <div class="oe_login_form text-center px-3">
+                <h3 class="mb-3">Đăng nhập qua Zent Manager</h3>
+                <p class="text-muted mb-4">
+                    Mở CRM từ portal Center (nút <strong>Mở CRM</strong>) — không dùng form đăng nhập trực tiếp.
+                </p>
+                <t t-if="sso_error">
+                    <div class="alert alert-warning" role="alert">
+                        <t t-esc="sso_error"/>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>

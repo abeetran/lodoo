@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="login_layout_zent_logo_link" inherit_id="web.login_layout">
+        <xpath expr="//img[contains(@t-attf-src, '/web/binary/company_logo')]" position="replace">
+            <a href="https://admin.zent.work/" target="_blank" rel="noopener" class="d-inline-block">
+                <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="ZenT" style="max-height:120px; max-width: 100%; width:auto"/>
+            </a>
+        </xpath>
+    </template>
+
+    <template id="login_layout_zent_footer" inherit_id="web.login_layout">
+        <xpath expr="//a[contains(@href,'odoo.com')]" position="replace">
+            <a href="https://zent.work" target="_blank" rel="noopener">Powered by <span>Zent</span></a>
+        </xpath>
+    </template>
+</odoo>

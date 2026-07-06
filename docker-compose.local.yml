@@ -1,0 +1,68 @@
+# Dev local: Postgres + Odoo trong một file.
+#
+#   docker compose -f docker-compose.local.yml up -d
+#
+# Truy cập Odoo: http://localhost:8069
+# Postgres (host): localhost:5432
+#   HOST=db
+#   PASSWORD=odoo
+#   POSTGRES_PASSWORD=odoo
+#
+# Kiểm tra DB:
+#   docker compose -f docker-compose.local.yml exec db psql -U odoo -d postgres -c "\l"
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: odoo_db
+    environment:
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: odoo
+      POSTGRES_DB: odoo
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PUBLISH_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-odoo} -d ${POSTGRES_DB:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - odoo-dl
+
+  odoo:
+    build:
+      context: ./addons
+      dockerfile: docker/Dockerfile
+    container_name: odoo_tik
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      HOST: ${HOST:-db}
+      PASSWORD: ${PASSWORD:-odoo}
+      DB_NAME: ${DB_NAME:-odoo}
+      PROXY_MODE: "False"
+    volumes:
+      - ./odoo-web-data:/var/lib/odoo
+      # Bind mount thay vì anonymous volume (image odoo:17 khai báo VOLUME /mnt/extra-addons)
+      - ./addons/modules:/mnt/extra-addons/meworld
+      - ./addons/scripts:/mnt/extra-addons/scripts
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - odoo-dl
+
+networks:
+  odoo-dl:
+
+volumes:
+  odoo-db-data:

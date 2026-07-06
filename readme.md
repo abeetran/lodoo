@@ -1,148 +1,167 @@
-# run docker
-  docker compose up -d
-# authentik registration
-  http://localhost:9000/if/flow/initial-setup/
-# setup authentik
-  http://localhost:9000
+# odoo-dl — Odoo 17 Trial Image
 
+Image Odoo 17 tự bootstrap DB, cài module business, SSO Authentik qua `auth_oauth`, dùng cho trial env (Coolify) hoặc dev local.
 
-## config addons/auth_authentik_sso
-  replace 'authentik' in controller/main.py by your slug from provider of authentik
+## Cấu trúc thư mục
 
+```
+odoo-dl/
+├── docker-compose.yml          # Production (Coolify + DB riêng, proxy Caddy)
+├── docker-compose.local.yml    # Dev local: Postgres + Odoo
+├── .env                        # Biến môi trường (không commit)
+├── reset.txt                   # Lệnh reset DB local
+└── addons/
+    ├── docker/
+    │   ├── Dockerfile
+    │   ├── docker-entrypoint.sh
+    │   └── odoo.conf.template
+    ├── modules/
+    │   ├── auth_oauth_auto_login/   # Auto redirect /web/login → OAuth
+    │   ├── center_proxy_sso/        # JWT launch + proxy prefix (iframe center)
+    │   └── chatwoot_crm/            # Tùy chọn (chưa auto-cài)
+    └── scripts/
+        ├── oauth_provider_sync.py   # Tạo OAuth Provider từ .env
+        ├── center_proxy_sync.py     # web.base.url qua center proxy
+        └── admin_bootstrap.py       # Gán email/password admin
+```
 
-# setup database
-docker exec -it odoo_tik odoo shell -d lodooo
+## Sơ đồ module & luồng khởi động
 
-ICP = env['ir.config_parameter'].sudo()
-ICP.set_param('authentik.enabled', '1')
-ICP.set_param('authentik.base_url', 'https://authentikserver.bms360.cloud')  # sửa localhost -> authentik-server
-ICP.set_param('authentik.client_id', 'y7Dt2FeprIpNcfTkhPRjy59JVEns7Ay2Btds6n4m')
-ICP.set_param('authentik.client_secret', 'XLWaUx6G20zYYXtMfNnXVyy2TTDDrX5kkULD65FawdZ2EfGwDGgKUm5UBbCgf31zOZNm4GFVDYIX8W8D4TQx0YduQZdZo7usjGdBNstZjokGwC1MzynlZfOtY2q8Gvza')
-ICP.set_param('authentik.scope', 'openid profile email')
+```mermaid
+flowchart TB
+    subgraph env [Biến môi trường .env]
+        AK[AUTHENTIK_CLIENT_ID / PUBLIC_URL / SLUG]
+        SU[SERVICE_URL_ODOO]
+        ADM[ODOO_ADMIN_EMAIL / PASSWORD]
+        DB[HOST / PASSWORD / DB_NAME]
+    end
 
-exit()
+    subgraph entry [docker-entrypoint.sh]
+        INIT["--init=base nếu DB trống"]
+        BIZ["Cài: crm, sale_management, calendar, account, auth_oauth, auth_oauth_auto_login"]
+        OAUTH[oauth_provider_sync.py]
+        BOOT[admin_bootstrap.py]
+    end
 
+    subgraph odoo_official [Odoo official]
+        AO[auth_oauth]
+    end
 
+    subgraph custom [Custom modules]
+        AAL[auth_oauth_auto_login]
+        CW[chatwoot_crm - optional]
+    end
 
-docker compose exec odoo bash -lc "odoo shell -d odoo17 -c /etc/odoo/odoo.conf <<'PY'
-env['ir.config_parameter'].sudo().set_param('authentik.enabled', '1')
-env['ir.config_parameter'].sudo().set_param('authentik.base_url', 'http://localhost:9000')
-print('enabled=', env['ir.config_parameter'].sudo().get_param('authentik.enabled'))
-print('base_url=', env['ir.config_parameter'].sudo().get_param('authentik.base_url'))
-PY"
+    env --> entry
+    INIT --> BIZ
+    BIZ --> AO
+    BIZ --> AAL
+    AK --> OAUTH
+    SU --> OAUTH
+    OAUTH --> AO
+    ADM --> BOOT
+    DB --> INIT
+```
 
+## SSO Authentik
 
-docker compose exec db psql -U odoo -d postgres -tAc "SELECT datname FROM pg_database WHERE datistemplate = false;"
+| Thành phần | Mô tả |
+|------------|--------|
+| `auth_oauth` | Module chuẩn Odoo — OAuth Provider |
+| `oauth_provider_sync.py` | Tự điền provider từ `.env` khi container start |
+| `auth_oauth_auto_login` | Tự redirect `/web/login` → Authentik (không cần bấm nút) |
 
+**Biến `.env` cần cho SSO:**
 
-docker compose exec odoo bash -lc "odoo shell -d lodooo -c /etc/odoo/odoo.conf <<'PY'
-ICP = env['ir.config_parameter'].sudo()
-ICP.set_param('authentik.enabled', '1')
-ICP.set_param('authentik.base_url', 'http://localhost:9000')
-print('authentik.enabled =', ICP.get_param('authentik.enabled'))
-print('authentik.base_url =', ICP.get_param('authentik.base_url'))
-PY"
+```env
+AUTHENTIK_CLIENT_ID=...
+AUTHENTIK_PUBLIC_URL=https://sso.example.com
+AUTHENTIK_SLUG=your-app-slug
+AUTHENTIK_SCOPE=openid profile email
+SERVICE_URL_ODOO=https://trial.example.com
+OAUTH_AUTO_LOGIN=1
+```
 
-docker compose exec db psql -U odoo -d lodooo -c "
-INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.slug', 'authentik')
-ON CONFLICT (key) DO UPDATE SET value='authentik';
-"
+**Redirect URI trên Authentik:**
 
-docker compose exec db psql -U odoo -d lodooo -c "
-INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.client_id', 'CPi95WGTSon62uY6jOfuLvwRXWxTaKruPxDmKZDd')
-ON CONFLICT (key) DO UPDATE SET value='CPi95WGTSon62uY6jOfuLvwRXWxTaKruPxDmKZDd';
-"
+```
+{SERVICE_URL_ODOO}/auth_oauth/signin
+```
 
+**Admin bypass (không qua SSO):**
 
-docker compose exec db psql -U odoo -d lodooo -c "
-INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.client_secret', 'qe5WOzBT2Hz6FciLN2ERPeJ5ipTbUC4CzkaipOh9iufDrlkYFFnM8xQS9OtdokgLQl4Qycuj20UdlSZSrYOl4Is8fNd75Z7iUExaWxyodAD8gatamSYJUC6MmnozPYs0')
-ON CONFLICT (key) DO UPDATE SET value='qe5WOzBT2Hz6FciLN2ERPeJ5ipTbUC4CzkaipOh9iufDrlkYFFnM8xQS9OtdokgLQl4Qycuj20UdlSZSrYOl4Is8fNd75Z7iUExaWxyodAD8gatamSYJUC6MmnozPYs0';
-"
+```
+/web/login?no_sso=1
+```
 
-docker compose exec db psql -U odoo -d lodooo -c "
-INSERT INTO ir_config_parameter(key, value)
-VALUES ('authentik.base_url', 'http://localhost:9000')
-ON CONFLICT (key) DO UPDATE SET value='http://localhost:9000';
-"
+Tắt auto-redirect: `OAUTH_AUTO_LOGIN=0`
 
-# rebuild asset
-odoo -d odoo -u web --stop-after-init
+## Center Manager iframe (`center_proxy_sso`)
 
+Odoo embed trong center manager qua reverse proxy: `/odoo/{tenant_id}/` → domain Odoo riêng.
 
-## Note:
-in case can not run and show: "failed to connect to authentik backend: authentik starting"
+| Thành phần | Mô tả |
+|------------|--------|
+| `center_proxy_sso` | Consume JWT one-time tại `/web/sso/consume`, prefix URL qua proxy |
+| `center_proxy_sync.py` | `web.base.url` = `CENTER_PUBLIC_BASE_URL` khi có |
 
-docker exec -it odoo_tik odoo shell -d lodooo
-ICP = env['ir.config_parameter'].sudo()
-print("base_url =", ICP.get_param('authentik.base_url'))
+**Biến môi trường (Coolify / `.env`):**
 
-# Set lại đúng base_url
-ICP.set_param('authentik.base_url', 'http://authentik-server:9000')
-ICP.set_param('authentik.enabled', '1')
+```env
+# URL public qua center (iframe same-origin)
+CENTER_PUBLIC_BASE_URL=https://admin.zent.work/odoo/MONGO_TENANT_ID
+CENTER_PROXY_PREFIX=/odoo/MONGO_TENANT_ID
+CENTER_TENANT_ID=MONGO_TENANT_ID
 
-# Reset
-docker restart odoo_tik
+# Secret chung với FastAPI (đã có trong deploy)
+JWT_SECRET=...
 
-# vào odoo shell
-docker exec -it odoo_tik odoo shell -d lodooo
-psql -U odoo -d postgres
-ICP = env['ir.config_parameter'].sudo()
-ICP.set_param('authentik.enabled', '1')
-ICP.set_param('authentik.client_id', 'y7Dt2FeprIpNcfTkhPRjy59JVEns7Ay2Btds6n4m')
-ICP.set_param('authentik.client_secret', 'XLWaUx6G20zYYXtMfNnXVyy2TTDDrX5kkULD65FawdZ2EfGwDGgKUm5UBbCgf31zOZNm4GFVDYIX8W8D4TQx0YduQZdZo7usjGdBNstZjokGwC1MzynlZfOtY2q8Gvza')
-ICP.set_param('authentik.scope', 'openid profile email')
-ICP.set_param('authentik.public_url', 'https://authentikserver.bms360.cloud')          # Browser -> Authentik (host)
-ICP.set_param('authentik.internal_url', 'https://authentikserver.bms360.cloud')  # Odoo -> Authentik
-ICP.set_param('authentik.base_url', 'https://authentikserver.bms360.cloud')     # fallback
+# URL trực tiếp Odoo (OAuth callback, admin) — giữ nguyên
+SERVICE_URL_ODOO=https://abc123.zent.work
+```
 
-exit()
+**JWT claims (FastAPI phát — bước sau):** `email`, `tenant_id`, `jti`, `exp` (HS256).
 
-# Reset
-docker restart odoo_tik
+**Luồng iframe:**
 
+1. Center gọi FastAPI → nhận URL  
+   `https://admin.zent.work/odoo/{tenant}/web/sso/consume?token=...`
+2. Nginx proxy tới `https://{tenantDomain}/web/sso/consume?token=...`  
+   + header `X-Script-Name: /odoo/{tenant}`
+3. Odoo verify JWT, ghi `jti` (one-time), tạo session → redirect `/web`
 
-## return false khi chạy ICP.set_param('authentik.internal_url', 'http://authentik-server:9000')
-docker exec -it odoo_tik odoo shell -d lodooo
-ICPModel = env['ir.config_parameter'].sudo()
+**Nginx center (gợi ý):** cần `proxy_redirect` + `sub_filter` cho asset `/web/static/...`  
+(vì Odoo sinh path tuyệt đối `/web/...`). Xem comment trong module.
 
-def force_set(key, value):
-    rec = ICPModel.search([('key', '=', key)], limit=1)
-    if rec:
-        rec.write({'value': value})
-    else:
-        ICPModel.create({'key': key, 'value': value})
-    env.cr.commit()
-    return ICPModel.get_param(key)
+**Cài module local:**
 
-force_set('authentik.public_url', 'https://authentikserver.bms360.cloud')
-force_set('authentik.internal_url', 'https://authentikserver.bms360.cloud')
-force_set('authentik.base_url', 'https://authentikserver.bms360.cloud')
+```powershell
+docker exec odoo_tik odoo -d odoo -i center_proxy_sso --stop-after-init
+```
 
-# nếu không ghi được db
-env.cr.rollback()
+## Chạy local
 
-tiếp là sử dụng Alternative: update bằng SQL (cứng nhất)
-docker exec -it odoo_db psql -U odoo -d lodooo
+```powershell
+docker compose -f docker-compose.local.yml up -d --build
+```
 
-INSERT INTO ir_config_parameter (key, value, create_uid, write_uid, create_date, write_date)
-VALUES ('authentik.public_url', 'http://localhost:9000', 1, 1, now(), now())
-ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, write_uid=1, write_date=now();
+- Odoo: http://localhost:8069
+- `.env`: `HOST=db`, `PASSWORD=odoo`, `SERVICE_URL_ODOO=http://localhost:8069`
 
-INSERT INTO ir_config_parameter (key, value, create_uid, write_uid, create_date, write_date) VALUES ('authentik.internal_url', 'https://authentikserver.bms360.cloud', 1, 1, now(), now()) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, write_uid=1, write_date=now();
+Reset sạch: xem `reset.txt`
 
+## Production (Coolify)
 
-## set param if still error
-ICP = env['ir.config_parameter'].sudo()
-ICP.set_param('authentik.slug', 'authserv')
+```powershell
+docker compose up -d --build
+```
 
+- DB Postgres do Coolify tạo riêng (cùng mạng `coolify`)
+- Biến môi trường inject trực tiếp trên Coolify (không dùng `env_file`)
+- Không expose port — proxy qua Caddy
 
-# OPENAI_API_KEY
-👉 https://platform.openai.com/signup
-👉 https://platform.openai.com/api-keys
-  Create new secret key
+## Module tự cài khi start
 
+`crm`, `sale_management`, `calendar`, `account`, `auth_oauth`, `web_session_fix`, `center_proxy_sso`
 
-  INSERT INTO ir_config_parameter (key, value, create_uid, write_uid, create_date, write_date) VALUES ('authentik.enabled', '1', 1, 1, now(), now()),('authentik.client_id', 'y7Dt2FeprIpNcfTkhPRjy59JVEns7Ay2Btds6n4m', 1, 1, now(), now()),('authentik.client_secret', 'XLWaUx6G20zYYXtMfNnXVyy2TTDDrX5kkULD65FawdZ2EfGwDGgKUm5UBbCgf31zOZNm4GFVDYIX8W8D4TQx0YduQZdZo7usjGdBNstZjokGwC1MzynlZfOtY2q8Gvza', 1, 1, now(), now()),('authentik.scope', 'openid profile email', 1, 1, now(), now()),('authentik.public_url', 'https://authentikserver.bms360.cloud', 1, 1, now(), now()),('authentik.internal_url', 'https://authentikserver.bms360.cloud', 1, 1, now(), now()),('authentik.base_url', 'https://authentikserver.bms360.cloud', 1, 1, now(), now()) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, write_uid = 1, write_date = now();
+`chatwoot_crm` có trong repo nhưng **không** auto-cài — cài thủ công nếu cần.

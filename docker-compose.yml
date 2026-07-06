@@ -3,6 +3,7 @@ services:
   odoo:
     build:
       context: ./addons
+      dockerfile: docker/Dockerfile
     container_name: odoo_tik
     environment:
       HOST: ${HOST:-db}

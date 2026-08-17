@@ -11,7 +11,7 @@ services:
   #     retries: 5
   #     timeout: 5s
   #   networks:
-  #     - coolify
+  #     - meworld
   #   volumes:
   #     - ./auth-db:/var/lib/postgresql/data
   #   environment:
@@ -24,7 +24,7 @@ services:
   #   image: redis:alpine
   #   command: --save 60 1 --loglevel warning
   #   networks:
-  #     - coolify
+  #     - meworld
   #   healthcheck:
   #     test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
   #     start_period: 20s
@@ -33,7 +33,7 @@ services:
   #     timeout: 3s
   #   restart: unless-stopped
 
-  # --- AUTHENTIK (Trụ sở SSO) ---
+  # # --- AUTHENTIK (Trụ sở SSO) ---
   # authentik-server:
   #   image: ghcr.io/goauthentik/server:latest
   #   command: server
@@ -52,13 +52,13 @@ services:
   #     - "9000:9000"
   #     - "9443:9443"
   #   networks:
-  #     - coolify
-    # depends_on:
-    #   authentik-db:
-    #     condition: service_healthy
-    #   authentik-redis:
-    #     condition: service_healthy
-    # restart: unless-stopped
+  #     - meworld
+  #   depends_on:
+  #     authentik-db:
+  #       condition: service_healthy
+  #     authentik-redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
   # authentik-worker:
   #   image: ghcr.io/goauthentik/server:latest
@@ -71,48 +71,50 @@ services:
   #     AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
   #     AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
   #   networks:
-  #     - coolify
-    # depends_on:
-    #   authentik-db:
-    #     condition: service_healthy
-    #   authentik-redis:
-    #     condition: service_healthy
-    # restart: unless-stopped
+  #     - meworld
+  #   depends_on:
+  #     authentik-db:
+  #       condition: service_healthy
+  #     authentik-redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
 
 
   # =============================
   # ✅ ODOO mapped theo mẫu bạn đưa
   # =============================
-  # db:
-  #   image: postgres:15
-  #   container_name: odoo_db
-  #   environment:
-  #     POSTGRES_DB: postgres
-  #     POSTGRES_USER: odoo
-  #     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
-  #   volumes:
-  #     - ./postgres:/var/lib/postgresql/data
-  #   networks:
-  #     - coolify
-  #   restart: unless-stopped
+  db:
+    image: postgres:15
+    container_name: meworld_db
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: odoo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - meworld
+    restart: unless-stopped
 
   odoo:
     # image: odoo:17
     build:
       context: ./addons
-    container_name: odoo_tik
+    container_name: odoo_meworld
     # env_file:
     #   - .env
     # depends_on:
     #   - mcp-server
-    # ports:
-    #   - "8068:8069"
+    ports:
+      - "8069:8069"
     # environment:
     #   HOST: db
     #   USER: odoo
     #   PASSWORD: ${POSTGRES_PASSWORD:-odoo}
     networks:
-      - coolify
+      - meworld
     volumes:
       - ./config/odoo.conf:/etc/odoo/odoo.conf
       # - ./addons:/mnt/extra-addons
@@ -134,9 +136,9 @@ services:
   #   # env_file:
   #   #   - .env
   #   ports:
-  #     - "3333:3333"
+  #     - "3334:3333"
   #   networks:
-  #     - coolify
+  #     - meworld
   #   restart: unless-stopped
 
   # =============================
@@ -152,11 +154,11 @@ services:
   #   #   - ./ai-chat:/app
   #   command: sh -c "npm install && npm run dev"
   #   ports:
-  #     - "3000:3000"
+  #     - "3001:3000"
   #   # environment:
   #   #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
   #   networks:
-  #     - coolify
+  #     - meworld
   #   restart: unless-stopped
 
 # networks:
@@ -164,5 +166,5 @@ services:
 #     driver: bridge
 
 networks:
-  coolify:
-    external: true
+  meworld:
+    driver: bridge

@@ -1,0 +1,473 @@
+// ============================================================
+// Installed Apps Top Menu
+// ============================================================
+
+.o_main_navbar {
+
+    position: relative;
+
+    z-index: 2000 !important;
+
+    overflow: visible !important;
+
+
+    // ========================================================
+    // Main container
+    // ========================================================
+
+    .o_installed_apps_top_menu {
+
+        position: relative;
+
+        z-index: 3000;
+
+        display: flex;
+
+        align-items: stretch;
+
+        height: 100%;
+
+        flex: 1 1 auto;
+
+        min-width: 0;
+
+        overflow: visible !important;
+    }
+
+
+    // ========================================================
+    // Scroll wrapper
+    //
+    // IMPORTANT:
+    // Do NOT put overflow-x:auto on
+    // .o_installed_apps_container because
+    // dropdown will be clipped.
+    // ========================================================
+
+    .o_installed_apps_scroll {
+
+        position: relative;
+
+        z-index: 3000;
+
+        flex: 1 1 auto;
+
+        min-width: 0;
+
+        height: 100%;
+
+        overflow-x: auto;
+
+        overflow-y: hidden;
+
+        scrollbar-width: none;
+    }
+
+
+    .o_installed_apps_scroll::-webkit-scrollbar {
+
+        display: none;
+    }
+
+
+    // ========================================================
+    // Apps container
+    // ========================================================
+
+    .o_installed_apps_container {
+
+        position: relative;
+
+        z-index: 3100;
+
+        display: flex;
+
+        align-items: stretch;
+
+        height: 100%;
+
+        width: max-content;
+
+        min-width: 100%;
+
+        overflow: visible !important;
+
+        white-space: nowrap;
+    }
+
+
+    // ========================================================
+    // Application dropdown
+    // ========================================================
+
+    .o_installed_app_dropdown {
+
+        position: relative;
+
+        z-index: 4000;
+
+        display: flex;
+
+        align-items: stretch;
+
+        height: 100%;
+
+        overflow: visible !important;
+    }
+
+
+    // ========================================================
+    // Application button
+    // ========================================================
+
+    .o_installed_app_button {
+
+        position: relative;
+
+        z-index: 4001;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        height: 100%;
+
+        padding: 0 15px;
+
+        border: 0;
+
+        border-radius: 0;
+
+        background: transparent;
+
+        color: #ffffff;
+
+        font-size: 15px;
+
+        font-weight: 500;
+
+        white-space: nowrap;
+
+        cursor: pointer;
+
+        transition:
+            background-color 0.15s ease;
+    }
+
+
+    .o_installed_app_button:hover {
+
+        background-color: rgba(255, 255, 255, 0.12);
+    }
+
+
+    .o_installed_app_button:focus {
+
+        outline: none;
+    }
+
+
+    // ========================================================
+    // App name
+    // ========================================================
+
+    .o_installed_app_name {
+
+        display: inline-block;
+
+        white-space: nowrap;
+    }
+
+
+    // ========================================================
+    // Arrow
+    // ========================================================
+
+    .o_installed_app_arrow {
+
+        margin-left: 7px;
+
+        font-size: 10px;
+
+        opacity: 0.7;
+    }
+}
+
+
+// ============================================================
+// Dropdown
+// ============================================================
+
+.o_installed_app_dropdown_menu {
+
+    position: absolute !important;
+
+    top: 100% !important;
+
+    left: 0 !important;
+
+    z-index: 2147483647 !important;
+
+    display: block;
+
+    min-width: 230px;
+
+    max-width: 350px;
+
+    max-height: 70vh;
+
+    overflow-x: hidden;
+
+    overflow-y: auto;
+
+    padding: 5px 0;
+
+    background: #ffffff;
+
+    border: 1px solid #dee2e6;
+
+    border-radius: 0;
+
+    box-shadow:
+        0 5px 15px rgba(0, 0, 0, 0.18);
+
+    color: #4c4c4c;
+}
+
+
+// ============================================================
+// Hide dropdown
+// ============================================================
+
+.o_installed_app_dropdown_menu:not(.o_installed_app_dropdown_menu_visible) {
+
+    display: none !important;
+}
+
+
+// ============================================================
+// Show dropdown
+// ============================================================
+
+.o_installed_app_dropdown_menu_visible {
+
+    display: block !important;
+}
+
+
+// ============================================================
+// Normal menu item
+// ============================================================
+
+.o_installed_menu_item {
+
+    display: flex;
+
+    align-items: center;
+
+    width: 100%;
+
+    min-height: 38px;
+
+    padding: 8px 18px;
+
+    border: 0;
+
+    border-radius: 0;
+
+    background: transparent;
+
+    color: #4c4c4c;
+
+    font-size: 14px;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    white-space: normal;
+}
+
+
+.o_installed_menu_item:hover {
+
+    background-color: #f1f1f1;
+
+    color: #212529;
+}
+
+
+// ============================================================
+// Menu group
+// ============================================================
+
+.o_installed_menu_group {
+
+    position: relative;
+
+    width: 100%;
+}
+
+
+// ============================================================
+// Menu group toggler
+// ============================================================
+
+.o_installed_menu_group_toggler {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    width: 100%;
+
+    min-height: 38px;
+
+    padding: 8px 18px;
+
+    border: 0;
+
+    border-radius: 0;
+
+    background: transparent;
+
+    color: #4c4c4c;
+
+    font-size: 14px;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    white-space: normal;
+}
+
+
+.o_installed_menu_group_toggler:hover {
+
+    background-color: #f1f1f1;
+
+    color: #212529;
+}
+
+
+// ============================================================
+// Group arrow
+// ============================================================
+
+.o_installed_menu_group_toggler .o_installed_menu_arrow {
+
+    margin-left: 8px;
+
+    font-size: 10px;
+
+    opacity: 0.7;
+
+    flex-shrink: 0;
+}
+
+
+// ============================================================
+// Parent menu
+// ============================================================
+
+.o_installed_menu_group_title {
+
+    padding: 9px 18px;
+
+    background: #f8f9fa;
+
+    border-bottom: 1px solid #eeeeee;
+
+    color: #212529;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    white-space: normal;
+}
+
+
+// ============================================================
+// Children
+// ============================================================
+
+.o_installed_menu_children {
+
+    display: block;
+
+    width: 100%;
+
+    padding-left: 8px;
+
+    overflow: visible;
+}
+
+
+// ============================================================
+// Menu separator
+// ============================================================
+
+.o_installed_menu_separator {
+
+    height: 1px;
+
+    margin: 5px 0;
+
+    background: #eeeeee;
+}
+
+
+// ============================================================
+// Responsive
+// ============================================================
+
+@media (max-width: 1200px) {
+
+    .o_main_navbar {
+
+        .o_installed_app_button {
+
+            padding-left: 10px;
+
+            padding-right: 10px;
+
+            font-size: 14px;
+        }
+    }
+}
+
+
+// ============================================================
+// Small screen
+// ============================================================
+
+@media (max-width: 768px) {
+
+    .o_main_navbar {
+
+        .o_installed_app_button {
+
+            padding-left: 8px;
+
+            padding-right: 8px;
+
+            font-size: 13px;
+        }
+    }
+
+
+    .o_installed_app_dropdown_menu {
+
+        min-width: 200px;
+
+        max-width: calc(100vw - 20px);
+
+        max-height: 70vh;
+    }
+}

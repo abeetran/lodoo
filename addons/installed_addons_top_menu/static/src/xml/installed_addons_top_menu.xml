@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<templates xml:space="preserve">
+
+
+    <!-- ===================================================== -->
+    <!-- Installed Apps Top Menu                              -->
+    <!-- ===================================================== -->
+
+    <t
+        t-name="installed_addons_top_menu.InstalledAppsTopMenu"
+        owl="1"
+    >
+
+        <div class="o_installed_apps_top_menu">
+
+            <div class="o_installed_apps_container">
+
+                <!-- ========================================= -->
+                <!-- Applications                              -->
+                <!-- ========================================= -->
+
+                <t
+                    t-foreach="appsWithMenus"
+                    t-as="appInfo"
+                    t-key="appInfo.app.id"
+                >
+
+                    <t
+                        t-set="app"
+                        t-value="appInfo.app"
+                    />
+
+                    <t
+                        t-set="menus"
+                        t-value="appInfo.menus"
+                    />
+
+                    <!-- ===================================== -->
+                    <!-- Application with menus               -->
+                    <!-- ===================================== -->
+
+                    <t t-if="menus.length">
+
+                        <div class="o_installed_app_dropdown">
+
+                            <button
+                                type="button"
+                                class="o_installed_app_button"
+                                t-on-click="() => toggleApp(app.id)"
+                            >
+                                <span class="o_installed_app_name" t-esc="app.name"/>
+                                <span class="o_installed_app_arrow">▾</span>
+                            </button>
+
+                            <t t-if="isAppOpen(app.id)">
+                                <div class="o_installed_app_dropdown_menu o_installed_app_dropdown_menu_visible">
+                                    <t t-call="installed_addons_top_menu.MenuTree">
+                                        <t t-set="items" t-value="menus"/>
+                                    </t>
+                                </div>
+                            </t>
+
+                        </div>
+
+                    </t>
+
+                    <!-- ===================================== -->
+                    <!-- Application without menus           -->
+                    <!-- ===================================== -->
+
+                    <t t-else="">
+
+                        <button
+                            type="button"
+                            class="o_installed_app_button"
+                            t-on-click="() => selectMenu(app)"
+                        >
+                            <span class="o_installed_app_name" t-esc="app.name"/>
+                        </button>
+
+                    </t>
+
+                </t>
+
+            </div>
+
+        </div>
+
+    </t>
+
+
+    <!-- ===================================================== -->
+    <!-- Recursive Menu Tree                                  -->
+    <!-- ===================================================== -->
+
+    <t
+        t-name="installed_addons_top_menu.MenuTree"
+        owl="1"
+    >
+
+        <t
+            t-foreach="items"
+            t-as="item"
+            t-key="item.id"
+        >
+
+            <t t-set="children" t-value="getChildrenTree(item)"/>
+
+            <t t-if="!children.length">
+
+                <button
+                    type="button"
+                    class="o_installed_menu_item"
+                    t-on-click="() => selectMenu(item)"
+                >
+                    <span t-esc="item.name"/>
+                </button>
+
+            </t>
+
+            <t t-else="">
+
+                <div class="o_installed_menu_group">
+
+                    <button
+                        type="button"
+                        class="o_installed_menu_group_toggler"
+                        t-on-click="() => toggleMenu(item.id)"
+                    >
+                        <span t-esc="item.name"/>
+                        <span class="o_installed_menu_arrow">▾</span>
+                    </button>
+
+                    <t t-if="isMenuOpen(item.id)">
+                        <div class="o_installed_menu_children">
+                            <t t-call="installed_addons_top_menu.MenuTree">
+                                <t t-set="items" t-value="children"/>
+                            </t>
+                        </div>
+                    </t>
+
+                </div>
+
+            </t>
+
+        </t>
+
+    </t>
+
+
+    <!-- ===================================================== -->
+    <!-- Extend Odoo Navbar                                   -->
+    <!-- ===================================================== -->
+
+    <t
+        t-name="installed_addons_top_menu.NavBar"
+        t-inherit="web.NavBar"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+
+        <!-- ================================================= -->
+        <!-- IMPORTANT: KEEP AppsMenu                          -->
+        <!-- ================================================= -->
+
+        <!--
+            DO NOT replace AppsMenu.
+
+            This keeps Odoo's default 9-dot application icon.
+        -->
+
+
+        <!-- ================================================= -->
+        <!-- Replace ONLY SectionsMenu                         -->
+        <!-- ================================================= -->
+
+        <xpath
+            expr="//t[@t-call='web.NavBar.SectionsMenu']"
+            position="replace"
+        >
+
+            <InstalledAppsTopMenu/>
+
+        </xpath>
+
+    </t>
+
+</templates>

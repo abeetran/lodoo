@@ -23,13 +23,21 @@ patch(NavBar.prototype, {
                 id: "clients",
                 label: "Clients",
                 icon: "fa-users",
-                action: "account.action_account_supplier_profile",
+                action: "set_top_menu.action_client_management",
+                children: [
+                    {
+                        id: "contracts",
+                        label: "Contracts",
+                        icon: "fa-file-text-o",
+                        action: "set_top_menu.action_client_contracts",
+                    },
+                ],
             },
             {
-                id: "menu",
-                label: "Menu",
+                id: "menus",
+                label: "Thực đơn",
                 icon: "fa-list",
-                action: null,
+                action: "set_top_menu.action_menu_items",
             },
             {
                 id: "orders",
@@ -79,7 +87,7 @@ patch(NavBar.prototype, {
     /**
      * Handle custom navbar item click
      */
-    onCustomNavClick(item) {
+    async onCustomNavClick(item) {
         if (!item || !item.action) {
             return;
         }
@@ -90,7 +98,7 @@ patch(NavBar.prototype, {
         }
 
         try {
-            this.actionService.doAction(item.action);
+            await this.actionService.doAction(item.action);
         } catch (error) {
             console.error(
                 "Cannot execute action:",

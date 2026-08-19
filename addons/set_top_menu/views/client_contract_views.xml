@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_client_contract_tree" model="ir.ui.view">
+        <field name="name">set_top_menu.client.contract.tree</field>
+        <field name="model">set_top_menu.client.contract</field>
+        <field name="arch" type="xml">
+            <tree string="Contracts" decoration-muted="status in ('expired', 'cancelled')">
+                <field name="contract_number"/>
+                <field name="name"/>
+                <field name="client_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="amount" sum="Tổng"/>
+                <field name="currency_id" column_invisible="True"/>
+                <field name="status" widget="badge"
+                       decoration-info="status == 'draft'"
+                       decoration-success="status == 'active'"
+                       decoration-warning="status == 'expired'"
+                       decoration-danger="status == 'cancelled'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_client_contract_form" model="ir.ui.view">
+        <field name="name">set_top_menu.client.contract.form</field>
+        <field name="model">set_top_menu.client.contract</field>
+        <field name="arch" type="xml">
+            <form string="Contract">
+                <sheet>
+                    <widget name="web_ribbon" title="Đã lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Nhập tên hợp đồng..."/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="contract_number"/>
+                            <field name="client_id" context="{'default_customer_rank': 1}"/>
+                            <field name="status"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="amount" readonly="1"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tasks / Chi tiết hợp đồng" name="contract_tasks">
+                            <field name="task_ids" nolabel="1">
+                                <tree editable="bottom" string="Tasks chi tiết">
+                                    <control>
+                                        <create string="Thêm sản phẩm / task"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="product_uom_category_id" column_invisible="True"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="subtotal" readonly="1" sum="Tổng"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Ghi chú" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Nhập nội dung hợp đồng hoặc ghi chú..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_client_contract_search" model="ir.ui.view">
+        <field name="name">set_top_menu.client.contract.search</field>
+        <field name="model">set_top_menu.client.contract</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm hợp đồng">
+                <field name="contract_number"/>
+                <field name="name"/>
+                <field name="client_id"/>
+                <filter name="draft" string="Dự thảo" domain="[('status', '=', 'draft')]"/>
+                <filter name="active_contracts" string="Đang hiệu lực" domain="[('status', '=', 'active')]"/>
+                <filter name="expired" string="Hết hạn" domain="[('status', '=', 'expired')]"/>
+                <filter name="cancelled" string="Đã huỷ" domain="[('status', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="archived" string="Đã lưu trữ" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_client" string="Client" context="{'group_by': 'client_id'}"/>
+                    <filter name="group_status" string="Trạng thái" context="{'group_by': 'status'}"/>
+                    <filter name="group_start_month" string="Tháng bắt đầu" context="{'group_by': 'date_start:month'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_client_contracts" model="ir.actions.act_window">
+        <field name="name">Contracts</field>
+        <field name="res_model">set_top_menu.client.contract</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_client_contract_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Thêm hợp đồng mới</p>
+            <p>Mỗi hợp đồng được liên kết với một client.</p>
+        </field>
+    </record>
+</odoo>

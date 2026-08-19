@@ -89,8 +89,7 @@
         margin: 0;
         padding: 0;
 
-        overflow-x: auto;
-        overflow-y: visible;
+        overflow: visible;
 
         scrollbar-width: none;
 
@@ -173,6 +172,50 @@
             line-height: 1.2;
 
             color: inherit;
+        }
+
+        .o_custom_navbar_caret {
+            margin-left: 6px;
+            font-size: 10px;
+        }
+
+        .o_custom_navbar_submenu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            display: none;
+            min-width: 180px;
+            padding: 6px 0;
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+            z-index: 2200;
+        }
+
+        &:hover .o_custom_navbar_submenu,
+        &:focus-within .o_custom_navbar_submenu {
+            display: block;
+        }
+
+        .o_custom_navbar_submenu_item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 9px 14px;
+            color: #212529;
+            background: transparent;
+            border: 0;
+            text-align: left;
+            white-space: nowrap;
+
+            &:hover,
+            &:focus {
+                color: #212529;
+                background: #f0f0f0;
+                outline: none;
+            }
         }
 
 

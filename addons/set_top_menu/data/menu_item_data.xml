@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="meal_type_breakfast" model="set_top_menu.meal.type">
+        <field name="name">Bữa sáng</field>
+        <field name="color">2</field>
+    </record>
+    <record id="meal_type_lunch" model="set_top_menu.meal.type">
+        <field name="name">Bữa trưa</field>
+        <field name="color">3</field>
+    </record>
+    <record id="meal_type_dinner" model="set_top_menu.meal.type">
+        <field name="name">Bữa tối</field>
+        <field name="color">4</field>
+    </record>
+
+    <record id="dietary_tag_gluten_free" model="set_top_menu.dietary.tag">
+        <field name="name">Không Gluten</field>
+        <field name="color">2</field>
+    </record>
+    <record id="dietary_tag_nut_free" model="set_top_menu.dietary.tag">
+        <field name="name">Không hạt</field>
+        <field name="color">5</field>
+    </record>
+
+    <record id="allergen_eggs" model="set_top_menu.allergen"><field name="name">Trứng</field></record>
+    <record id="allergen_fish" model="set_top_menu.allergen"><field name="name">Cá</field></record>
+    <record id="allergen_gluten" model="set_top_menu.allergen"><field name="name">Gluten</field></record>
+    <record id="allergen_sesame" model="set_top_menu.allergen"><field name="name">Mè</field></record>
+    <record id="allergen_tree_nuts" model="set_top_menu.allergen"><field name="name">Các loại hạt cây</field></record>
+</odoo>

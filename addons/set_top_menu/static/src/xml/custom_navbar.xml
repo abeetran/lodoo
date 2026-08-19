@@ -30,7 +30,17 @@
                             <span class="o_custom_navbar_label">
                                 <t t-esc="item.label"/>
                             </span>
-
+                            <i t-if="item.children" class="fa fa-caret-down o_custom_navbar_caret"/>
+                            <div t-if="item.children" class="o_custom_navbar_submenu">
+                                <t t-foreach="item.children" t-as="child" t-key="child.id">
+                                    <button type="button"
+                                            class="o_custom_navbar_submenu_item"
+                                            t-on-click.stop="() => this.onCustomNavClick(child)">
+                                        <i t-att-class="'fa ' + child.icon"/>
+                                        <span><t t-esc="child.label"/></span>
+                                    </button>
+                                </t>
+                            </div>
                         </div>
                     </t>
                 </div>

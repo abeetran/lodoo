@@ -21,7 +21,13 @@
         "crm",
     ],
 
-    "data": [],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/menu_item_data.xml",
+        "views/client_management_views.xml",
+        "views/client_contract_views.xml",
+        "views/menu_item_views.xml",
+    ],
 
     "assets": {
         "web.assets_backend": [

@@ -1,0 +1,8 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_client_contract_user,client.contract.user,model_set_top_menu_client_contract,base.group_user,1,1,1,1
+access_client_contract_task_user,client.contract.task.user,model_set_top_menu_client_contract_task,base.group_user,1,1,1,1
+access_menu_item_user,menu.item.user,model_set_top_menu_menu_item,base.group_user,1,1,1,1
+access_menu_ingredient_user,menu.ingredient.user,model_set_top_menu_menu_ingredient,base.group_user,1,1,1,1
+access_meal_type_user,meal.type.user,model_set_top_menu_meal_type,base.group_user,1,1,1,1
+access_dietary_tag_user,dietary.tag.user,model_set_top_menu_dietary_tag,base.group_user,1,1,1,1
+access_allergen_user,allergen.user,model_set_top_menu_allergen,base.group_user,1,1,1,1

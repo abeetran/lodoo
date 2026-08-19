@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_menu_item_tree" model="ir.ui.view">
+        <field name="name">set_top_menu.menu.item.tree</field>
+        <field name="model">set_top_menu.menu.item</field>
+        <field name="arch" type="xml">
+            <tree string="Danh sách món ăn">
+                <field name="image_1920" widget="image" options="{'size': [48, 48]}"/>
+                <field name="item_code"/>
+                <field name="name"/>
+                <field name="food_category"/>
+                <field name="serving_size"/>
+                <field name="serving_uom_id"/>
+                <field name="cost_per_serving" sum="Tổng"/>
+                <field name="currency_id" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_menu_item_form" model="ir.ui.view">
+        <field name="name">set_top_menu.menu.item.form</field>
+        <field name="model">set_top_menu.menu.item</field>
+        <field name="arch" type="xml">
+            <form string="Món ăn">
+                <sheet>
+                    <widget name="web_ribbon" title="Đã lưu trữ" bg_color="text-bg-danger" invisible="active"/>
+                    <field name="image_1920" widget="image" class="oe_avatar"
+                           options="{'preview_image': 'image_1920'}"/>
+                    <div class="oe_title">
+                        <label for="name" string="Tên món"/>
+                        <h1><field name="name" placeholder="Ví dụ: Cơm rang"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="item_code" placeholder="Ví dụ: MON-001"/>
+                            <field name="food_category" widget="radio"/>
+                        </group>
+                        <group>
+                            <field name="serving_size"/>
+                            <field name="serving_uom_id"/>
+                            <field name="cost_per_serving" readonly="1"/>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="meal_type_ids" widget="many2many_tags"
+                               options="{'color_field': 'color'}"/>
+                        <field name="dietary_tag_ids" widget="many2many_tags"
+                               options="{'color_field': 'color'}"/>
+                        <field name="allergen_ids" widget="many2many_tags"
+                               options="{'color_field': 'color'}"/>
+                    </group>
+                    <notebook>
+                        <page string="Nguyên liệu công thức" name="ingredients">
+                            <field name="ingredient_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <control><create string="Thêm nguyên liệu"/></control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="unit_cost" optional="hide"/>
+                                    <field name="cost" readonly="1" sum="Chi phí mỗi khẩu phần"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="notes"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Mô tả" name="description">
+                            <field name="description" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_menu_item_search" model="ir.ui.view">
+        <field name="name">set_top_menu.menu.item.search</field>
+        <field name="model">set_top_menu.menu.item</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm món ăn">
+                <field name="name"/>
+                <field name="item_code"/>
+                <field name="food_category"/>
+                <field name="meal_type_ids"/>
+                <field name="dietary_tag_ids"/>
+                <filter name="vegetarian" string="Món chay" domain="[('food_category', '=', 'vegetarian')]"/>
+                <filter name="vegan" string="Thuần chay" domain="[('food_category', '=', 'vegan')]"/>
+                <filter name="archived" string="Đã lưu trữ" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_food_category" string="Loại thực phẩm"
+                            context="{'group_by': 'food_category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_menu_items" model="ir.actions.act_window">
+        <field name="name">Danh sách món ăn</field>
+        <field name="res_model">set_top_menu.menu.item</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_menu_item_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo món ăn mới</p>
+            <p>Khai báo món ăn, thông tin khẩu phần và nguyên liệu công thức.</p>
+        </field>
+    </record>
+</odoo>

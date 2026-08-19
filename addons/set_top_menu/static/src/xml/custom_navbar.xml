@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t
+        t-inherit="web.NavBar"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath
+            expr="//nav[contains(@class, 'o_main_navbar')]"
+            position="inside"
+        >
+            <div class="o_custom_navbar">
+                <div class="o_custom_navbar_items">
+                    <t
+                        t-foreach="customNavItems"
+                        t-as="item"
+                        t-key="item.id"
+                    >
+                        <div
+                            class="o_custom_navbar_item"
+                            t-att-data-item-id="item.id"
+                            t-on-click="() => this.onCustomNavClick(item)"
+                        >
+                            <span class="o_custom_navbar_icon">
+                                <i
+                                    t-att-class="'fa ' + item.icon"
+                                />
+                            </span>
+
+                            <span class="o_custom_navbar_label">
+                                <t t-esc="item.label"/>
+                            </span>
+
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </xpath>
+    </t>
+</templates>

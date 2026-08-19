@@ -1,0 +1,430 @@
+// ============================================================
+// Odoo Main Navbar
+// ============================================================
+
+.o_main_navbar {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    height: 46px;
+    z-index: 2000;
+    overflow: visible !important;
+
+    // ========================================================
+    // Apps menu
+    // ========================================================
+
+    .o_navbar_apps_menu {
+
+        flex: 0 0 auto;
+
+        display: flex;
+        align-items: center;
+
+        height: 100%;
+    }
+
+
+    // ========================================================
+    // Company / Brand
+    // ========================================================
+
+    .o_menu_brand {
+
+        flex: 0 0 auto;
+
+        display: flex;
+        align-items: center;
+
+        height: 100%;
+
+        white-space: nowrap;
+    }
+
+
+    // ========================================================
+    // Custom Navbar
+    // ========================================================
+
+    .o_custom_navbar {
+
+        position: relative;
+
+        display: flex;
+        align-items: stretch;
+
+        /*
+         * Custom menu chiếm toàn bộ khoảng trống
+         * giữa phần bên trái và Systray.
+         */
+        flex: 1 1 auto;
+
+        min-width: 0;
+
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+
+        overflow: visible !important;
+    }
+
+
+    // ========================================================
+    // Custom Navbar Items
+    // ========================================================
+
+    .o_custom_navbar_items {
+
+        display: flex;
+        align-items: stretch;
+
+        flex: 1 1 auto;
+
+        min-width: 0;
+
+        height: 100%;
+
+        margin: 0;
+        padding: 0;
+
+        overflow-x: auto;
+        overflow-y: visible;
+
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+
+    // ========================================================
+    // Custom Navbar Item
+    // ========================================================
+
+    .o_custom_navbar_item {
+
+        position: relative;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        flex: 0 0 auto;
+
+        height: 100%;
+
+        padding: 0 14px;
+
+        cursor: pointer;
+
+        white-space: nowrap;
+
+        color: rgba(255, 255, 255, 0.9);
+
+        background: transparent;
+
+        user-select: none;
+
+        transition:
+            color 0.15s ease,
+            background-color 0.15s ease;
+
+
+        // ----------------------------------------------------
+        // Icon
+        // ----------------------------------------------------
+
+        .o_custom_navbar_icon {
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            margin-right: 6px;
+
+            font-size: 14px;
+
+            line-height: 1;
+
+            color: inherit;
+        }
+
+
+        // ----------------------------------------------------
+        // Label
+        // ----------------------------------------------------
+
+        .o_custom_navbar_label {
+
+            display: inline-block;
+
+            max-width: 180px;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            font-size: 13px;
+
+            line-height: 1.2;
+
+            color: inherit;
+        }
+
+
+        // ----------------------------------------------------
+        // Hover
+        // ----------------------------------------------------
+
+        &:hover {
+
+            color: #ffffff;
+
+            background-color: rgba(
+                255,
+                255,
+                255,
+                0.08
+            );
+
+            &::after {
+
+                width: calc(100% - 20px);
+            }
+        }
+
+
+        // ----------------------------------------------------
+        // Active
+        // ----------------------------------------------------
+
+        &.active {
+
+            color: #ffffff;
+
+            background-color: rgba(
+                255,
+                255,
+                255,
+                0.10
+            );
+
+            &::after {
+
+                width: calc(100% - 20px);
+            }
+        }
+
+
+        // ----------------------------------------------------
+        // Underline
+        // ----------------------------------------------------
+
+        &::after {
+
+            content: "";
+
+            position: absolute;
+
+            left: 50%;
+            bottom: 0;
+
+            width: 0;
+            height: 2px;
+
+            transform: translateX(-50%);
+
+            background-color: #ffffff;
+
+            transition: width 0.18s ease;
+
+            pointer-events: none;
+        }
+    }
+
+
+    // ========================================================
+    // IMPORTANT: SYSTRAY
+    // ========================================================
+
+    .o_menu_systray {
+
+        /*
+         * Không cho Systray co lại.
+         */
+        flex: 0 0 auto;
+
+        /*
+         * Đẩy toàn bộ Systray về bên phải.
+         */
+        margin-left: auto;
+        margin-right: 0;
+
+        display: flex;
+
+        align-items: stretch;
+
+        justify-content: flex-end;
+
+        width: auto;
+
+        /*
+         * Chiều rộng tối thiểu bằng tổng các item bên trong.
+         */
+        min-width: max-content;
+
+        height: 100%;
+
+        /*
+         * Không cho item xuống dòng.
+         */
+        white-space: nowrap;
+
+        /*
+         * Cho dropdown hiển thị ra ngoài navbar.
+         */
+        overflow: visible !important;
+
+        position: relative;
+
+        /*
+         * Systray nằm trên Custom Navbar.
+         */
+        z-index: 2100;
+    }
+
+
+    // ========================================================
+    // Systray children
+    // ========================================================
+
+    .o_menu_systray > * {
+
+        flex: 0 0 auto;
+
+        height: 100%;
+    }
+
+    /* Đưa cụm systray sang bên phải */
+    .o_menu_systray, .o_systray {
+        margin-left: auto !important;
+        order: 99 !important;
+    }
+
+
+    // ========================================================
+    // User Menu
+    // ========================================================
+
+    .o_user_menu {
+
+        flex: 0 0 auto;
+
+        height: 100%;
+    }
+
+
+    // ========================================================
+    // Company Menu
+    // ========================================================
+
+    .o_company_menu {
+
+        flex: 0 0 auto;
+
+        height: 100%;
+    }
+
+
+    // ========================================================
+    // Remove unwanted underline
+    // ========================================================
+
+    .o_menu_brand,
+    .o_navbar_apps_menu,
+    .o_menu_systray,
+    .o_user_menu,
+    .o_company_menu {
+
+        &::after {
+
+            display: none !important;
+        }
+    }
+}
+
+
+// ============================================================
+// Responsive
+// ============================================================
+
+@media (max-width: 1400px) {
+
+    .o_main_navbar {
+
+        .o_custom_navbar_item {
+
+            padding-left: 10px;
+            padding-right: 10px;
+
+            .o_custom_navbar_label {
+
+                font-size: 12px;
+            }
+        }
+    }
+}
+
+
+@media (max-width: 1100px) {
+
+    .o_main_navbar {
+
+        .o_custom_navbar_item {
+
+            padding-left: 8px;
+            padding-right: 8px;
+
+            .o_custom_navbar_icon {
+
+                margin-right: 4px;
+            }
+
+            .o_custom_navbar_label {
+
+                font-size: 11px;
+            }
+        }
+    }
+}
+
+
+@media (max-width: 900px) {
+
+    .o_main_navbar {
+
+        .o_custom_navbar_item {
+
+            min-width: 40px;
+
+            padding-left: 8px;
+            padding-right: 8px;
+
+            .o_custom_navbar_label {
+
+                display: none;
+            }
+
+            .o_custom_navbar_icon {
+
+                margin-right: 0;
+
+                font-size: 15px;
+            }
+        }
+    }
+}

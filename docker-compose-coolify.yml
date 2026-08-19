@@ -24,7 +24,7 @@ services:
       - meworld
     volumes:
       - './config/odoo.conf:/etc/odoo/odoo.conf'
-      - './addons:/mnt/extra-addons/meworld'
+      # - './addons:/mnt/extra-addons/meworld'
       - './odoo-web-data:/var/lib/odoo'
     restart: unless-stopped
 networks:

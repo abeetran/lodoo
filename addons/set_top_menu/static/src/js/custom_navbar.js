@@ -3,7 +3,6 @@
 import { NavBar } from "@web/webclient/navbar/navbar";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
-import { onMounted } from "@odoo/owl";
 
 patch(NavBar.prototype, {
     setup() {
@@ -18,7 +17,7 @@ patch(NavBar.prototype, {
                 id: "dashboard",
                 label: "Bảng điều khiển",
                 icon: "fa-tachometer",
-                odooApp: "spreadsheet_dashboard",
+                url: "/web#dashboard_id=2&cids=3&menu_id=173&action=294",
             },
             {
                 id: "clients",
@@ -83,31 +82,6 @@ patch(NavBar.prototype, {
                 action: "base.action_res_users",
             },
         ];
-
-        onMounted(async () => {
-            const params = new URLSearchParams(window.location.hash.slice(1));
-            if (params.get("open_dashboard") === "1") {
-                await this.openDashboardMenu();
-            }
-        });
-    },
-
-    findDashboardMenu() {
-        const dashboardNames = new Set(["dashboard", "dashboards", "bảng điều khiển"]);
-        return this.menuService.getApps().find((menu) => {
-            const xmlID = (menu.xmlID || "").toLowerCase();
-            const name = (menu.name || "").trim().toLocaleLowerCase();
-            return xmlID.includes("spreadsheet_dashboard") || dashboardNames.has(name);
-        });
-    },
-
-    async openDashboardMenu() {
-        const dashboardMenu = this.findDashboardMenu();
-        if (!dashboardMenu) {
-            console.error("Cannot find the Odoo dashboard menu.");
-            return;
-        }
-        await this.menuService.selectMenu(dashboardMenu);
     },
 
     /**
@@ -115,11 +89,6 @@ patch(NavBar.prototype, {
      */
     async onCustomNavClick(item) {
         if (!item) {
-            return;
-        }
-
-        if (item.odooApp === "spreadsheet_dashboard") {
-            await this.openDashboardMenu();
             return;
         }
 

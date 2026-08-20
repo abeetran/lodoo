@@ -15,6 +15,7 @@
     "depends": [
         "web",
         "base",
+        "auth_signup",
         "sale",
         "sale_management",
         "account",
@@ -34,6 +35,7 @@
         "views/kitchen_plan_views.xml",
         "views/sale_order_views.xml",
         "views/daily_order_views.xml",
+        "views/web_login_views.xml",
     ],
 
     "assets": {

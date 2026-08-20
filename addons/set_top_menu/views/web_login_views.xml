@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <template id="ifoods_login_logo" inherit_id="web.login_layout" name="iFoods Login Logo">
+        <xpath expr="//img[contains(@t-attf-src, '/web/binary/company_logo')]" position="replace">
+            <img
+                src="/set_top_menu/static/src/img/ifoods.png"
+                style="max-height: 120px; max-width: 100%; width: auto;"
+            />
+        </xpath>
+        <xpath expr="//div[@t-if='not disable_footer']" position="replace"/>
+    </template>
+
+    <template id="hide_superuser_login" inherit_id="web.login" name="Hide Superuser Login">
+        <xpath expr="//button[@name='redirect']" position="replace"/>
+        <xpath expr="//input[@name='redirect']" position="replace">
+            <input
+                type="hidden"
+                name="redirect"
+                value="/web#dashboard_id=5&amp;cids=3&amp;menu_id=168&amp;action=283"
+            />
+        </xpath>
+    </template>
+
+    <template id="hide_public_signup" inherit_id="auth_signup.login" name="Hide Public Signup Link">
+        <xpath expr="//a[@t-if='signup_enabled']" position="replace"/>
+    </template>
+</odoo>

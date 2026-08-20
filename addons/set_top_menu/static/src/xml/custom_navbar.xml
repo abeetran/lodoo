@@ -5,7 +5,7 @@
         t-inherit-mode="extension"
         owl="1"
     >
-        <xpath
+        <!-- <xpath
             expr="//*[contains(@class, 'o_menu_brand')]"
             position="replace"
         >
@@ -16,7 +16,7 @@
                     alt="iFoods"
                 />
             </a>
-        </xpath>
+        </xpath> -->
 
         <xpath
             expr="//nav[contains(@class, 'o_main_navbar')]"

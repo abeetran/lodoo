@@ -6,6 +6,19 @@
         owl="1"
     >
         <xpath
+            expr="//*[contains(@class, 'o_menu_brand')]"
+            position="replace"
+        >
+            <a class="o_menu_brand o_ifoods_brand" href="/web" title="iFoods">
+                <img
+                    class="o_ifoods_logo"
+                    src="/set_top_menu/static/src/img/ifoods.png"
+                    alt="iFoods"
+                />
+            </a>
+        </xpath>
+
+        <xpath
             expr="//nav[contains(@class, 'o_main_navbar')]"
             position="inside"
         >

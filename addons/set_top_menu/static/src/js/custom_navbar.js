@@ -15,19 +15,19 @@ patch(NavBar.prototype, {
         this.customNavItems = [
             {
                 id: "dashboard",
-                label: "Dashboard",
+                label: "Bảng điều khiển",
                 icon: "fa-tachometer",
-                action: "base.open_menu",
+                url: "/web#dashboard_id=5&cids=3&menu_id=168&action=283",
             },
             {
                 id: "clients",
-                label: "Clients",
+                label: "Khách hàng",
                 icon: "fa-users",
                 action: "set_top_menu.action_client_management",
                 children: [
                     {
                         id: "contracts",
-                        label: "Contracts",
+                        label: "Hợp đồng",
                         icon: "fa-file-text-o",
                         action: "set_top_menu.action_client_contracts",
                     },
@@ -41,43 +41,43 @@ patch(NavBar.prototype, {
             },
             {
                 id: "orders",
-                label: "Orders",
+                label: "Đơn hàng",
                 icon: "fa-shopping-cart",
                 action: "set_top_menu.action_daily_orders",
             },
             {
                 id: "kitchen",
-                label: "Kitchen",
+                label: "Bếp",
                 icon: "fa-cutlery",
                 action: "set_top_menu.action_kitchen_plans",
             },
             {
                 id: "billing",
-                label: "Billing",
+                label: "Hóa đơn",
                 icon: "fa-file-text-o",
                 action: "account.action_move_out_invoice_type",
             },
             {
                 id: "materials",
-                label: "Materials",
+                label: "Nguyên liệu",
                 icon: "fa-cubes",
-                action: "stock.action_product_production_lot_form",
+                action: "set_top_menu.action_material_products",
             },
             {
                 id: "delivery",
-                label: "Delivery",
+                label: "Giao hàng",
                 icon: "fa-truck",
                 action: "stock.action_picking_tree_all",
             },
-            {
-                id: "client_relations",
-                label: "Client Relations",
-                icon: "fa-handshake-o",
-                action: "crm.crm_lead_action_pipeline",
-            },
+            // {
+            //     id: "client_relations",
+            //     label: "Client Relations",
+            //     icon: "fa-handshake-o",
+            //     action: "crm.crm_lead_action_pipeline",
+            // },
             {
                 id: "configuration",
-                label: "Configuration",
+                label: "Cấu hình",
                 icon: "fa-cog",
                 action: "base.action_res_users",
             },
@@ -88,7 +88,16 @@ patch(NavBar.prototype, {
      * Handle custom navbar item click
      */
     async onCustomNavClick(item) {
-        if (!item || !item.action) {
+        if (!item) {
+            return;
+        }
+
+        if (item.url) {
+            window.location.assign(item.url);
+            return;
+        }
+
+        if (!item.action) {
             return;
         }
 

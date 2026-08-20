@@ -16,7 +16,7 @@
             <input
                 type="hidden"
                 name="redirect"
-                value="/web#dashboard_id=5&amp;cids=3&amp;menu_id=168&amp;action=283"
+                value="/web#dashboard_id=2&amp;cids=3&amp;action=294&amp;menu_id=173"
             />
         </xpath>
     </template>

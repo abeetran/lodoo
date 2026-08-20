@@ -17,7 +17,7 @@ patch(NavBar.prototype, {
                 id: "dashboard",
                 label: "Bảng điều khiển",
                 icon: "fa-tachometer",
-                url: "/web#dashboard_id=5&cids=3&menu_id=168&action=283",
+                url: "/web#dashboard_id=2&cids=3&action=294&menu_id=173",
             },
             {
                 id: "clients",

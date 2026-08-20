@@ -6,3 +6,5 @@ access_menu_ingredient_user,menu.ingredient.user,model_set_top_menu_menu_ingredi
 access_meal_type_user,meal.type.user,model_set_top_menu_meal_type,base.group_user,1,1,1,1
 access_dietary_tag_user,dietary.tag.user,model_set_top_menu_dietary_tag,base.group_user,1,1,1,1
 access_allergen_user,allergen.user,model_set_top_menu_allergen,base.group_user,1,1,1,1
+access_kitchen_plan_user,kitchen.plan.user,model_set_top_menu_kitchen_plan,base.group_user,1,1,1,1
+access_kitchen_plan_line_user,kitchen.plan.line.user,model_set_top_menu_kitchen_plan_line,base.group_user,1,1,1,1

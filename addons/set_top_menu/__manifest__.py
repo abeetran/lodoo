@@ -16,17 +16,23 @@
         "web",
         "base",
         "sale",
+        "sale_management",
         "account",
         "stock",
         "crm",
+        "mrp",
     ],
 
     "data": [
         "security/ir.model.access.csv",
+        "data/kitchen_plan_sequence.xml",
         "data/menu_item_data.xml",
         "views/client_management_views.xml",
         "views/client_contract_views.xml",
         "views/menu_item_views.xml",
+        "views/kitchen_plan_views.xml",
+        "views/sale_order_views.xml",
+        "views/daily_order_views.xml",
     ],
 
     "assets": {

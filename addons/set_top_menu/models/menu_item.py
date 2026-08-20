@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import Command, api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -9,6 +9,19 @@ class MenuItem(models.Model):
 
     name = fields.Char(string="Tên món", required=True, index=True)
     item_code = fields.Char(string="Mã món", required=True, copy=False, index=True)
+    bom_id = fields.Many2one(
+        "mrp.bom",
+        string="Công thức sản xuất",
+        domain="[('type', '=', 'normal')]",
+        ondelete="restrict",
+        help="Định mức nguyên vật liệu dùng để sản xuất món ăn này.",
+    )
+    product_id = fields.Many2one(
+        "product.product",
+        string="Thành phẩm",
+        readonly=True,
+        help="Thành phẩm được lấy tự động từ công thức sản xuất.",
+    )
     image_1920 = fields.Image(string="Ảnh món ăn", max_width=1920, max_height=1920)
     food_category = fields.Selection(
         [
@@ -28,6 +41,9 @@ class MenuItem(models.Model):
         currency_field="currency_id",
         compute="_compute_cost_per_serving",
         store=True,
+    )
+    sale_price = fields.Monetary(
+        string="Giá bán mỗi suất", currency_field="currency_id", default=0.0
     )
     currency_id = fields.Many2one(
         "res.currency",
@@ -50,12 +66,104 @@ class MenuItem(models.Model):
 
     _sql_constraints = [
         ("item_code_unique", "unique(item_code)", "Mã món không được trùng."),
+        ("product_unique", "unique(product_id)", "Sản phẩm bán hàng đã được liên kết với món khác."),
     ]
 
     @api.depends("ingredient_ids.cost")
     def _compute_cost_per_serving(self):
         for item in self:
             item.cost_per_serving = sum(item.ingredient_ids.mapped("cost"))
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get("bom_id"):
+                bom = self.env["mrp.bom"].browse(vals["bom_id"])
+                vals["product_id"] = (bom.product_id or bom.product_tmpl_id.product_variant_id).id
+            elif not vals.get("product_id"):
+                product = self.env["product.product"].create(
+                    {
+                        "name": vals.get("name") or "Menu Item",
+                        "default_code": vals.get("item_code"),
+                        "sale_ok": True,
+                        "purchase_ok": False,
+                        "list_price": vals.get("sale_price", 0.0),
+                    }
+                )
+                vals["product_id"] = product.id
+        return super().create(vals_list)
+
+    def _ensure_sale_product(self):
+        for item in self.filtered(lambda record: not record.product_id):
+            product = self.env["product.product"].create(
+                {
+                    "name": item.name,
+                    "default_code": item.item_code,
+                    "sale_ok": True,
+                    "purchase_ok": False,
+                    "list_price": item.sale_price,
+                }
+            )
+            item.product_id = product
+        return self.mapped("product_id")
+
+    def write(self, vals):
+        if vals.get("bom_id"):
+            bom = self.env["mrp.bom"].browse(vals["bom_id"])
+            vals = {
+                **vals,
+                "product_id": (bom.product_id or bom.product_tmpl_id.product_variant_id).id,
+            }
+        result = super().write(vals)
+        if "sale_price" in vals:
+            self.mapped("product_id").write({"list_price": vals["sale_price"]})
+        return result
+
+    @api.onchange("bom_id")
+    def _onchange_bom_id(self):
+        for item in self:
+            if not item.bom_id:
+                item.ingredient_ids = [Command.clear()]
+                continue
+
+            bom = item.bom_id
+            item.product_id = bom.product_id or bom.product_tmpl_id.product_variant_id
+            item.serving_size = bom.product_qty
+            item.serving_uom_id = bom.product_uom_id
+            item.ingredient_ids = item._bom_ingredient_commands()
+
+    def _bom_ingredient_commands(self):
+        self.ensure_one()
+        return [Command.clear()] + [
+            Command.create(
+                {
+                    "product_id": line.product_id.id,
+                    "quantity": line.product_qty,
+                    "uom_id": line.product_uom_id.id,
+                    "unit_cost": line.product_id.standard_price,
+                }
+            )
+            for line in self.bom_id.bom_line_ids
+        ]
+
+    def action_sync_from_bom(self):
+        for item in self:
+            if not item.bom_id:
+                raise ValidationError("Vui lòng chọn Công thức sản xuất trước khi đồng bộ.")
+            item.write(
+                {
+                    "serving_size": item.bom_id.product_qty,
+                    "serving_uom_id": item.bom_id.product_uom_id.id,
+                    "ingredient_ids": item._bom_ingredient_commands(),
+                }
+            )
+        return True
+
+    @api.constrains("bom_id", "product_id")
+    def _check_manufacturing_link(self):
+        for item in self:
+            if item.bom_id and not item.product_id:
+                raise ValidationError("Công thức sản xuất phải có thành phẩm hợp lệ.")
 
 
 class MenuIngredient(models.Model):

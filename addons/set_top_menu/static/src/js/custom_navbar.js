@@ -43,13 +43,13 @@ patch(NavBar.prototype, {
                 id: "orders",
                 label: "Orders",
                 icon: "fa-shopping-cart",
-                action: "sale.action_orders",
+                action: "set_top_menu.action_daily_orders",
             },
             {
                 id: "kitchen",
                 label: "Kitchen",
                 icon: "fa-cutlery",
-                action: null,
+                action: "set_top_menu.action_kitchen_plans",
             },
             {
                 id: "billing",

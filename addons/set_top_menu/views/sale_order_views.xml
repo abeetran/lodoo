@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_menu_item" model="ir.ui.view">
+        <field name="name">sale.order.form.menu.item</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <!-- Chỉ hiển thị hai thao tác chính của đơn phục vụ. -->
+            <xpath expr="//header/button[@name='action_quotation_send']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_preview_sale_order']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_unlock']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_draft']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@id='create_invoice']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/button[@id='create_invoice_percentage']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/field[@name='state']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//header/field[@name='state']" position="after">
+                <button string="Hủy bỏ" special="cancel"
+                        invisible="state not in ('draft', 'sent')"/>
+                <field name="catering_state" widget="statusbar"
+                       statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"/>
+                <button name="action_dispatch" type="object" string="Xuất giao"
+                        class="btn-primary" invisible="catering_state != 'ready'"/>
+                <button name="action_deliver" type="object" string="Đã giao"
+                        class="btn-primary" invisible="catering_state != 'dispatched'"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_kitchen_plans" type="object" class="oe_stat_button"
+                        icon="fa-cutlery" invisible="kitchen_plan_count == 0">
+                    <field name="kitchen_plan_count" widget="statinfo" string="Kế hoạch bếp"/>
+                </button>
+            </xpath>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="catering_reference" readonly="1"/>
+                <field name="contract_id"/>
+                <field name="total_meals" readonly="1"/>
+            </xpath>
+            <!-- Product và thuế vẫn tồn tại trong model nhưng không hiển thị cho người nhập món. -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="attributes">
+                <attribute name="column_invisible">True</attribute>
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="attributes">
+                <attribute name="column_invisible">True</attribute>
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='tax_id']" position="attributes">
+                <attribute name="column_invisible">True</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/control/create[@name='add_product_control']"
+                   position="attributes">
+                <attribute name="string">Thêm món ăn</attribute>
+            </xpath>
+            <xpath expr="//field[@name='note']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='other_information']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='customer_signature']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="(//notebook)[1]" position="inside">
+                <page string="Ghi chú" name="catering_notes">
+                    <field name="note" nolabel="1" placeholder="Nhập ghi chú cho đơn hàng..."/>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_id']" position="before">
+                <field name="meal_type_id" optional="show"/>
+                <field name="menu_item_id"
+                       context="{'default_active': True}"
+                       options="{'no_create': True, 'no_create_edit': True}"
+                       optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_order_form_hide_sale_management_options" model="ir.ui.view">
+        <field name="name">sale.order.form.hide.sale.management.options</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale_management.sale_order_form_quote"/>
+        <field name="arch" type="xml">
+            <field name="sale_order_template_id" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </field>
+            <page name="optional_products" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </page>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_daily_order_form" model="ir.ui.view">
+        <field name="name">sale.order.daily.form</field>
+        <field name="model">sale.order</field>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+            <form string="Đơn hàng hằng ngày">
+                <header>
+                    <button name="action_confirm" type="object" string="Xác nhận"
+                            class="btn-primary"
+                            invisible="catering_state not in ('draft', 'confirmed')"/>
+                    <button string="Hủy bỏ" special="cancel"
+                            invisible="state not in ('draft', 'sent')"/>
+                    <button name="action_dispatch" type="object" string="Xuất giao"
+                            class="btn-primary" invisible="catering_state != 'ready'"/>
+                    <button name="action_deliver" type="object" string="Đã giao"
+                            class="btn-primary" invisible="catering_state != 'dispatched'"/>
+                    <field name="catering_state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"/>
+                    <field name="state" invisible="1"/>
+                </header>
+                <sheet readonly="catering_state not in ('draft', 'confirmed')">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_kitchen_plans" type="object" class="oe_stat_button"
+                                icon="fa-cutlery" invisible="kitchen_plan_count == 0">
+                            <field name="kitchen_plan_count" widget="statinfo" string="Kế hoạch bếp"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="catering_reference" string="Mã đơn hàng"/>
+                        <h1><field name="catering_reference" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group string="CHI TIẾT ĐƠN HÀNG">
+                            <field name="date_order" string="Ngày đặt hàng"/>
+                            <field name="partner_id" string="Khách hàng"
+                                   widget="res_partner_many2one"
+                                   context="{'res_partner_search_mode': 'customer', 'show_address': 0, 'show_vat': False}"/>
+                            <field name="contract_id" string="Hợp đồng"
+                                   domain="[('client_id', '=', partner_id),
+                                            ('status', '=', 'active'),
+                                            ('date_start', '&lt;=', context_today()),
+                                            ('date_end', '&gt;=', context_today())]"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="partner_shipping_id" string="Địa chỉ giao hàng"
+                                   widget="res_partner_many2one"
+                                   domain="[('active', '=', True), '|', ('id', '=', partner_id), '&amp;', ('parent_id', '=', partner_id), ('type', '=', 'delivery')]"
+                                   context="{'default_parent_id': partner_id, 'default_type': 'delivery', 'show_address': 1, 'show_vat': False}"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
+                        </group>
+                        <group string="TỔNG HỢP">
+                            <field name="total_meals" string="Tổng số suất ăn" readonly="1"/>
+                            <field name="amount_untaxed" string="Tổng tiền" readonly="1"/>
+                            <field name="company_id" string="Công ty"/>
+                        </group>
+                    </group>
+                    <field name="currency_id" invisible="1"/>
+                    <field name="pricelist_id" invisible="1"/>
+                    <field name="partner_invoice_id" invisible="1"/>
+                    <field name="fiscal_position_id" invisible="1"/>
+                    <notebook>
+                        <page string="Chi tiết món ăn" name="meal_lines">
+                            <field name="order_line" nolabel="1">
+                                <tree editable="bottom" string="Chi tiết món ăn">
+                                    <control>
+                                        <create string="Thêm một dòng"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="display_type" column_invisible="True"/>
+                                    <field name="product_id" column_invisible="True" force_save="1"/>
+                                    <field name="product_template_id" column_invisible="True"/>
+                                    <field name="product_uom_category_id" column_invisible="True"/>
+                                    <field name="product_uom" column_invisible="True" force_save="1"/>
+                                    <field name="currency_id" column_invisible="True"/>
+                                    <field name="company_id" column_invisible="True"/>
+                                    <field name="state" column_invisible="True"/>
+                                    <field name="contract_task_id" column_invisible="True"
+                                           force_save="1"/>
+                                    <field name="meal_type_id" string="Loại bữa ăn"/>
+                                    <field name="menu_item_id" string="Món ăn"
+                                           domain="[('active', '=', True)]"
+                                           options="{'no_create': True, 'no_create_edit': True}"/>
+                                    <field name="product_uom_qty" string="Số lượng"/>
+                                    <field name="price_unit" string="Đơn giá mỗi suất"
+                                           readonly="parent.contract_id"/>
+                                    <field name="price_subtotal" string="Thành tiền" readonly="1"/>
+                                    <field name="name" column_invisible="True" force_save="1"/>
+                                    <field name="catering_note" string="Ghi chú"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_meals" string="Tổng số suất ăn" readonly="1"/>
+                                <field name="amount_untaxed" string="Tổng tiền" readonly="1"/>
+                            </group>
+                            <div class="clearfix"/>
+                        </page>
+                        <page string="Ghi chú" name="notes">
+                            <field name="note" nolabel="1" placeholder="Nhập ghi chú cho đơn hàng..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_daily_orders" model="ir.actions.act_window">
+        <field name="name">Đơn hàng hằng ngày</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('state', '!=', 'cancel')]</field>
+        <field name="context">{'default_catering_state': 'draft'}</field>
+    </record>
+
+    <record id="action_daily_orders_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="sale.view_order_tree"/>
+        <field name="act_window_id" ref="action_daily_orders"/>
+    </record>
+    <record id="action_daily_orders_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_daily_order_form"/>
+        <field name="act_window_id" ref="action_daily_orders"/>
+    </record>
+</odoo>

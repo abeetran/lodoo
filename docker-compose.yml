@@ -29,4 +29,4 @@ services:
     restart: unless-stopped
 networks:
   coolify:
-    driver: bridge
+    external: true

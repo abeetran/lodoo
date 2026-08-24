@@ -17,7 +17,7 @@ patch(NavBar.prototype, {
                 id: "dashboard",
                 label: "Bảng điều khiển",
                 icon: "fa-tachometer",
-                url: "/web#dashboard_id=8&cids=1&menu_id=173&action=294",
+                url: "/web#dashboard_id=2&cids=3&menu_id=173&action=294",
             },
             {
                 id: "clients",
@@ -62,6 +62,12 @@ patch(NavBar.prototype, {
                 label: "Nguyên liệu",
                 icon: "fa-cubes",
                 action: "set_top_menu.action_material_products",
+            },
+            {
+                id: "purchase",
+                label: "Mua hàng",
+                icon: "fa-shopping-basket",
+                action: "purchase.purchase_rfq",
             },
             {
                 id: "delivery",

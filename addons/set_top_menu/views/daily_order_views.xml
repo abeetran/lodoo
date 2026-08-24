@@ -60,16 +60,18 @@
                     <field name="partner_invoice_id" invisible="1"/>
                     <field name="fiscal_position_id" invisible="1"/>
                     <notebook>
-                        <page string="Chi tiết món ăn" name="meal_lines">
+                        <page string="Chi tiết đơn hàng" name="meal_lines">
                             <field name="order_line" nolabel="1">
-                                <tree editable="bottom" string="Chi tiết món ăn">
+                                <tree editable="bottom" string="Chi tiết đơn hàng">
                                     <control>
-                                        <create string="Thêm một dòng"/>
+                                        <create string="Thêm mặt hàng"
+                                                invisible="parent.contract_id"/>
                                     </control>
                                     <field name="sequence" widget="handle"/>
                                     <field name="display_type" column_invisible="True"/>
                                     <field name="product_id" column_invisible="True" force_save="1"/>
-                                    <field name="product_template_id" column_invisible="True"/>
+                                    <field name="product_template_id" string="Mặt hàng"
+                                           readonly="parent.contract_id"/>
                                     <field name="product_uom_category_id" column_invisible="True"/>
                                     <field name="product_uom" column_invisible="True" force_save="1"/>
                                     <field name="currency_id" column_invisible="True"/>
@@ -77,20 +79,24 @@
                                     <field name="state" column_invisible="True"/>
                                     <field name="contract_task_id" column_invisible="True"
                                            force_save="1"/>
-                                    <field name="meal_type_id" string="Loại bữa ăn"/>
+                                    <field name="meal_type_id" string="Loại bữa ăn"
+                                           readonly="parent.contract_id"
+                                           options="{'no_create': True, 'no_create_edit': True}"/>
                                     <field name="menu_item_id" string="Món ăn"
                                            domain="[('active', '=', True)]"
+                                           readonly="1"
                                            options="{'no_create': True, 'no_create_edit': True}"/>
                                     <field name="product_uom_qty" string="Số lượng"/>
-                                    <field name="price_unit" string="Đơn giá mỗi suất"
+                                    <field name="price_unit" string="Đơn giá"
                                            readonly="parent.contract_id"/>
                                     <field name="price_subtotal" string="Thành tiền" readonly="1"/>
                                     <field name="name" column_invisible="True" force_save="1"/>
-                                    <field name="catering_note" string="Ghi chú"/>
+                                    <field name="catering_note" string="Ghi chú"
+                                           readonly="parent.contract_id"/>
                                 </tree>
                             </field>
                             <group class="oe_subtotal_footer oe_right">
-                                <field name="total_meals" string="Tổng số suất ăn" readonly="1"/>
+                                <field name="total_meals" string="Tổng số lượng" readonly="1"/>
                                 <field name="amount_untaxed" string="Tổng tiền" readonly="1"/>
                             </group>
                             <div class="clearfix"/>

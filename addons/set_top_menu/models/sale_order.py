@@ -340,24 +340,72 @@ class SaleOrderLine(models.Model):
                     else menu_item.sale_price
                 )
                 line.tax_id = [Command.clear()]
-                if not line.meal_type_id:
-                    line.meal_type_id = menu_item.meal_type_ids[:1]
+                line.meal_type_id = (
+                    menu_item.meal_type_ids
+                    if len(menu_item.meal_type_ids) == 1
+                    else False
+                )
+            else:
+                line.meal_type_id = False
 
     @api.onchange("product_id")
     def _onchange_product_id_set_menu_item(self):
         for line in self:
             if not line.product_id:
+                line.menu_item_id = False
+                line.meal_type_id = False
                 continue
             if line.menu_item_id.product_id != line.product_id:
                 line.menu_item_id = self.env["set_top_menu.menu.item"].search(
                     [("product_id", "=", line.product_id.id)], limit=1
                 )
+            line.meal_type_id = (
+                line.menu_item_id.meal_type_ids
+                if len(line.menu_item_id.meal_type_ids) == 1
+                else False
+            )
+
+    @api.onchange("product_template_id")
+    def _onchange_product_template_id_set_menu_item(self):
+        for line in self:
+            if not line.product_template_id:
+                line.menu_item_id = False
+                line.meal_type_id = False
+                continue
+
+            domain = [
+                ("product_id.product_tmpl_id", "=", line.product_template_id.id),
+                ("active", "=", True),
+            ]
+            if (
+                line.product_id
+                and line.product_id.product_tmpl_id == line.product_template_id
+            ):
+                domain.append(("product_id", "=", line.product_id.id))
+
+            line.menu_item_id = self.env["set_top_menu.menu.item"].search(
+                domain, limit=1
+            )
+            line.meal_type_id = (
+                line.menu_item_id.meal_type_ids
+                if len(line.menu_item_id.meal_type_ids) == 1
+                else False
+            )
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get("order_id"):
-                self.env["sale.order"].browse(vals["order_id"])._check_kitchen_editable()
+                order = self.env["sale.order"].browse(vals["order_id"])
+                order._check_kitchen_editable()
+                if order.contract_id:
+                    contract_task = self.env["set_top_menu.client.contract.task"].browse(
+                        vals.get("contract_task_id")
+                    )
+                    if not contract_task or contract_task.contract_id != order.contract_id:
+                        raise UserError(
+                            "Không thể thêm sản phẩm hoặc món ăn vào đơn hàng theo hợp đồng."
+                        )
             if vals.get("menu_item_id"):
                 menu_item = self.env["set_top_menu.menu.item"].browse(vals["menu_item_id"])
                 menu_item._ensure_sale_product()
@@ -378,6 +426,24 @@ class SaleOrderLine(models.Model):
 
     def write(self, vals):
         self.mapped("order_id")._check_kitchen_editable()
+        contract_locked_fields = {
+            "product_id",
+            "product_template_id",
+            "menu_item_id",
+            "meal_type_id",
+            "product_uom",
+            "price_unit",
+            "discount",
+            "tax_id",
+            "name",
+            "catering_note",
+        }
+        if contract_locked_fields.intersection(vals) and self.filtered(
+            lambda line: line.order_id.contract_id
+        ):
+            raise UserError(
+                "Không thể thay đổi chi tiết của đơn hàng theo hợp đồng."
+            )
         if len(self) == 1:
             contract_task = (
                 self.env["set_top_menu.client.contract.task"].browse(vals["contract_task_id"])

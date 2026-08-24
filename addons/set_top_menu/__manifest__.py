@@ -20,6 +20,7 @@
         "sale_management",
         "account",
         "stock",
+        "purchase",
         "crm",
         "mrp",
     ],

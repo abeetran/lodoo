@@ -3,7 +3,6 @@
         <field name="name">Materials</field>
         <field name="res_model">product.template</field>
         <field name="view_mode">kanban,tree,form</field>
-        <field name="domain">[('is_menu_item_product', '=', False)]</field>
         <field name="context">{'default_purchase_ok': True}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">

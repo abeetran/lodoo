@@ -11,4 +11,4 @@ services:
       - './odoo-web-data:/var/lib/odoo'
 networks:
   coolify:
-    external: trues
+    external: true

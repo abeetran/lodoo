@@ -4,15 +4,11 @@ services:
     build:
       context: ./addons
     container_name: odoo_meworld
-    ports:
-      - '8069:8069'
     networks:
       - coolify
     volumes:
       - './config/odoo.conf:/etc/odoo/odoo.conf'
-      # - './addons:/mnt/extra-addons/meworld'
       - './odoo-web-data:/var/lib/odoo'
-    restart: unless-stopped
 networks:
   coolify:
     external: trues

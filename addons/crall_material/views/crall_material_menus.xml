@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="action_crall_material_sync" model="ir.actions.act_window">
+        <field name="name">Crall Materials</field>
+        <field name="res_model">crall.material.sync.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <menuitem
+        id="menu_crall_material_root"
+        name="Craw Materials"
+        sequence="90"
+        action="action_crall_material_sync"
+    />
+</odoo>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_crall_material" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.crall.material</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Crall Materials" name="crall_material">
+                    <block title="HanoiCheck supplier API">
+                        <setting string="API URL">
+                            <field name="crall_supplier_api_url"/>
+                        </setting>
+                        <setting string="Bearer token">
+                            <field name="crall_supplier_api_token" password="True"/>
+                        </setting>
+                        <setting string="Referer">
+                            <field name="crall_supplier_api_referer"/>
+                        </setting>
+                        <button
+                            name="action_sync_crall_materials"
+                            type="object"
+                            string="Sync standard foods"
+                            class="btn-primary"
+                        />
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

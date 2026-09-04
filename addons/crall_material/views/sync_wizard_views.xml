@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="crall_material_sync_wizard_view_form" model="ir.ui.view">
+        <field name="name">crall.material.sync.wizard.form</field>
+        <field name="model">crall.material.sync.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Crall Materials">
+                <sheet>
+                    <group>
+                        <field name="token" password="True"/>
+                        <button
+                            name="action_sync"
+                            type="object"
+                            string="Sync 5 standard foods"
+                            class="btn-primary"
+                        />
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

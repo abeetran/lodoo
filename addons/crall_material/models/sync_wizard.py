@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 
 class CrallMaterialSyncWizard(models.TransientModel):
@@ -10,17 +11,23 @@ class CrallMaterialSyncWizard(models.TransientModel):
         password=True,
         required=True,
     )
+    page = fields.Integer(string="Page", default=1, required=True)
 
     def action_sync(self):
         self.ensure_one()
-        result = self.env["product.template"].sync_crall_materials(token=self.token)
+        if self.page < 1:
+            raise UserError(_("Số trang phải lớn hơn hoặc bằng 1."))
+        result = self.env["product.template"].sync_crall_materials(
+            token=self.token,
+            page=self.page,
+        )
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": "Crall sync completed",
-                "message": "%s created, %s updated"
-                % (result["created"], result["updated"]),
+                "message": "Page %s: %s created, %s skipped"
+                % (self.page, result["created"], result["skipped"]),
                 "type": "success",
                 "sticky": False,
             },

@@ -21,7 +21,7 @@ class ProductTemplate(models.Model):
     crall_is_dry = fields.Boolean(string="Is dry", copy=False)
     crall_supplier_payload = fields.Json(string="Supplier payload", copy=False)
 
-    def sync_crall_materials(self, url=None, token=None, referer=None):
+    def sync_crall_materials(self, url=None, token=None, referer=None, page=1):
         parameters = self.env["ir.config_parameter"].sudo()
         url = url or parameters.get_param(
             "crall_material.supplier_api_url",
@@ -59,8 +59,14 @@ class ProductTemplate(models.Model):
         if not foods:
             raise UserError(_("API không trả về danh sách nguyên liệu."))
 
-        created = updated = 0
-        for food in foods:
+        page_size = 100
+        page_start = (page - 1) * page_size
+        page_foods = foods[page_start : page_start + page_size]
+        if not page_foods:
+            raise UserError(_("Không có dữ liệu ở trang %s.") % page)
+
+        created = skipped = 0
+        for food in page_foods:
             if not isinstance(food, dict):
                 continue
             supplier_id = self._crall_value(food, "id", "food_id", "product_id")
@@ -110,12 +116,14 @@ class ProductTemplate(models.Model):
                     supplier_id,
                     supplier_code,
                 )
-            else:
-                self.create(values)
-                created += 1
+                skipped += 1
+                continue
 
-        _logger.info("Crall materials synchronized: %s created, %s updated", created, updated)
-        return {"created": created, "updated": updated}
+            self.create(values)
+            created += 1
+
+        _logger.info("Crall materials synchronized: page %s, %s created, %s skipped", page, created, skipped)
+        return {"created": created, "skipped": skipped, "page": page}
 
     @staticmethod
     def _crall_value(food, *keys):

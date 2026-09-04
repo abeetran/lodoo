@@ -8,10 +8,11 @@
                 <sheet>
                     <group>
                         <field name="token" password="True"/>
+                        <field name="page"/>
                         <button
                             name="action_sync"
                             type="object"
-                            string="Sync 5 standard foods"
+                            string="Sync 100 standard foods"
                             class="btn-primary"
                         />
                     </group>

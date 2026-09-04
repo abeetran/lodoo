@@ -1,6 +1,6 @@
 {
     "name": "Craw Material Supplier Sync",
-    "version": "17.0.1.0.6",
+    "version": "17.0.1.0.7",
     "category": "Inventory",
     "summary": "Import standard foods from the HanoiCheck supplier API",
     "depends": ["product", "sale", "base_setup"],

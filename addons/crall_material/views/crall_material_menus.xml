@@ -9,7 +9,7 @@
 
     <menuitem
         id="menu_crall_material_root"
-        name="Craw Materials"
+        name="Data Sync"
         sequence="90"
         action="action_crall_material_sync"
     />

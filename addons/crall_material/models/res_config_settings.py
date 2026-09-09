@@ -19,12 +19,27 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="crall_material.supplier_api_referer",
         default="https://ncc.hanoicheck.com.vn",
     )
+    crall_sub_supplier_api_url = fields.Char(
+        string="Sub-supplier API URL",
+        config_parameter="crall_material.sub_supplier_api_url",
+        default="https://ncc-api.hanoicheck.com.vn/supplier/sub-suppliers/paginate?page=1&per_page=15",
+    )
 
     def action_sync_crall_materials(self):
         self.ensure_one()
         self.set_values()
         self.env["product.template"].sync_crall_materials(
             url=self.crall_supplier_api_url,
+            token=self.crall_supplier_api_token,
+            referer=self.crall_supplier_api_referer,
+        )
+        return {"type": "ir.actions.client", "tag": "reload"}
+
+    def action_sync_crall_sub_suppliers(self):
+        self.ensure_one()
+        self.set_values()
+        self.env["res.partner"].sync_crall_sub_suppliers(
+            url=self.crall_sub_supplier_api_url,
             token=self.crall_supplier_api_token,
             referer=self.crall_supplier_api_referer,
         )

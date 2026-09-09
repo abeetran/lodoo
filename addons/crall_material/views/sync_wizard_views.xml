@@ -15,6 +15,12 @@
                             string="Sync 100 standard foods"
                             class="btn-primary"
                         />
+                        <button
+                            name="action_sync_sub_suppliers"
+                            type="object"
+                            string="Lấy sub-suppliers theo trang"
+                            class="btn-secondary"
+                        />
                     </group>
                 </sheet>
             </form>

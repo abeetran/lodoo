@@ -6,7 +6,7 @@
         <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
-                <app string="Crall Materials" name="crall_material">
+                <app string="Craw Data" name="crall_material">
                     <block title="HanoiCheck supplier API">
                         <setting string="API URL">
                             <field name="crall_supplier_api_url"/>
@@ -17,11 +17,20 @@
                         <setting string="Referer">
                             <field name="crall_supplier_api_referer"/>
                         </setting>
+                        <setting string="Sub-supplier API URL">
+                            <field name="crall_sub_supplier_api_url"/>
+                        </setting>
                         <button
                             name="action_sync_crall_materials"
                             type="object"
                             string="Sync standard foods"
                             class="btn-primary"
+                        />
+                        <button
+                            name="action_sync_crall_sub_suppliers"
+                            type="object"
+                            string="Lấy dữ liệu sub-suppliers"
+                            class="btn-secondary"
                         />
                     </block>
                 </app>

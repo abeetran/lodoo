@@ -1,16 +1,44 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <record id="action_crall_material_sync" model="ir.actions.act_window">
-        <field name="name">Crall Materials</field>
+        <field name="name">Data Sync</field>
         <field name="res_model">crall.material.sync.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
     </record>
 
+    <record id="action_crall_supplier_list" model="ir.actions.act_window">
+        <field name="name">Nhà cung cấp</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[("supplier_rank", ">", 0)]</field>
+        <field name="context">{"default_supplier_rank": 1, "default_is_company": True}</field>
+    </record>
+
+    <record id="action_crall_production_site_list" model="ir.actions.act_window">
+        <field name="name">Cơ sở sản xuất</field>
+        <field name="res_model">crall.production.site</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
     <menuitem
         id="menu_crall_material_root"
         name="Data Sync"
-        sequence="90"
         action="action_crall_material_sync"
+        sequence="90"
+    />
+
+    <menuitem
+        id="menu_crall_supplier"
+        name="Nhà cung cấp"
+        action="action_crall_supplier_list"
+        sequence="91"
+    />
+
+    <menuitem
+        id="menu_crall_production_site"
+        name="Cơ sở sản xuất"
+        action="action_crall_production_site_list"
+        sequence="92"
     />
 </odoo>

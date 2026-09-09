@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="crall_production_site_view_tree" model="ir.ui.view">
+        <field name="name">crall.production.site.tree</field>
+        <field name="model">crall.production.site</field>
+        <field name="arch" type="xml">
+            <tree string="Cơ sở sản xuất">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="phone"/>
+                <field name="tax_number"/>
+                <field name="active" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="crall_production_site_view_form" model="ir.ui.view">
+        <field name="name">crall.production.site.form</field>
+        <field name="model">crall.production.site</field>
+        <field name="arch" type="xml">
+            <form string="Cơ sở sản xuất">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="phone"/>
+                        <field name="address"/>
+                        <field name="tax_number"/>
+                        <field name="active"/>
+                    </group>
+                    <group string="Ghi chú">
+                        <field name="note"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

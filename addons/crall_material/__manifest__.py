@@ -1,6 +1,6 @@
 {
     "name": "Data Sync from HanoiCheck",
-    "version": "17.0.1.0.15",
+    "version": "17.0.1.0.25",
     "category": "Inventory",
     "summary": "Import data from the HanoiCheck supplier API",
     "depends": ["product", "sale", "base_setup"],
@@ -8,6 +8,7 @@
         "security/ir.model.access.csv",
         "views/res_config_settings_views.xml",
         "views/product_template_views.xml",
+        "views/production_site_views.xml",
         "views/res_partner_views.xml",
         "views/sync_wizard_views.xml",
         "views/crall_material_menus.xml",

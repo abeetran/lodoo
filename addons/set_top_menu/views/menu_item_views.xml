@@ -78,6 +78,16 @@
                         <page string="Mô tả" name="description">
                             <field name="description" nolabel="1"/>
                         </page>
+                        <page string="Cơ sở sản xuất" name="production_sites">
+                            <field name="production_site_ids" nolabel="1">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="code"/>
+                                    <field name="address"/>
+                                    <field name="phone"/>
+                                </tree>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>

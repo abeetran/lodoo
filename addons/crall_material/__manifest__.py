@@ -1,6 +1,6 @@
 {
     "name": "Data Sync from HanoiCheck",
-    "version": "17.0.1.0.25",
+    "version": "17.0.1.0.27",
     "category": "Inventory",
     "summary": "Import data from the HanoiCheck supplier API",
     "depends": ["product", "sale", "base_setup"],

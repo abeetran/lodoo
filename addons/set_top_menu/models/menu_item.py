@@ -63,6 +63,9 @@ class MenuItem(models.Model):
         "set_top_menu.menu.ingredient", "menu_item_id", string="Nguyên liệu công thức", copy=True
     )
     description = fields.Html(string="Mô tả")
+    production_site_ids = fields.Many2many(
+        "crall.production.site", string="Cơ sở sản xuất"
+    )
 
     _sql_constraints = [
         ("item_code_unique", "unique(item_code)", "Mã món không được trùng."),

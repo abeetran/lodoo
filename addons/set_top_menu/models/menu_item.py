@@ -59,6 +59,9 @@ class MenuItem(models.Model):
         "set_top_menu.dietary.tag", string="Nhãn chế độ ăn"
     )
     allergen_ids = fields.Many2many("set_top_menu.allergen", string="Chất gây dị ứng")
+    age_group_id = fields.Many2one(
+        "set_top_menu.age.group", string="Nhóm tuổi"
+    )
     ingredient_ids = fields.One2many(
         "set_top_menu.menu.ingredient", "menu_item_id", string="Nguyên liệu công thức", copy=True
     )
@@ -239,3 +242,14 @@ class Allergen(models.Model):
     color = fields.Integer()
 
     _sql_constraints = [("name_unique", "unique(name)", "Chất gây dị ứng đã tồn tại.")]
+
+
+class AgeGroup(models.Model):
+    _name = "set_top_menu.age.group"
+    _description = "Nhóm tuổi"
+    _order = "id"
+
+    name = fields.Char(required=True)
+    color = fields.Integer()
+
+    _sql_constraints = [("name_unique", "unique(name)", "Nhóm tuổi đã tồn tại.")]

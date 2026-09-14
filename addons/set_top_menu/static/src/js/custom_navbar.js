@@ -58,10 +58,30 @@ patch(NavBar.prototype, {
                 action: "account.action_move_out_invoice_type",
             },
             {
-                id: "materials",
-                label: "Nguyên liệu",
+                id: "thuc_pham",
+                label: "Thực phẩm",
                 icon: "fa-cubes",
                 action: "set_top_menu.action_material_products",
+                children: [
+                    {
+                        id: "standard_foods",
+                        label: "Thực phẩm chuẩn",
+                        icon: "fa-check-square-o",
+                        action: "crall_material.action_crall_standard_food_list",
+                    },
+                    {
+                        id: "foods",
+                        label: "Thực phẩm",
+                        icon: "fa-cubes",
+                        action: "set_top_menu.action_material_products",
+                    },
+                    {
+                        id: "dishes",
+                        label: "Món ăn",
+                        icon: "fa-list",
+                        action: "set_top_menu.action_menu_items",
+                    },
+                ],
             },
             {
                 id: "purchase",

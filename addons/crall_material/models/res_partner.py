@@ -6,6 +6,8 @@ import requests
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
+from .hnck_client import HnckClient
+
 
 _logger = logging.getLogger(__name__)
 
@@ -35,8 +37,19 @@ class ResPartner(models.Model):
         string="Sub-supplier contracts", copy=False
     )
     crall_sub_supplier_payload = fields.Json(string="Sub-supplier payload", copy=False)
+    school_code = fields.Char(
+        string="School ID", index=True, copy=False
+    )
+    school_payload = fields.Json(string="School payload", copy=False)
+    school_year = fields.Char(string="Năm học", copy=False)
+    certificate_ids = fields.One2many(
+        "crall.supplier.certificate", "partner_id", string="Giấy chứng nhận ATTP"
+    )
+    contract_ids = fields.One2many(
+        "crall.supplier.contract", "partner_id", string="Hợp đồng"
+    )
 
-    def sync_crall_sub_suppliers(self, url=None, token=None, referer=None, page=1):
+    def _crall_resolve_api(self, url=None, token=None, referer=None):
         parameters = self.env["ir.config_parameter"].sudo()
         url = url or parameters.get_param(
             "crall_material.sub_supplier_api_url",
@@ -51,12 +64,13 @@ class ResPartner(models.Model):
             raise UserError(_("Chưa cấu hình token API của nhà cung cấp."))
         if not token.lower().startswith("bearer "):
             token = "Bearer %s" % token
+        return url, token, referer
 
-        url = self._crall_paginated_url((url or "").strip(), page)
-
+    def _fetch_crall_suppliers_page(self, url, token, referer, page):
+        request_url = self._crall_paginated_url((url or "").strip(), page)
         try:
             response = requests.get(
-                url,
+                request_url,
                 headers={
                     "Authorization": token,
                     "Referer": referer,
@@ -102,7 +116,28 @@ class ResPartner(models.Model):
                 )
             ) from error
 
-        suppliers = self._crall_supplier_list(payload)
+        return request_url, self._crall_supplier_list(payload)
+
+    def fetch_all_crall_sub_suppliers(
+        self, url=None, token=None, referer=None, max_pages=200
+    ):
+        url, token, referer = self._crall_resolve_api(url, token, referer)
+        suppliers, page = [], 1
+        while page <= max_pages:
+            _request_url, page_suppliers = self._fetch_crall_suppliers_page(
+                url, token, referer, page
+            )
+            if not page_suppliers:
+                break
+            suppliers.extend(page_suppliers)
+            page += 1
+        return suppliers
+
+    def sync_crall_sub_suppliers(self, url=None, token=None, referer=None, page=1):
+        url, token, referer = self._crall_resolve_api(url, token, referer)
+        _request_url, suppliers = self._fetch_crall_suppliers_page(
+            url, token, referer, page
+        )
         if not suppliers:
             raise UserError(_("Không có dữ liệu ở trang %s.") % page)
 
@@ -210,29 +245,172 @@ class ResPartner(models.Model):
             "page": page,
         }
 
-    def action_sync_crall_sub_suppliers_list(self):
-        try:
-            result = self.env["res.partner"].sync_crall_sub_suppliers()
-        except UserError as error:
-            raise UserError(
-                _(
-                    "%s Vui lòng cấu hình token ở Cài đặt > Crall Materials "
-                    "hoặc dùng menu Craw Materials."
+    def action_create_supplier_contract(self):
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Hợp đồng mới"),
+            "res_model": "crall.supplier.contract",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_partner_id": self.id},
+        }
+
+    def sync_crall_schools(
+        self, url=None, token=None, referer=None, max_pages=200, page=None, per_page=None
+    ):
+        parameters = self.env["ir.config_parameter"].sudo()
+        url = url or parameters.get_param(
+            "crall_material.school_api_url",
+            "https://ncc-api.hanoicheck.com.vn/supplier/schools/paginate?page=1&per_page=30",
+        )
+        if per_page:
+            url = self._crall_page_size_url(url, per_page)
+        token = token or parameters.get_param("crall_material.supplier_api_token")
+        referer = referer or parameters.get_param(
+            "crall_material.supplier_api_referer",
+            "https://ncc.hanoicheck.com.vn",
+        )
+        if not token:
+            raise UserError(_("Chưa cấu hình token API của nhà cung cấp."))
+        if not token.lower().startswith("bearer "):
+            token = "Bearer %s" % token
+
+        created = updated = skipped = 0
+        single_page = page is not None
+        page = page or 1
+        while page <= max_pages:
+            _request_url, schools = self._fetch_crall_suppliers_page(
+                url, token, referer, page
+            )
+            if not schools:
+                break
+            for school in schools:
+                if not isinstance(school, dict):
+                    skipped += 1
+                    continue
+                school_id = self._crall_sub_value(school, "id", "school_id")
+                name = self._crall_sub_value(
+                    school, "name", "school_name", "display_name", "title"
                 )
-                % error
-            ) from error
+                if school_id in (None, "", False) or not name:
+                    _logger.warning(
+                        "Skipping school without id or name: %s", school
+                    )
+                    skipped += 1
+                    continue
+                school_id = str(school_id)
+                school_code = self._crall_sub_value(
+                    school, "code", "school_code", "sku"
+                )
+                values = {
+                    "name": str(name),
+                    "is_company": True,
+                    "customer_rank": 1,
+                    "ref": school_code if school_code else False,
+                    "street": self._crall_sub_address(school) or False,
+                    "school_code": school_id,
+                    "school_year": self._crall_latest_school_year(school)
+                    or False,
+                    "school_payload": school,
+                }
+                partner = self.search(
+                    [("school_code", "=", school_id)], limit=1
+                )
+                if partner:
+                    partner.write(values)
+                    updated += 1
+                    continue
+                self.create(values)
+                created += 1
+            if single_page:
+                break
+            page += 1
+
+        _logger.info(
+            "Crall schools synchronized: %s created, %s updated, %s skipped",
+            created,
+            updated,
+            skipped,
+        )
+        return {"created": created, "updated": updated, "skipped": skipped}
+
+    def action_sync_crall_schools_list(self):
+        result = self.env["res.partner"].sync_crall_schools()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": "Crall sync completed",
-                "message": "Sub-suppliers: %s created, %s updated, %s skipped"
+                "message": "Trường học: %s created, %s updated, %s skipped"
                 % (result["created"], result["updated"], result["skipped"]),
                 "type": "success",
                 "sticky": False,
                 "next": {"type": "ir.actions.client", "tag": "reload"},
             },
         }
+
+    def action_sync_crall_sub_suppliers_list(self):
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một nhà cung cấp."))
+        records = [
+            {
+                "ma_co_so": partner.ref
+                or partner.crall_sub_supplier_code
+                or "",
+                "ten_co_so": partner.name or "",
+                "dia_chi": partner.street or "",
+            }
+            for partner in self
+        ]
+        result = HnckClient(self.env).merge_facilities(records)
+        message = _("Đã đẩy %s nhà cung cấp lên HNCK.") % len(records)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Crall sync completed",
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    @staticmethod
+    def _crall_latest_school_year(school):
+        years = (school or {}).get("school_years") or []
+        if isinstance(years, str):
+            years = [years]
+        candidates = [
+            year for year in years if year not in (None, "")
+        ]
+        if not candidates:
+            single = (school or {}).get("school_year")
+            return single if single not in (None, "") else False
+        def _year_key(year):
+            digits = "".join(
+                char for char in str(year)[:4] if char.isdigit()
+            )
+            return (int(digits) if len(digits) == 4 else 0, str(year))
+
+        return max(candidates, key=_year_key)
+
+    @staticmethod
+    def _crall_page_size_url(url, per_page):
+        parts = urllib.parse.urlsplit((url or "").strip())
+        query = [
+            (key, value)
+            for key, value in urllib.parse.parse_qsl(
+                parts.query, keep_blank_values=True
+            )
+            if key != "per_page"
+        ]
+        query.append(("per_page", str(per_page)))
+        return urllib.parse.urlunsplit(
+            parts._replace(query=urllib.parse.urlencode(query))
+        )
 
     @staticmethod
     def _crall_paginated_url(url, page):

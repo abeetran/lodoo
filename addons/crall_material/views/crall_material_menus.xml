@@ -7,10 +7,25 @@
         <field name="target">current</field>
     </record>
 
+    <record id="view_crall_supplier_tree" model="ir.ui.view">
+        <field name="name">crall.supplier.tree</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <tree string="Nhà cung cấp">
+                <field name="display_name"/>
+                <field name="ref" string="Mã nhà cung cấp" optional="show"/>
+                <field name="phone" optional="show"/>
+                <field name="email" optional="show"/>
+                <field name="vat" string="Mã số thuế" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
     <record id="action_crall_supplier_list" model="ir.actions.act_window">
         <field name="name">Nhà cung cấp</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'tree', 'view_id': ref('view_crall_supplier_tree')})]"/>
         <field name="domain">[("supplier_rank", ">", 0)]</field>
         <field name="context">{"default_supplier_rank": 1, "default_is_company": True}</field>
     </record>
@@ -20,6 +35,30 @@
         <field name="res_model">crall.production.site</field>
         <field name="view_mode">tree,form</field>
     </record>
+
+    <record id="view_crall_standard_food_tree" model="ir.ui.view">
+        <field name="name">crall.standard.food.tree</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <tree string="Danh mục thực phẩm chuẩn">
+                <field name="name" string="Tên thực phẩm"/>
+                <field name="default_code" string="Mã thực phẩm" optional="show"/>
+                <field name="crall_measure_name" string="Đơn vị tính" optional="show"/>
+                <field name="crall_game_exchange" string="Gam quy đổi" optional="show"/>
+                <field name="uom_id" optional="hide"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_crall_standard_food_list" model="ir.actions.act_window">
+        <field name="name">Danh mục thực phẩm chuẩn</field>
+        <field name="res_model">product.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'tree', 'view_id': ref('view_crall_standard_food_tree')})]"/>
+        <field name="domain">[("crall_supplier_id", "!=", False)]</field>
+    </record>
+
+    <delete model="ir.actions.server" id="action_server_sync_schools"/>
 
     <menuitem
         id="menu_crall_material_root"
@@ -32,13 +71,20 @@
         id="menu_crall_supplier"
         name="Nhà cung cấp"
         action="action_crall_supplier_list"
-        sequence="91"
+        sequence="92"
     />
 
     <menuitem
         id="menu_crall_production_site"
         name="Cơ sở sản xuất"
         action="action_crall_production_site_list"
-        sequence="92"
+        sequence="93"
+    />
+
+    <menuitem
+        id="menu_crall_standard_food"
+        name="Danh mục thực phẩm chuẩn"
+        action="action_crall_standard_food_list"
+        sequence="91"
     />
 </odoo>

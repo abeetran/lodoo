@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="crall_supplier_contract_view_form" model="ir.ui.view">
+        <field name="name">crall.supplier.contract.form</field>
+        <field name="model">crall.supplier.contract</field>
+        <field name="arch" type="xml">
+            <form string="Hợp đồng nhà cung cấp">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="so_hd" string="Số hợp đồng"/>
+                        <h1><field name="so_hd" placeholder="Ví dụ: HD-2024-001"/></h1>
+                    </div>
+                    <group>
+                        <group string="Nhà cung cấp">
+                            <field name="partner_id" readonly="1"/>
+                        </group>
+                        <group string="Thời hạn">
+                            <field name="ngay_ky"/>
+                            <field name="ngay_het_han"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Chi tiết hợp đồng" name="contract_lines">
+                            <field name="line_ids" nolabel="1">
+                                <tree editable="bottom">
+                                    <control>
+                                        <create string="Thêm sản phẩm / nguyên liệu"/>
+                                    </control>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="name"/>
+                                    <field name="quantity"/>
+                                    <field name="product_uom_category_id" column_invisible="True"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="subtotal" readonly="1" sum="Tổng"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Ghi chú" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Nhập nội dung hợp đồng hoặc ghi chú..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

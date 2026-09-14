@@ -18,6 +18,9 @@ services:
     build:
       context: ./addons
     container_name: odoo_meworld
+    env_file:
+      - path: .env
+        required: false
     ports:
       - '8069:8069'
     networks:

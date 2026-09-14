@@ -12,13 +12,20 @@
                         <button
                             name="action_sync"
                             type="object"
-                            string="Sync 100 standard foods"
+                            string="Cập nhật danh mục Thực phẩm chuẩn"
                             class="btn-primary"
+                            colspan="2"
                         />
                         <button
                             name="action_sync_sub_suppliers"
                             type="object"
                             string="Lấy sub-suppliers theo trang"
+                            class="btn-secondary"
+                        />
+                        <button
+                            name="action_sync_schools"
+                            type="object"
+                            string="Cập nhật danh sách trường"
                             class="btn-secondary"
                         />
                     </group>

@@ -65,16 +65,18 @@ class ProductTemplate(models.Model):
         if not page_foods:
             raise UserError(_("Không có dữ liệu ở trang %s.") % page)
 
-        created = skipped = 0
+        created = updated = skipped = 0
         for food in page_foods:
             if not isinstance(food, dict):
+                skipped += 1
                 continue
             supplier_id = self._crall_value(food, "id", "food_id", "product_id")
             name = self._crall_value(
                 food, "name", "food_name", "product_name", "title", "standard_food_name"
             )
-            if supplier_id in (None, "") or not name:
+            if supplier_id in (None, "", False) or not name:
                 _logger.warning("Skipping supplier food without id or name: %s", food)
+                skipped += 1
                 continue
 
             supplier_id = str(supplier_id)
@@ -106,24 +108,41 @@ class ProductTemplate(models.Model):
             if supplier_code:
                 domain = [
                     "|",
+                    "|",
                     ("crall_supplier_id", "=", supplier_id),
                     ("crall_supplier_code", "=", str(supplier_code)),
+                    ("default_code", "=", str(supplier_code)),
                 ]
             product = self.search(domain, limit=1)
             if product:
+                update_vals = dict(values)
+                if not supplier_code:
+                    update_vals.pop("default_code", None)
+                product.write(update_vals)
                 _logger.info(
-                    "Skipping existing Crall material id=%s code=%s",
+                    "Updated Crall material id=%s code=%s",
                     supplier_id,
                     supplier_code,
                 )
-                skipped += 1
+                updated += 1
                 continue
 
             self.create(values)
             created += 1
 
-        _logger.info("Crall materials synchronized: page %s, %s created, %s skipped", page, created, skipped)
-        return {"created": created, "skipped": skipped, "page": page}
+        _logger.info(
+            "Crall materials synchronized: page %s, %s created, %s updated, %s skipped",
+            page,
+            created,
+            updated,
+            skipped,
+        )
+        return {
+            "created": created,
+            "updated": updated,
+            "skipped": skipped,
+            "page": page,
+        }
 
     @staticmethod
     def _crall_value(food, *keys):

@@ -20,18 +20,26 @@
                         <setting string="Sub-supplier API URL">
                             <field name="crall_sub_supplier_api_url"/>
                         </setting>
-                        <button
-                            name="action_sync_crall_materials"
-                            type="object"
-                            string="Sync standard foods"
-                            class="btn-primary"
-                        />
-                        <button
-                            name="action_sync_crall_sub_suppliers"
-                            type="object"
-                            string="Lấy dữ liệu sub-suppliers"
-                            class="btn-secondary"
-                        />
+                        <setting string="School API URL">
+                            <field name="crall_school_api_url"/>
+                        </setting>
+                    </block>
+                    <block title="HNCK API (token)">
+                        <setting string="API base URL">
+                            <field name="crall_hnck_api_base"/>
+                        </setting>
+                        <setting string="Grant type">
+                            <field name="crall_hnck_grant_type"/>
+                        </setting>
+                        <setting string="Client ID">
+                            <field name="crall_hnck_client_id"/>
+                        </setting>
+                        <setting string="Client secret">
+                            <field name="crall_hnck_client_secret" password="True"/>
+                        </setting>
+                        <setting string="HMAC secret">
+                            <field name="crall_hnck_hmac_secret" password="True"/>
+                        </setting>
                     </block>
                 </app>
             </xpath>

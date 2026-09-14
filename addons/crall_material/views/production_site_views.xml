@@ -5,6 +5,13 @@
         <field name="model">crall.production.site</field>
         <field name="arch" type="xml">
             <tree string="Cơ sở sản xuất">
+                <header>
+                    <button
+                        name="action_sync_sites"
+                        type="object"
+                        string="Đồng bộ"
+                    />
+                </header>
                 <field name="name"/>
                 <field name="code"/>
                 <field name="phone"/>

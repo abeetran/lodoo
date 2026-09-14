@@ -1,4 +1,7 @@
-from odoo import fields, models
+from odoo import _, fields, models
+from odoo.exceptions import UserError
+
+from .hnck_client import HnckClient
 
 
 class CrallProductionSite(models.Model):
@@ -18,3 +21,29 @@ class CrallProductionSite(models.Model):
     )
     active = fields.Boolean(default=True)
     note = fields.Text(string="Ghi chú")
+
+    def action_sync_sites(self):
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một cơ sở sản xuất."))
+        records = [
+            {
+                "ma_co_so": site.code or "",
+                "ten_co_so": site.name or "",
+                "dia_chi": site.address or "",
+            }
+            for site in self
+        ]
+        result = HnckClient(self.env).merge_facilities(records)
+        message = _("Đã đẩy %s cơ sở sản xuất lên HNCK.") % len(records)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Crall sync completed",
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }

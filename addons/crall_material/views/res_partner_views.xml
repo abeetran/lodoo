@@ -6,14 +6,10 @@
         <field name="inherit_id" ref="base.view_partner_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//tree" position="inside">
-                <header>
-                    <button
-                        name="action_sync_crall_sub_suppliers_list"
-                        type="object"
-                        string="Lấy dữ liệu sub-suppliers"
-                    />
-                </header>
                 <field name="ref" string="Mã nhà cung cấp" optional="show"/>
+                <field name="school_code" string="School ID" optional="show"/>
+                <field name="school_year" string="Năm học" optional="show"/>
+                <field name="street" string="Địa chỉ" optional="show"/>
                 <field name="crall_sub_supplier_code" optional="hide"/>
             </xpath>
         </field>
@@ -26,8 +22,48 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='name']" position="after">
                 <field name="ref" string="Mã nhà cung cấp"/>
-                <field name="crall_sub_supplier_id" readonly="1"/>
-                <field name="crall_sub_supplier_code" readonly="1"/>
+                <!-- <field name="crall_sub_supplier_id" readonly="1"/> -->
+                <!-- <field name="crall_sub_supplier_code" readonly="1"/> -->
+                <field name="crall_sub_supplier_food_category_ids" readonly="1"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Giấy chứng nhận ATTP" name="giay_chung_nhan_attp">
+                    <field name="certificate_ids" nolabel="1">
+                        <tree editable="bottom">
+                            <field name="ten_giay_chung_nhan"/>
+                            <field name="so_giay"/>
+                            <field name="ngay_cap"/>
+                            <field name="ngay_het_han"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Hợp đồng" name="hop_dong">
+                    <button
+                        name="action_create_supplier_contract"
+                        type="object"
+                        string="Tạo hợp đồng mới"
+                        class="btn-primary"
+                        invisible="not id"
+                    />
+                    <field name="contract_ids" nolabel="1">
+                        <tree>
+                            <control>
+                                <delete string="Xóa hợp đồng"/>
+                            </control>
+                            <field name="so_hd"/>
+                            <field name="ngay_ky"/>
+                            <field name="ngay_het_han"/>
+                            <button
+                                name="unlink"
+                                type="object"
+                                string="Xóa"
+                                icon="fa-trash"
+                                confirm="Xóa hợp đồng này khỏi nhà cung cấp?"
+                                invisible="not id"
+                            />
+                        </tree>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

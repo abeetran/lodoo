@@ -1,3 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_crall_material_sync_wizard_user,crall.material.sync.wizard.user,model_crall_material_sync_wizard,base.group_user,1,1,1,1
 access_crall_production_site_user,crall.production.site.user,model_crall_production_site,base.group_user,1,1,1,1
+access_crall_supplier_certificate_user,crall.supplier.certificate.user,model_crall_supplier_certificate,base.group_user,1,1,1,1
+access_crall_supplier_contract_user,crall.supplier.contract.user,model_crall_supplier_contract,base.group_user,1,1,1,1
+access_crall_supplier_contract_line_user,crall.supplier.contract.line.user,model_crall_supplier_contract_line,base.group_user,1,1,1,1

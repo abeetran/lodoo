@@ -24,6 +24,11 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="crall_material.school_api_url",
         default="https://ncc-api.hanoicheck.com.vn/supplier/schools/paginate?page=1&per_page=30",
     )
+    crall_food_api_url = fields.Char(
+        string="Food API URL",
+        config_parameter="crall_material.food_api_url",
+        default="https://ncc-api.hanoicheck.com.vn/supplier/foods/paginate?page=1&page_size=15",
+    )
     crall_sub_supplier_api_url = fields.Char(
         string="Sub-supplier API URL",
         config_parameter="crall_material.sub_supplier_api_url",

@@ -64,6 +64,53 @@ class CrallMaterialSyncWizard(models.TransientModel):
             },
         }
 
+    def _notify_result(self, message, has_changes):
+        # Ở yên màn hình Data Sync, chỉ hiện thông báo (không điều hướng).
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Crall sync completed",
+                "message": message,
+                "type": "success" if has_changes else "warning",
+                "sticky": False,
+            },
+        }
+
+    def action_sync_foods(self):
+        self.ensure_one()
+        if self.page < 1:
+            raise UserError(_("Số trang phải lớn hơn hoặc bằng 1."))
+        result = self.env["product.template"].sync_crall_foods(
+            token=self.token,
+            page=self.page,
+            page_size=15,
+        )
+        return self._notify_result(
+            _("Thực phẩm trang %s (15/trang): %s mới, %s cập nhật, %s bỏ qua. "
+              "Mở menu Thực phẩm để xem danh sách.")
+            % (self.page, result["created"], result["updated"], result["skipped"]),
+            bool(result["created"] or result["updated"]),
+        )
+
+    def action_sync_foods_all(self):
+        self.ensure_one()
+        result = self.env["product.template"].sync_crall_foods_all(
+            token=self.token,
+            page_size=15,
+        )
+        return self._notify_result(
+            _("Thực phẩm %s trang (15/trang): %s mới, %s cập nhật, %s bỏ qua. "
+              "Mở menu Thực phẩm để xem danh sách.")
+            % (
+                result["pages"],
+                result["created"],
+                result["updated"],
+                result["skipped"],
+            ),
+            bool(result["created"] or result["updated"]),
+        )
+
     def action_sync(self):
         self.ensure_one()
         if self.page < 1:
@@ -72,19 +119,9 @@ class CrallMaterialSyncWizard(models.TransientModel):
             token=self.token,
             page=self.page,
         )
-        return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "title": "Crall sync completed",
-                "message": "Page %s: %s created, %s updated, %s skipped"
-                % (
-                    self.page,
-                    result["created"],
-                    result["updated"],
-                    result["skipped"],
-                ),
-                "type": "success",
-                "sticky": False,
-            },
-        }
+        return self._notify_result(
+            _("Thực phẩm chuẩn trang %s: %s mới, %s cập nhật, %s bỏ qua. "
+              "Mở menu Thực phẩm để xem danh sách.")
+            % (self.page, result["created"], result["updated"], result["skipped"]),
+            bool(result["created"] or result["updated"]),
+        )

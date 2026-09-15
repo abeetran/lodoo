@@ -17,6 +17,9 @@
                         <setting string="Referer">
                             <field name="crall_supplier_api_referer"/>
                         </setting>
+                        <setting string="Food API URL">
+                            <field name="crall_food_api_url"/>
+                        </setting>
                         <setting string="Sub-supplier API URL">
                             <field name="crall_sub_supplier_api_url"/>
                         </setting>

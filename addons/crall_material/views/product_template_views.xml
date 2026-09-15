@@ -5,9 +5,19 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
             <xpath expr="//field[@name='categ_id']" position="after">
-                <field name="crall_supplier_id"/>
+                <field name="crall_supplier_id" invisible="1"/>
                 <field name="crall_supplier_code"/>
+                <field name="crall_standard_food_id"/>
+                <field name="crall_food_category_id" invisible="1"/>
+                <field
+                    name="crall_food_category_name"
+                    readonly="1"
+                    invisible="crall_standard_food_id != False"
+                />
             </xpath>
         </field>
     </record>

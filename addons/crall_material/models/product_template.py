@@ -3,7 +3,7 @@ import urllib.parse
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -26,12 +26,83 @@ class ProductTemplate(models.Model):
     crall_is_meat = fields.Boolean(string="Is meat", copy=False)
     crall_is_dry = fields.Boolean(string="Is dry", copy=False)
     crall_supplier_payload = fields.Json(string="Supplier payload", copy=False)
+    crall_food_category_id = fields.Integer(string="Food category ID", copy=False)
+    crall_food_category = fields.Json(string="Food category", copy=False)
+    crall_standard_food_id = fields.Many2one(
+        "product.template",
+        string="Danh mục thực phẩm chuẩn",
+        domain=[("crall_food_source", "=", "standard")],
+        compute="_compute_crall_standard_food",
+        inverse="_inverse_crall_standard_food",
+        store=True,
+        copy=False,
+        help="Tự bắt theo nhóm thực phẩm; chọn lại để đổi nhóm.",
+    )
+    crall_food_category_name = fields.Char(
+        string="Nhóm thực phẩm",
+        compute="_compute_crall_food_category_name",
+        readonly=True,
+    )
     crall_food_source = fields.Selection(
         [("standard", "Thực phẩm chuẩn"), ("foods", "Thực phẩm")],
         string="Nguồn thực phẩm",
         copy=False,
         index=True,
     )
+
+    @api.depends("crall_food_category_id")
+    def _compute_crall_standard_food(self):
+        for record in self:
+            if not record.crall_food_category_id:
+                record.crall_standard_food_id = False
+                continue
+            record.crall_standard_food_id = self.env["product.template"].search(
+                [
+                    ("crall_food_source", "=", "standard"),
+                    (
+                        "crall_supplier_id",
+                        "=",
+                        str(record.crall_food_category_id),
+                    ),
+                ],
+                limit=1,
+            )
+
+    def _inverse_crall_standard_food(self):
+        for record in self:
+            standard = record.crall_standard_food_id
+            if not standard:
+                record.crall_food_category_id = False
+                record.crall_food_category = False
+                continue
+            try:
+                category_id = int(standard.crall_supplier_id)
+            except (TypeError, ValueError):
+                category_id = False
+            record.crall_food_category_id = category_id
+            record.crall_food_category = {
+                "id": category_id,
+                "code": standard.crall_supplier_code
+                or standard.default_code
+                or False,
+                "name": standard.name,
+            }
+
+    @api.onchange("crall_standard_food_id")
+    def _onchange_crall_standard_food(self):
+        self._inverse_crall_standard_food()
+
+    @api.depends("crall_standard_food_id.name", "crall_food_category")
+    def _compute_crall_food_category_name(self):
+        for record in self:
+            if record.crall_standard_food_id:
+                record.crall_food_category_name = record.crall_standard_food_id.name
+                continue
+            payload = record.crall_food_category
+            if isinstance(payload, dict):
+                record.crall_food_category_name = payload.get("name") or False
+            else:
+                record.crall_food_category_name = payload or False
 
     def sync_crall_materials(self, url=None, token=None, referer=None, page=1):
         parameters = self.env["ir.config_parameter"].sudo()
@@ -279,6 +350,12 @@ class ProductTemplate(models.Model):
                 "crall_is_dry": bool(food.get("is_dry", False)),
                 "crall_supplier_payload": food,
                 "crall_food_source": source,
+                "crall_food_category_id": self._crall_value(
+                    food, "food_category_id", "category_id"
+                ),
+                "crall_food_category": food.get("food_category")
+                if isinstance(food.get("food_category"), dict)
+                else False,
             }
             if measure_name:
                 uom = self.env["uom.uom"].search(

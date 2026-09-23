@@ -155,6 +155,39 @@ class TestHnckClientAuth(TransactionCase):
             int(calls[1]["X-Timestamp"]) - server_now, 0, delta=10
         )
 
+    def test_each_request_uses_fresh_timestamp_and_nonce(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        calls = []
+
+        def fake_post(url, data=None, headers=None, timeout=None):
+            calls.append(dict(headers or {}))
+            return _FakeResponse(200, payload={"ok": True}, headers=headers)
+
+        post_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.post"
+        )
+        windows = []
+        with patch(post_path, side_effect=fake_post):
+            client = HnckClient(self.env)
+            for records in (
+                [{"ma_mon_an": "M1"}],
+                [{"ma_mon_an": "M2"}],
+            ):
+                before = time.time()
+                client.push_supplier_dishes(records)
+                windows.append((before, time.time()))
+            before = time.time()
+            client.merge_facilities([{"ma_co_so": "S1"}])
+            windows.append((before, time.time()))
+        self.assertEqual(len(calls), 3)
+        nonces = [call["X-Nonce"] for call in calls]
+        self.assertEqual(len(set(nonces)), 3)
+        for (before, after), call in zip(windows, calls):
+            sent = int(call["X-Timestamp"])
+            self.assertGreaterEqual(sent, int(before) - 1)
+            self.assertLessEqual(sent, int(after) + 1)
+
     def test_signed_post_error_includes_server_body(self):
         icp = self.env["ir.config_parameter"].sudo()
         _valid_token_params(icp)

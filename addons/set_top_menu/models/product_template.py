@@ -14,6 +14,14 @@ class ProductProduct(models.Model):
 class ProductTemplate(models.Model):
     _inherit = "product.template"
 
+    process_ids = fields.Many2many(
+        "set_top_menu.production.process",
+        relation="product_template_process_rel",
+        column1="template_id",
+        column2="process_id",
+        string="Quy trình sản xuất",
+    )
+
     is_menu_item_product = fields.Boolean(
         string="Là sản phẩm món ăn",
         compute="_compute_is_menu_item_product",

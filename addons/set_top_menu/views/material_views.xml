@@ -1,15 +1,34 @@
 <odoo>
     <record id="action_material_products" model="ir.actions.act_window">
-        <field name="name">Materials</field>
+        <field name="name">Thực phẩm</field>
         <field name="res_model">product.template</field>
         <field name="view_mode">kanban,tree,form</field>
         <!-- Mọi thứ trừ món chuẩn: tạo tay + foods + bản ghi cũ chưa dấu -->
         <field name="domain">["|", ("crall_food_source", "!=", "standard"), ("crall_food_source", "=", False)]</field>
-        <field name="context">{'default_purchase_ok': True}</field>
+        <field name="context">{'default_purchase_ok': True, 'default_crall_food_source': 'foods'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Tạo nguyên liệu mới
             </p>
+        </field>
+    </record>
+
+    <record id="view_product_template_food_form" model="ir.ui.view">
+        <field name="name">product.template.food.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <field name="company_id" groups="base.group_multi_company" position="before">
+                <field name="crall_food_source" invisible="1"/>
+            </field>
+            <field name="company_id" groups="base.group_multi_company" position="attributes">
+                <attribute name="invisible">[('crall_food_source', '=', 'foods')]</attribute>
+            </field>
+            <field name="categ_id" position="after">
+                <field name="process_ids" widget="many2many_tags"
+                       invisible="[('crall_food_source', '=', 'standard')]"
+                       placeholder="Chọn các quy trình sản xuất cho thực phẩm"/>
+            </field>
         </field>
     </record>
 </odoo>

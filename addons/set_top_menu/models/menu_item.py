@@ -41,12 +41,11 @@ class MenuItem(models.Model):
 
     name = fields.Char(string="Tên món", required=True, index=True)
     item_code = fields.Char(string="Mã món", required=True, copy=False, index=True)
-    bom_id = fields.Many2one(
-        "mrp.bom",
-        string="Công thức sản xuất",
-        domain="[('type', '=', 'normal')]",
+    process_id = fields.Many2one(
+        "set_top_menu.production.process",
+        string="Quy trình sản xuất",
         ondelete="restrict",
-        help="Định mức nguyên vật liệu dùng để sản xuất món ăn này.",
+        help="Quy trình sản xuất món ăn này (lấy từ danh sách QL Quy trình SX).",
     )
     product_id = fields.Many2one(
         "product.product",
@@ -127,10 +126,7 @@ class MenuItem(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if vals.get("bom_id"):
-                bom = self.env["mrp.bom"].browse(vals["bom_id"])
-                vals["product_id"] = (bom.product_id or bom.product_tmpl_id.product_variant_id).id
-            elif not vals.get("product_id"):
+            if not vals.get("product_id"):
                 product = self.env["product.product"].create(
                     {
                         "name": vals.get("name") or "Menu Item",
@@ -158,43 +154,10 @@ class MenuItem(models.Model):
         return self.mapped("product_id")
 
     def write(self, vals):
-        if vals.get("bom_id"):
-            bom = self.env["mrp.bom"].browse(vals["bom_id"])
-            vals = {
-                **vals,
-                "product_id": (bom.product_id or bom.product_tmpl_id.product_variant_id).id,
-            }
         result = super().write(vals)
         if "sale_price" in vals:
             self.mapped("product_id").write({"list_price": vals["sale_price"]})
         return result
-
-    @api.onchange("bom_id")
-    def _onchange_bom_id(self):
-        for item in self:
-            if not item.bom_id:
-                item.ingredient_ids = [Command.clear()]
-                continue
-
-            bom = item.bom_id
-            item.product_id = bom.product_id or bom.product_tmpl_id.product_variant_id
-            item.serving_size = bom.product_qty
-            item.serving_uom_id = bom.product_uom_id
-            item.ingredient_ids = item._bom_ingredient_commands()
-
-    def _bom_ingredient_commands(self):
-        self.ensure_one()
-        return [Command.clear()] + [
-            Command.create(
-                {
-                    "product_id": line.product_id.id,
-                    "quantity": line.product_qty,
-                    "uom_id": line.product_uom_id.id,
-                    "unit_cost": line.product_id.standard_price,
-                }
-            )
-            for line in self.bom_id.bom_line_ids
-        ]
 
     def action_push_supplier_dishes(self):
         """Nút Đồng bộ: chỉ hiện khi tick chọn món ăn trên danh sách.
@@ -430,26 +393,6 @@ class MenuItem(models.Model):
                 _("Không tìm thấy đơn vị tính nào để tạo món ăn mới.")
             )
         return fallback.id
-
-    def action_sync_from_bom(self):
-        for item in self:
-            if not item.bom_id:
-                raise ValidationError("Vui lòng chọn Công thức sản xuất trước khi đồng bộ.")
-            item.write(
-                {
-                    "serving_size": item.bom_id.product_qty,
-                    "serving_uom_id": item.bom_id.product_uom_id.id,
-                    "ingredient_ids": item._bom_ingredient_commands(),
-                }
-            )
-        return True
-
-    @api.constrains("bom_id", "product_id")
-    def _check_manufacturing_link(self):
-        for item in self:
-            if item.bom_id and not item.product_id:
-                raise ValidationError("Công thức sản xuất phải có thành phẩm hợp lệ.")
-
 
 class MenuIngredient(models.Model):
     _name = "set_top_menu.menu.ingredient"

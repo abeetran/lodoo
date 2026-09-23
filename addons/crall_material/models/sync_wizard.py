@@ -111,6 +111,38 @@ class CrallMaterialSyncWizard(models.TransientModel):
             bool(result["created"] or result["updated"]),
         )
 
+    def action_sync_supplier_steps(self):
+        self.ensure_one()
+        if self.page < 1:
+            raise UserError(_("Số trang phải lớn hơn hoặc bằng 1."))
+        result = self.env["set_top_menu.production.step"].sync_supplier_steps(
+            token=self.token,
+            page=self.page,
+            per_page=15,
+        )
+        return self._notify_result(
+            _("Khâu sản xuất trang %s (15/trang): %s mới, %s cập nhật, %s bỏ qua. "
+              "Mở menu QL khâu SX để xem danh sách.")
+            % (self.page, result["created"], result["updated"], result["skipped"]),
+            bool(result["created"] or result["updated"]),
+        )
+
+    def action_sync_supplier_processes(self):
+        self.ensure_one()
+        if self.page < 1:
+            raise UserError(_("Số trang phải lớn hơn hoặc bằng 1."))
+        result = self.env["set_top_menu.production.process"].sync_supplier_processes(
+            token=self.token,
+            page=self.page,
+            per_page=15,
+        )
+        return self._notify_result(
+            _("Quy trình SX trang %s (15/trang): %s mới, %s cập nhật, %s bỏ qua. "
+              "Mở menu QL Quy trình SX để xem danh sách.")
+            % (self.page, result["created"], result["updated"], result["skipped"]),
+            bool(result["created"] or result["updated"]),
+        )
+
     def action_sync(self):
         self.ensure_one()
         if self.page < 1:

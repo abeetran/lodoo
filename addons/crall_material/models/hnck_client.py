@@ -6,6 +6,7 @@ import logging
 import os
 import secrets
 import time
+from email.utils import parsedate_to_datetime
 from urllib.parse import urlsplit
 
 import requests
@@ -20,6 +21,10 @@ TOKEN_PATH = "supplier/token"
 MERGE_PATH = "supplier/facilities/merge"
 DISHES_MERGE_PATH = "supplier/dishes/merge"
 TOKEN_SAFETY_MARGIN = 60
+CLOCK_OFFSET_PARAM = "crall_material.hnck_clock_offset"
+# Chênh lệch giờ server HNCK - local cho phép lưu (giây). Quá ngưỡng thì
+# bỏ qua header Date để một response lạ không phá timestamp các lần sau.
+MAX_CLOCK_OFFSET = 24 * 3600
 
 
 def get_setting(env, key, environ_names, default=None):
@@ -111,6 +116,7 @@ class HnckClient:
         }
         try:
             response = requests.post(url, data=payload, timeout=30)
+            self.sync_clock_from_response(response)
             response.raise_for_status()
             data = response.json()
         except requests.exceptions.RequestException as error:
@@ -149,9 +155,48 @@ class HnckClient:
         )
         return {"Authorization": "%s %s" % (token_type, token)}
 
-    @staticmethod
-    def timestamp():
-        return str(int(time.time()))
+    def server_clock_offset(self):
+        """Chênh lệch giờ HNCK - local (giây), đã lưu từ header Date."""
+        try:
+            return float(
+                self.env["ir.config_parameter"]
+                .sudo()
+                .get_param(CLOCK_OFFSET_PARAM)
+                or 0
+            )
+        except (TypeError, ValueError):
+            return 0.0
+
+    def sync_clock_from_response(self, response):
+        """Hiệu chỉnh lệch giờ từ header Date của HNCK.
+
+        Trả về offset (giây) nếu đo được và hợp lệ, ngược lại None.
+        Đồng hồ Odoo lệch so với HNCK là nguyên nhân lỗi EXPIRED_TIMESTAMP.
+        """
+        headers = getattr(response, "headers", None) or {}
+        date_value = headers.get("Date") or headers.get("date")
+        if not date_value:
+            return None
+        try:
+            server_time = parsedate_to_datetime(date_value).timestamp()
+        except (TypeError, ValueError, OverflowError):
+            return None
+        offset = server_time - time.time()
+        if abs(offset) > MAX_CLOCK_OFFSET:
+            _logger.warning(
+                "Ignoring HNCK Date header with implausible offset %.0fs",
+                offset,
+            )
+            return None
+        self.env["ir.config_parameter"].sudo().set_param(
+            CLOCK_OFFSET_PARAM, str(offset)
+        )
+        _logger.info("HNCK clock offset updated: %+.0fs", offset)
+        return offset
+
+    def timestamp(self):
+        """Timestamp theo giờ HNCK = giờ local + offset đã đo."""
+        return str(int(time.time() + self.server_clock_offset()))
 
     @staticmethod
     def new_nonce(nbytes=12):
@@ -196,6 +241,7 @@ class HnckClient:
         headers = {**self.auth_headers(), "Accept": "application/json"}
         try:
             response = requests.get(request_url, headers=headers, timeout=30)
+            self.sync_clock_from_response(response)
             response.raise_for_status()
             payload = response.json()
         except requests.exceptions.HTTPError as error:
@@ -207,10 +253,12 @@ class HnckClient:
             _logger.warning(
                 "Fetch supplier dishes got 401, refreshing token and retrying once"
             )
+            self.sync_clock_from_response(getattr(error, "response", None))
             self.refresh_token()
             try:
                 headers = {**self.auth_headers(), "Accept": "application/json"}
                 response = requests.get(request_url, headers=headers, timeout=30)
+                self.sync_clock_from_response(response)
                 response.raise_for_status()
                 payload = response.json()
             except requests.exceptions.RequestException as retry_error:
@@ -271,12 +319,15 @@ class HnckClient:
         except requests.exceptions.HTTPError as error:
             if self._http_status(error) != 401:
                 raise self._signed_post_error(path, error) from error
-            # Token trong cache có thể đã bị thu hồi/sai dù chưa hết hạn
-            # -> lấy token mới và thử lại đúng một lần.
+            # 401 có 2 nguyên nhân thường gặp: token cache cũ và đồng hồ
+            # local lệch giờ HNCK (EXPIRED_TIMESTAMP). Response 401 mang
+            # header Date = giờ server -> hiệu chỉnh offset rồi thử lại 1 lần
+            # với token mới + timestamp theo giờ HNCK.
             _logger.warning(
                 "HNCK signed POST %s got 401, refreshing token and retrying once",
                 path,
             )
+            self.sync_clock_from_response(getattr(error, "response", None))
             self.refresh_token()
             try:
                 response = self._do_signed_post(url, path, body_bytes, body_text)
@@ -304,6 +355,7 @@ class HnckClient:
         response = requests.post(
             url, data=body_text.encode("utf-8"), headers=headers, timeout=30
         )
+        self.sync_clock_from_response(response)
         response.raise_for_status()
         return response
 

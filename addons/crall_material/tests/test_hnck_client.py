@@ -1,4 +1,5 @@
 import time
+from email.utils import formatdate
 from unittest.mock import patch
 
 import requests
@@ -21,6 +22,7 @@ class _FakeResponse:
         self.status_code = status_code
         self.text = text
         self._payload = payload
+        self.headers = dict(headers or {})
         self.request = _FakeRequest(headers)
 
     def raise_for_status(self):
@@ -97,6 +99,61 @@ class TestHnckClientAuth(TransactionCase):
         self.assertEqual(len(calls), 2)
         self.assertIn("stale-token", calls[0]["Authorization"])
         self.assertIn("fresh-token", calls[1]["Authorization"])
+
+    def test_timestamp_follows_synced_clock_offset(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        client = HnckClient(self.env)
+        server_now = time.time() + 3600  # HNCK nhanh hơn local 1 giờ
+        response = _FakeResponse(
+            200,
+            headers={"Date": formatdate(server_now, usegmt=True)},
+        )
+        offset = client.sync_clock_from_response(response)
+        self.assertAlmostEqual(offset, 3600, delta=5)
+        self.assertAlmostEqual(
+            int(client.timestamp()) - server_now, 0, delta=5
+        )
+
+    def test_signed_post_retries_expired_timestamp_with_corrected_clock(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        server_now = time.time() + 3600
+        calls = []
+
+        def fake_post(url, data=None, headers=None, timeout=None):
+            calls.append(dict(headers or {}))
+            if len(calls) == 1:
+                return _FakeResponse(
+                    401,
+                    text='{"success":false,"message":"Timestamp hết hạn.",'
+                    '"error_code":"EXPIRED_TIMESTAMP"}',
+                    headers={
+                        **dict(headers or {}),
+                        "Date": formatdate(server_now, usegmt=True),
+                    },
+                )
+            return _FakeResponse(200, payload={"ok": True}, headers=headers)
+
+        def fake_refresh(inner_self):
+            return "fresh-token"
+
+        post_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.post"
+        )
+        with (
+            patch(post_path, side_effect=fake_post),
+            patch.object(HnckClient, "refresh_token", fake_refresh),
+        ):
+            result = HnckClient(self.env).push_supplier_dishes(
+                [{"ma_mon_an": "M1"}]
+            )
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(len(calls), 2)
+        # Lần thử lại phải ký timestamp theo giờ HNCK, không phải giờ local.
+        self.assertAlmostEqual(
+            int(calls[1]["X-Timestamp"]) - server_now, 0, delta=10
+        )
 
     def test_signed_post_error_includes_server_body(self):
         icp = self.env["ir.config_parameter"].sudo()

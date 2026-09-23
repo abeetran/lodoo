@@ -6,9 +6,6 @@
         <field name="arch" type="xml">
             <tree string="Danh sách món ăn">
                 <header>
-                    <button name="action_sync_supplier_dishes" type="object"
-                            string="Sync" icon="fa-refresh" class="btn-primary"
-                            display="always"/>
                     <button name="action_push_supplier_dishes" type="object"
                             string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
                 </header>

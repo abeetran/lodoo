@@ -1,5 +1,37 @@
-from odoo import Command, api, fields, models
-from odoo.exceptions import ValidationError
+import logging
+
+from odoo import Command, _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
+from odoo.tools import html2plaintext
+
+from odoo.addons.crall_material.models.hnck_client import HnckClient
+
+
+_logger = logging.getLogger(__name__)
+
+
+def serialize_supplier_dish(
+    item_code,
+    name,
+    description_text,
+    age_group_id,
+    procedure_code,
+    ingredients,
+    khau_list,
+):
+    """Build the POST body dict for ``supplier/dishes/merge`` from plain values.
+
+    Pure function (no record access) so the body format stays testable.
+    """
+    return {
+        "ma_mon_an": item_code or "",
+        "ten_mon_an": name or "",
+        "nhom_tuoi_id": age_group_id or False,
+        "mo_ta": description_text or "",
+        "ma_quy_trinh": procedure_code or "",
+        "danh_sach_nguyen_lieu": ingredients or [],
+        "danh_sach_khau": khau_list or [],
+    }
 
 
 class MenuItem(models.Model):
@@ -68,6 +100,18 @@ class MenuItem(models.Model):
     description = fields.Html(string="Mô tả")
     production_site_ids = fields.Many2many(
         "crall.production.site", string="Cơ sở sản xuất"
+    )
+    supplier_procedure_code = fields.Char(
+        string="Mã quy trình NCC", copy=False, index=True,
+        help="ma_quy_trinh nhận từ API nhà cung cấp.",
+    )
+    supplier_age_group_id = fields.Integer(
+        string="Nhóm tuổi NCC", copy=False,
+        help="nhom_tuoi_id nhận từ API nhà cung cấp.",
+    )
+    supplier_payload = fields.Json(
+        string="Dữ liệu NCC", copy=False, readonly=True,
+        help="Toàn bộ thông tin món ăn nhận từ API (nguyên liệu, công đoạn, người thực hiện, files).",
     )
 
     _sql_constraints = [
@@ -151,6 +195,241 @@ class MenuItem(models.Model):
             )
             for line in self.bom_id.bom_line_ids
         ]
+
+    def action_push_supplier_dishes(self):
+        """Nút Đồng bộ: chỉ hiện khi tick chọn món ăn trên danh sách.
+
+        Gửi các món đang chọn lên API ``supplier/dishes/merge`` (POST).
+        """
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một món ăn để đồng bộ."))
+        payloads = [dish._supplier_dish_payload() for dish in self]
+        result = HnckClient(self.env).push_supplier_dishes(payloads)
+        message = _("Đã gửi %s món ăn lên API nhà cung cấp.") % len(payloads)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ món ăn"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def _supplier_dish_payload(self):
+        """Serialize one dish into the supplier merge body format."""
+        self.ensure_one()
+        stored = (
+            self.supplier_payload
+            if isinstance(self.supplier_payload, dict)
+            else {}
+        )
+        description_text = (
+            html2plaintext(self.description or "").strip()
+            if self.description
+            else ""
+        )
+        if not description_text:
+            description_text = stored.get("mo_ta") or ""
+        ingredients = (
+            self._supplier_push_ingredients()
+            or stored.get("danh_sach_nguyen_lieu")
+            or []
+        )
+        return serialize_supplier_dish(
+            self.item_code,
+            self.name,
+            description_text,
+            self.supplier_age_group_id,
+            self.supplier_procedure_code,
+            ingredients,
+            stored.get("danh_sach_khau") or [],
+        )
+
+    def _supplier_push_ingredients(self):
+        """Map ingredient lines to ``danh_sach_nguyen_lieu`` entries."""
+        lines = []
+        for line in self.ingredient_ids:
+            template = line.product_id.product_tmpl_id
+            code = (
+                template.crall_supplier_code
+                or template.default_code
+                or line.product_id.barcode
+                or ""
+            )
+            if not code or (line.quantity or 0) <= 0:
+                _logger.warning(
+                    "Skipping dish ingredient without code or quantity: %s",
+                    line.display_name,
+                )
+                continue
+            lines.append(
+                {
+                    "ma_nguyen_lieu": code,
+                    "dinh_luong": line.quantity,
+                    "don_vi_tinh_id": line.uom_id.id,
+                }
+            )
+        return lines
+
+    def action_sync_supplier_dishes(self):
+        """Nút Sync trên màn hình danh sách món ăn.
+
+        Chạy được cả khi không chọn dòng nào: lấy danh sách món ăn từ
+        API ``supplier/dishes/merge`` (tự kiểm tra/refresh token), món đã
+        tồn tại theo ``ma_mon_an`` thì cập nhật, chưa có thì tạo mới.
+        """
+        result = self.sync_supplier_dishes()
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ món ăn"),
+                "message": _(
+                    "%s mới, %s cập nhật, %s bỏ qua."
+                )
+                % (result["created"], result["updated"], result["skipped"]),
+                "type": "success"
+                if result["created"] or result["updated"]
+                else "warning",
+                "sticky": False,
+            },
+        }
+
+    @api.model
+    def sync_supplier_dishes(self, url=None):
+        dishes = HnckClient(self.env).fetch_supplier_dishes(url=url)
+        if not dishes:
+            raise UserError(_("API không trả về danh sách món ăn."))
+        created = updated = skipped = 0
+        for dish in dishes:
+            if not isinstance(dish, dict):
+                skipped += 1
+                continue
+            dish_code = dish.get("ma_mon_an")
+            if dish_code in (None, ""):
+                _logger.warning("Skipping supplier dish without ma_mon_an: %s", dish)
+                skipped += 1
+                continue
+            dish_code = str(dish_code)
+            ingredient_commands = self._supplier_ingredient_commands(
+                dish.get("danh_sach_nguyen_lieu") or []
+            )
+            values = {
+                "name": str(dish.get("ten_mon_an") or dish_code),
+                "description": "<p>%s</p>" % dish.get("mo_ta")
+                if dish.get("mo_ta")
+                else False,
+                "supplier_procedure_code": str(dish.get("ma_quy_trinh") or False)
+                if dish.get("ma_quy_trinh")
+                else False,
+                "supplier_age_group_id": dish.get("nhom_tuoi_id") or False,
+                "supplier_payload": dish,
+            }
+            existing = self.search([("item_code", "=", dish_code)], limit=1)
+            if existing:
+                if ingredient_commands:
+                    values["ingredient_ids"] = ingredient_commands
+                existing.write(values)
+                updated += 1
+                continue
+            create_vals = dict(values, item_code=dish_code)
+            create_vals.setdefault("serving_size", 1.0)
+            create_vals["serving_uom_id"] = self._default_supplier_serving_uom(
+                ingredient_commands
+            )
+            if ingredient_commands:
+                create_vals["ingredient_ids"] = ingredient_commands
+            self.create(create_vals)
+            created += 1
+        _logger.info(
+            "Supplier dishes synchronized: %s created, %s updated, %s skipped",
+            created,
+            updated,
+            skipped,
+        )
+        return {"created": created, "updated": updated, "skipped": skipped}
+
+    def _supplier_ingredient_commands(self, ingredients):
+        """Build ingredient line commands from ``danh_sach_nguyen_lieu``.
+
+        Mỗi dòng gồm ``ma_nguyen_lieu`` (khớp sản phẩm theo mã),
+        ``dinh_luong`` (số lượng) và ``don_vi_tinh_id`` (đơn vị tính).
+        Dòng không khớp được sản phẩm hoặc số lượng <= 0 sẽ bị bỏ qua.
+        """
+        commands = [Command.clear()]
+        lines = 0
+        for ingredient in ingredients if isinstance(ingredients, list) else []:
+            if not isinstance(ingredient, dict):
+                continue
+            material_code = ingredient.get("ma_nguyen_lieu")
+            if material_code in (None, ""):
+                continue
+            try:
+                quantity = float(ingredient.get("dinh_luong") or 0)
+            except (TypeError, ValueError):
+                continue
+            if quantity <= 0:
+                continue
+            product = self._resolve_supplier_product(str(material_code))
+            if not product:
+                _logger.warning(
+                    "Skipping dish ingredient without matching product: %s",
+                    material_code,
+                )
+                continue
+            uom = product.uom_id
+            supplier_uom_id = ingredient.get("don_vi_tinh_id")
+            if supplier_uom_id:
+                try:
+                    candidate = self.env["uom.uom"].browse(int(supplier_uom_id))
+                    if candidate.exists():
+                        uom = candidate
+                except (TypeError, ValueError):
+                    pass
+            commands.append(
+                Command.create(
+                    {
+                        "product_id": product.id,
+                        "quantity": quantity,
+                        "uom_id": uom.id,
+                        "unit_cost": product.standard_price,
+                    }
+                )
+            )
+            lines += 1
+        return commands if lines else []
+
+    def _resolve_supplier_product(self, code):
+        template = self.env["product.template"].search(
+            [("default_code", "=", code)], limit=1
+        )
+        if not template:
+            template = self.env["product.template"].search(
+                [("crall_supplier_code", "=", code)], limit=1
+            )
+        if not template:
+            template = self.env["product.template"].search(
+                [("crall_supplier_id", "=", code)], limit=1
+            )
+        return template.product_variant_id if template else False
+
+    def _default_supplier_serving_uom(self, ingredient_commands):
+        for command in ingredient_commands or []:
+            if command[0] == 0 and command[2].get("uom_id"):
+                return command[2]["uom_id"]
+        unit = self.env.ref("uom.product_uom_unit", raise_if_not_found=False)
+        if unit:
+            return unit.id
+        fallback = self.env["uom.uom"].search([], limit=1)
+        if not fallback:
+            raise UserError(
+                _("Không tìm thấy đơn vị tính nào để tạo món ăn mới.")
+            )
+        return fallback.id
 
     def action_sync_from_bom(self):
         for item in self:

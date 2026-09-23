@@ -5,6 +5,13 @@
         <field name="model">set_top_menu.menu.item</field>
         <field name="arch" type="xml">
             <tree string="Danh sách món ăn">
+                <header>
+                    <button name="action_sync_supplier_dishes" type="object"
+                            string="Sync" icon="fa-refresh" class="btn-primary"
+                            display="always"/>
+                    <button name="action_push_supplier_dishes" type="object"
+                            string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
+                </header>
                 <field name="image_1920" widget="image" options="{'size': [48, 48]}"/>
                 <field name="item_code"/>
                 <field name="name"/>
@@ -52,6 +59,8 @@
                     </group>
                     <group>
                         <field name="age_group_id"/>
+                        <field name="supplier_procedure_code" readonly="1"/>
+                        <field name="supplier_age_group_id" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="Nguyên liệu công thức" name="ingredients">

@@ -1,6 +1,6 @@
 {
     "name": "Custom Addons Top Menu",
-    "version": "17.0.1.0.6",
+    "version": "17.0.1.0.8",
     "category": "Web",
     "summary": "Custom top navigation menu",
     "description": """

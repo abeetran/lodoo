@@ -34,6 +34,10 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="crall_material.sub_supplier_api_url",
         default="https://ncc-api.hanoicheck.com.vn/supplier/sub-suppliers/paginate?page=1&per_page=15",
     )
+    crall_supplier_dish_merge_url = fields.Char(
+        string="Supplier dish merge URL (trống = dùng HNCK base + supplier/dishes/merge)",
+        config_parameter="crall_material.supplier_dish_merge_url",
+    )
     crall_hnck_api_base = fields.Char(
         string="HNCK API base URL (.env HNCK_API_URL)",
         config_parameter="crall_material.hnck_api_base",

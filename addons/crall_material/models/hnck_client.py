@@ -18,6 +18,7 @@ _logger = logging.getLogger(__name__)
 
 TOKEN_PATH = "supplier/token"
 MERGE_PATH = "supplier/facilities/merge"
+DISHES_MERGE_PATH = "supplier/dishes/merge"
 TOKEN_SAFETY_MARGIN = 60
 
 
@@ -170,10 +171,77 @@ class HnckClient:
         ).digest()
         return base64.b64encode(digest).decode("ascii")
 
+    def fetch_supplier_dishes(self, url=None):
+        """Fetch the supplier dish list (GET ``supplier/dishes/merge``).
+
+        Token handling is automatic: :meth:`get_token` reuses the cached
+        token while it is still valid and calls the token API for a new
+        one only when it is missing or expired.
+        """
+        override = (
+            get_setting(
+                self.env,
+                "crall_material.supplier_dish_merge_url",
+                "SUPPLIER_DISH_MERGE_URL",
+            )
+            or ""
+        ).strip()
+        request_url = (url or "").strip() or override
+        if not request_url:
+            request_url = self.base_url() + DISHES_MERGE_PATH
+        headers = {**self.auth_headers(), "Accept": "application/json"}
+        try:
+            response = requests.get(request_url, headers=headers, timeout=30)
+            response.raise_for_status()
+            payload = response.json()
+        except requests.exceptions.RequestException as error:
+            _logger.exception("Could not fetch supplier dishes")
+            raise UserError(
+                _("Không thể lấy danh sách món ăn: %s") % error
+            ) from error
+        except ValueError as error:
+            raise UserError(
+                _("API món ăn trả về dữ liệu JSON không hợp lệ.")
+            ) from error
+        dishes = self._dish_list(payload)
+        if not isinstance(dishes, list):
+            raise UserError(_("API món ăn không trả về danh sách món ăn."))
+        return dishes
+
+    @staticmethod
+    def _dish_list(payload):
+        if isinstance(payload, list):
+            return payload
+        if not isinstance(payload, dict):
+            return []
+        for key in ("data", "items", "results", "result", "dishes"):
+            value = payload.get(key)
+            if isinstance(value, list):
+                return value
+            if isinstance(value, dict):
+                nested = HnckClient._dish_list(value)
+                if nested:
+                    return nested
+        return []
+
+    def push_supplier_dishes(self, records):
+        """Push dish payloads to ``supplier/dishes/merge`` (POST, signed).
+
+        Token handling is automatic: :meth:`get_token` reuses the cached
+        token while it is still valid and calls the token API for a new
+        one only when it is missing or expired.
+        """
+        if not records:
+            raise UserError(_("Không có món ăn nào để đồng bộ."))
+        return self._signed_post(DISHES_MERGE_PATH, records)
+
     def merge_facilities(self, records):
+        return self._signed_post(MERGE_PATH, records)
+
+    def _signed_post(self, path, records):
         body_text = json.dumps(records, ensure_ascii=False, separators=(",", ":"))
         body_bytes = body_text.encode("utf-8")
-        url = self.base_url() + MERGE_PATH
+        url = self.base_url() + path
         timestamp = self.timestamp()
         nonce = self.new_nonce()
         headers = {
@@ -191,7 +259,7 @@ class HnckClient:
             )
             response.raise_for_status()
         except requests.exceptions.RequestException as error:
-            _logger.exception("HNCK facilities merge failed")
+            _logger.exception("HNCK signed POST %s failed", path)
             raise UserError(
                 _(
                     "Gọi HNCK merge thất bại: %s\n"

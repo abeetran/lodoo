@@ -26,6 +26,9 @@
                         <setting string="School API URL">
                             <field name="crall_school_api_url"/>
                         </setting>
+                        <setting string="Supplier dish merge URL">
+                            <field name="crall_supplier_dish_merge_url"/>
+                        </setting>
                     </block>
                     <block title="HNCK API (token)">
                         <setting string="API base URL">

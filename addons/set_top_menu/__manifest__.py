@@ -1,6 +1,6 @@
 {
     "name": "Custom Addons Top Menu",
-    "version": "17.0.1.0.8",
+    "version": "17.0.1.0.9",
     "category": "Web",
     "summary": "Custom top navigation menu",
     "description": """
@@ -35,6 +35,7 @@
         "views/menu_item_views.xml",
         "views/material_views.xml",
         "views/kitchen_plan_views.xml",
+        "views/production_process_views.xml",
         "views/sale_order_views.xml",
         "views/daily_order_views.xml",
         "views/web_login_views.xml",

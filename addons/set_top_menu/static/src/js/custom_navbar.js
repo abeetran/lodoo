@@ -102,10 +102,24 @@ patch(NavBar.prototype, {
             //     action: "crm.crm_lead_action_pipeline",
             // },
             {
-                id: "configuration",
-                label: "Cấu hình",
-                icon: "fa-cog",
-                action: "base.action_res_users",
+                id: "quy_trinh",
+                label: "Quy trình",
+                icon: "fa-cogs",
+                action: "set_top_menu.action_production_steps",
+                children: [
+                    {
+                        id: "khau_sx",
+                        label: "QL khâu SX",
+                        icon: "fa-tasks",
+                        action: "set_top_menu.action_production_steps",
+                    },
+                    {
+                        id: "quy_trinh_sx",
+                        label: "QL Quy trình SX",
+                        icon: "fa-cogs",
+                        action: "set_top_menu.action_production_processes",
+                    },
+                ],
             },
         ];
     },

@@ -9,3 +9,6 @@ access_allergen_user,allergen.user,model_set_top_menu_allergen,base.group_user,1
 access_age_group_user,age.group.user,model_set_top_menu_age_group,base.group_user,1,1,1,1
 access_kitchen_plan_user,kitchen.plan.user,model_set_top_menu_kitchen_plan,base.group_user,1,1,1,1
 access_kitchen_plan_line_user,kitchen.plan.line.user,model_set_top_menu_kitchen_plan_line,base.group_user,1,1,1,1
+access_production_step_user,production.step.user,model_set_top_menu_production_step,base.group_user,1,1,1,1
+access_production_process_user,production.process.user,model_set_top_menu_production_process,base.group_user,1,1,1,1
+access_production_process_line_user,production.process.line.user,model_set_top_menu_production_process_line,base.group_user,1,1,1,1

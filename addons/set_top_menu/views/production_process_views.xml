@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_production_step_tree" model="ir.ui.view">
+        <field name="name">set_top_menu.production.step.tree</field>
+        <field name="model">set_top_menu.production.step</field>
+        <field name="arch" type="xml">
+            <tree string="QL khâu sản xuất" create="0">
+                <header>
+                    <button name="action_open_create_popup" type="object"
+                            string="Thêm mới" icon="fa-plus" class="btn-primary"
+                            display="always"/>
+                </header>
+                <field name="code" optional="show"/>
+                <field name="name"/>
+                <field name="note" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_step_form" model="ir.ui.view">
+        <field name="name">set_top_menu.production.step.form</field>
+        <field name="model">set_top_menu.production.step</field>
+        <field name="arch" type="xml">
+            <form string="Khâu sản xuất">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Tên khâu sản xuất"/>
+                        <h1><field name="name" placeholder="Ví dụ: Sơ chế"/></h1>
+                    </div>
+                    <group>
+                        <field name="code" placeholder="Ví dụ: KHAU-001"/>
+                        <field name="active"/>
+                    </group>
+                    <group>
+                        <field name="note" placeholder="Ghi chú về khâu sản xuất"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_production_step_search" model="ir.ui.view">
+        <field name="name">set_top_menu.production.step.search</field>
+        <field name="model">set_top_menu.production.step</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm khâu sản xuất">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="active" string="Đang hoạt động" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Đã lưu trữ" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_active" string="Trạng thái"
+                            context="{'group_by': 'active'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_production_steps" model="ir.actions.act_window">
+        <field name="name">QL khâu sản xuất</field>
+        <field name="res_model">set_top_menu.production.step</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_production_step_search"/>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo khâu sản xuất mới</p>
+            <p>Nhấn Tạo để thêm khâu sản xuất với tên, mã và ghi chú.</p>
+        </field>
+    </record>
+
+    <record id="view_production_process_tree" model="ir.ui.view">
+        <field name="name">set_top_menu.production.process.tree</field>
+        <field name="model">set_top_menu.production.process</field>
+        <field name="arch" type="xml">
+            <tree string="QL Quy trình SX">
+                <field name="code" optional="show"/>
+                <field name="name"/>
+                <field name="product_type" optional="show"/>
+                <field name="step_count" optional="show"/>
+                <field name="note" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_production_process_form" model="ir.ui.view">
+        <field name="name">set_top_menu.production.process.form</field>
+        <field name="model">set_top_menu.production.process</field>
+        <field name="arch" type="xml">
+            <form string="Quy trình sản xuất">
+                <sheet>
+                    <group string="Thông tin quy trình">
+                        <group>
+                            <field name="code" placeholder="Ví dụ: QT-001"/>
+                            <field name="name" placeholder="Ví dụ: Quy trình nấu chính"/>
+                            <field name="product_type"/>
+                        </group>
+                        <group>
+                            <field name="step_count"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ghi chú" name="note">
+                            <field name="note" nolabel="1" placeholder="Ghi chú về quy trình"/>
+                        </page>
+                    </notebook>
+                    <separator string="Danh sách khâu"/>
+                    <field name="line_ids" nolabel="1">
+                        <tree editable="bottom">
+                            <control>
+                                <create string="Thêm khâu"/>
+                            </control>
+                            <field name="sequence" widget="handle"/>
+                            <field name="number" string="STT" readonly="1"/>
+                            <field name="step_id"/>
+                        </tree>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_production_process_search" model="ir.ui.view">
+        <field name="name">set_top_menu.production.process.search</field>
+        <field name="model">set_top_menu.production.process</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm quy trình sản xuất">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="line_ids"/>
+                <filter name="active" string="Đang hoạt động" domain="[('active', '=', True)]"/>
+                <filter name="archived" string="Đã lưu trữ" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_active" string="Trạng thái"
+                            context="{'group_by': 'active'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_production_processes" model="ir.actions.act_window">
+        <field name="name">QL Quy trình SX</field>
+        <field name="res_model">set_top_menu.production.process</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_production_process_search"/>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo quy trình sản xuất mới</p>
+            <p>Nhấn Tạo để thêm quy trình với tên, mã và danh sách khâu sản xuất.</p>
+        </field>
+    </record>
+</odoo>

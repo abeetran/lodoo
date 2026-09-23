@@ -92,18 +92,22 @@ class HnckClient:
                 ["GRANT_TYPE", "HNCK_GRANT_TYPE"],
                 "client_credentials",
             ),
-            "client_id": get_setting(
-                self.env,
-                "crall_material.hnck_client_id",
-                ["CLIENT_ID", "HNCK_CLIENT_ID"],
-            )
-            or "",
-            "client_secret": get_setting(
-                self.env,
-                "crall_material.hnck_client_secret",
-                ["CLIENT_SECRET", "HNCK_CLIENT_SECRET"],
-            )
-            or "",
+            "client_id": (
+                get_setting(
+                    self.env,
+                    "crall_material.hnck_client_id",
+                    ["CLIENT_ID", "HNCK_CLIENT_ID"],
+                )
+                or ""
+            ).strip(),
+            "client_secret": (
+                get_setting(
+                    self.env,
+                    "crall_material.hnck_client_secret",
+                    ["CLIENT_SECRET", "HNCK_CLIENT_SECRET"],
+                )
+                or ""
+            ).strip(),
         }
         try:
             response = requests.post(url, data=payload, timeout=30)
@@ -159,7 +163,7 @@ class HnckClient:
                 self.env, "crall_material.hnck_hmac_secret", "HMAC_SECRET"
             )
             or ""
-        )
+        ).strip()
         if not secret:
             raise UserError(_("Chưa cấu hình HMAC secret (HNCK_API)."))
         body_hash = hashlib.sha256(body_bytes).hexdigest()
@@ -194,6 +198,26 @@ class HnckClient:
             response = requests.get(request_url, headers=headers, timeout=30)
             response.raise_for_status()
             payload = response.json()
+        except requests.exceptions.HTTPError as error:
+            if self._http_status(error) != 401:
+                _logger.exception("Could not fetch supplier dishes")
+                raise UserError(
+                    _("Không thể lấy danh sách món ăn: %s") % error
+                ) from error
+            _logger.warning(
+                "Fetch supplier dishes got 401, refreshing token and retrying once"
+            )
+            self.refresh_token()
+            try:
+                headers = {**self.auth_headers(), "Accept": "application/json"}
+                response = requests.get(request_url, headers=headers, timeout=30)
+                response.raise_for_status()
+                payload = response.json()
+            except requests.exceptions.RequestException as retry_error:
+                _logger.exception("Could not fetch supplier dishes")
+                raise UserError(
+                    _("Không thể lấy danh sách món ăn: %s") % retry_error
+                ) from retry_error
         except requests.exceptions.RequestException as error:
             _logger.exception("Could not fetch supplier dishes")
             raise UserError(
@@ -242,6 +266,30 @@ class HnckClient:
         body_text = json.dumps(records, ensure_ascii=False, separators=(",", ":"))
         body_bytes = body_text.encode("utf-8")
         url = self.base_url() + path
+        try:
+            response = self._do_signed_post(url, path, body_bytes, body_text)
+        except requests.exceptions.HTTPError as error:
+            if self._http_status(error) != 401:
+                raise self._signed_post_error(path, error) from error
+            # Token trong cache có thể đã bị thu hồi/sai dù chưa hết hạn
+            # -> lấy token mới và thử lại đúng một lần.
+            _logger.warning(
+                "HNCK signed POST %s got 401, refreshing token and retrying once",
+                path,
+            )
+            self.refresh_token()
+            try:
+                response = self._do_signed_post(url, path, body_bytes, body_text)
+            except requests.exceptions.RequestException as retry_error:
+                raise self._signed_post_error(path, retry_error) from retry_error
+        except requests.exceptions.RequestException as error:
+            raise self._signed_post_error(path, error) from error
+        try:
+            return response.json()
+        except ValueError:
+            return {"raw": (response.text or "")[:500]}
+
+    def _do_signed_post(self, url, path, body_bytes, body_text):
         timestamp = self.timestamp()
         nonce = self.new_nonce()
         headers = {
@@ -253,26 +301,40 @@ class HnckClient:
             ),
             "Content-Type": "application/json",
         }
-        try:
-            response = requests.post(
-                url, data=body_text.encode("utf-8"), headers=headers, timeout=30
+        response = requests.post(
+            url, data=body_text.encode("utf-8"), headers=headers, timeout=30
+        )
+        response.raise_for_status()
+        return response
+
+    @staticmethod
+    def _http_status(error):
+        response = getattr(error, "response", None)
+        return getattr(response, "status_code", None)
+
+    def _signed_post_error(self, path, error):
+        """Build the UserError for a failed signed POST.
+
+        Kèm body trả về từ server (lý do thật: token sai, chữ ký sai,
+        timestamp hết hạn...) thay vì chỉ dòng 401 chung chung.
+        """
+        response = getattr(error, "response", None)
+        request = getattr(error, "request", None) or getattr(response, "request", None)
+        sent_headers = dict(getattr(request, "headers", None) or {})
+        server_body = (getattr(response, "text", None) or "")[:500]
+        detail = "%s" % error
+        if server_body:
+            detail = "%s\nServer trả về: %s" % (detail, server_body)
+        _logger.exception("HNCK signed POST %s failed", path)
+        return UserError(
+            _(
+                "Gọi HNCK merge thất bại: %s\n"
+                "X-Timestamp: %s\nX-Nonce: %s\nX-Signature: %s"
             )
-            response.raise_for_status()
-        except requests.exceptions.RequestException as error:
-            _logger.exception("HNCK signed POST %s failed", path)
-            raise UserError(
-                _(
-                    "Gọi HNCK merge thất bại: %s\n"
-                    "X-Timestamp: %s\nX-Nonce: %s\nX-Signature: %s"
-                )
-                % (
-                    error,
-                    headers["X-Timestamp"],
-                    headers["X-Nonce"],
-                    headers["X-Signature"],
-                )
-            ) from error
-        try:
-            return response.json()
-        except ValueError:
-            return {"raw": (response.text or "")[:500]}
+            % (
+                detail,
+                sent_headers.get("X-Timestamp", "?"),
+                sent_headers.get("X-Nonce", "?"),
+                sent_headers.get("X-Signature", "?"),
+            )
+        )

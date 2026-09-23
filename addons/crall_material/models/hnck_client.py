@@ -22,9 +22,10 @@ MERGE_PATH = "supplier/facilities/merge"
 DISHES_MERGE_PATH = "supplier/dishes/merge"
 TOKEN_SAFETY_MARGIN = 60
 CLOCK_OFFSET_PARAM = "crall_material.hnck_clock_offset"
-# Chênh lệch giờ server HNCK - local cho phép lưu (giây). Quá ngưỡng thì
-# bỏ qua header Date để một response lạ không phá timestamp các lần sau.
-MAX_CLOCK_OFFSET = 24 * 3600
+# Chênh lệch giờ server HNCK - local cho phép lưu (giây). Ngưỡng rộng
+# 7 ngày để chịu được VM Docker bị trôi giờ sau khi sleep; một offset sai
+# cũng tự lành ở lần 401 tiếp theo vì offset luôn đo lại từ Date mới nhất.
+MAX_CLOCK_OFFSET = 7 * 24 * 3600
 
 
 def get_setting(env, key, environ_names, default=None):

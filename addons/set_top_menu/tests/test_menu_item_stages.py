@@ -152,8 +152,9 @@ class TestMenuItemStages(TransactionCase):
                 stage2_employee_ids=[(6, 0, [user.id])],
             )
         )
+        payload = dish._supplier_dish_stage_payload()
         self.assertEqual(
-            dish._supplier_dish_stage_payload(),
+            payload,
             [
                 {
                     "ma_khau": "GUI_DON_NCC",
@@ -162,6 +163,7 @@ class TestMenuItemStages(TransactionCase):
                 }
             ],
         )
+        self.assertNotIn("danh_sach_files", payload[0])
 
     def test_stage_payload_empty_and_stored_fallback(self):
         dish = self.env["set_top_menu.menu.item"].create(

@@ -1,4 +1,6 @@
 import base64
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
@@ -236,6 +238,25 @@ class TestMenuItemStages(TransactionCase):
                     ),
                 },
             ],
+        )
+
+    def test_file_link_prefers_request_host(self):
+        _set_base_url(self.env, "https://configured.vn")
+        photo = _attachment(self.env, "mon-an.jpg", 100)
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MON-LINK-002",
+                dish_image_ids=[(6, 0, [photo.id])],
+            )
+        )
+        fake_request = SimpleNamespace(
+            httprequest=SimpleNamespace(host_url="https://app.server.vn/")
+        )
+        with patch("odoo.http.request", fake_request):
+            link = dish._supplier_file_duong_dan(photo)
+        self.assertEqual(
+            link, "https://app.server.vn/web/content/%s" % photo.id
         )
 
     def test_file_link_falls_back_to_relative_without_base_url(self):

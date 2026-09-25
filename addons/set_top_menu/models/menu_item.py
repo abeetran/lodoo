@@ -1,6 +1,6 @@
 import logging
 
-from odoo import Command, _, api, fields, models
+from odoo import Command, _, api, fields, http, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools import html2plaintext
 
@@ -368,21 +368,35 @@ class MenuItem(models.Model):
             )
         ]
 
+    def _supplier_app_base_url(self):
+        """Domain đang chạy app (local là localhost, server là domain server).
+
+        Ưu tiên host của request hiện tại, ngoài request (cron, shell,
+        test) thì fallback về ``web.base.url`` đã cấu hình.
+        """
+        try:
+            base_url = http.request.httprequest.host_url or ""
+        except RuntimeError:
+            base_url = ""
+        if not base_url:
+            base_url = (
+                self.env["ir.config_parameter"]
+                .sudo()
+                .get_param("web.base.url")
+                or ""
+            )
+        return base_url.rstrip("/")
+
     def _supplier_file_duong_dan(self, attachment):
         """Build the public link of one ``ir.attachment``.
 
-        Dạng tuyệt đối: domain hiện tại (``web.base.url``) + link tải
+        Dạng tuyệt đối: domain đang chạy app + link tải
         ``/web/content/<id>``. File kiểu link thì dùng thẳng URL gốc.
         """
         self.ensure_one()
         if attachment.type == "url" and attachment.url:
             return attachment.url
-        base_url = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("web.base.url")
-            or ""
-        ).rstrip("/")
+        base_url = self._supplier_app_base_url()
         path = "/web/content/%s" % attachment.id
         return "%s%s" % (base_url, path) if base_url else path
 

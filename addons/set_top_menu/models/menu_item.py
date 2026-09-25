@@ -9,6 +9,19 @@ from odoo.addons.crall_material.models.hnck_client import HnckClient
 
 _logger = logging.getLogger(__name__)
 
+# Quy trình chế biến món ăn gồm 4 khâu cố định, lưu trực tiếp trên món ăn.
+DISH_STAGES = ("stage1", "stage2", "stage3", "stage4")
+# Mã khâu + thứ tự cố định khi đẩy danh sách khâu lên NCC.
+DISH_STAGE_CODES = (
+    ("stage1", "LAP_DON_HANG", 1),
+    ("stage2", "GUI_DON_NCC", 2),
+    ("stage3", "NCC_SX_GIAO_HANG", 3),
+    ("stage4", "TIEP_NHAN_GIAO_HANG", 4),
+)
+# File chứng minh mỗi khâu: tối đa 3 file, mỗi file không quá 5MB.
+DISH_STAGE_MAX_FILES = 3
+DISH_STAGE_MAX_FILE_SIZE = 5 * 1024 * 1024
+
 
 def serialize_supplier_dish(
     item_code,
@@ -105,6 +118,94 @@ class MenuItem(models.Model):
         string="Nhân viên thực hiện",
         help="Danh sách nhân viên thực hiện món ăn (lấy từ danh sách người dùng).",
     )
+    dish_image_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_dish_image_rel",
+        string="Ảnh món ăn",
+        help="Nhiều ảnh của món ăn.",
+    )
+    dish_document_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_dish_document_rel",
+        string="Giấy tờ chứng minh",
+        help="Giấy tờ chứng minh món ăn.",
+    )
+    stage1_employee_ids = fields.Many2many(
+        "res.users",
+        "menu_item_stage1_employee_rel",
+        string="Khâu 1 - Nhân viên thực hiện",
+        help="Nhân viên thực hiện khâu 1: Lập đơn hàng.",
+    )
+    stage1_site_id = fields.Many2one(
+        "crall.production.site",
+        string="Khâu 1 - Cơ sở thực hiện",
+        help="Cơ sở thực hiện khâu 1: Lập đơn hàng.",
+    )
+    stage1_info = fields.Text(string="Khâu 1 - Thông tin chế biến")
+    stage1_address = fields.Char(string="Khâu 1 - Địa chỉ thực hiện")
+    stage1_file_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_stage1_file_rel",
+        string="Khâu 1 - File chứng minh",
+        help="Tối đa 3 file, mỗi file không quá 5MB.",
+    )
+    stage2_employee_ids = fields.Many2many(
+        "res.users",
+        "menu_item_stage2_employee_rel",
+        string="Khâu 2 - Nhân viên thực hiện",
+        help="Nhân viên thực hiện khâu 2: Gửi đơn tới NCC phụ.",
+    )
+    stage2_site_id = fields.Many2one(
+        "crall.production.site",
+        string="Khâu 2 - Cơ sở thực hiện",
+        help="Cơ sở thực hiện khâu 2: Gửi đơn tới NCC phụ.",
+    )
+    stage2_info = fields.Text(string="Khâu 2 - Thông tin chế biến")
+    stage2_address = fields.Char(string="Khâu 2 - Địa chỉ thực hiện")
+    stage2_file_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_stage2_file_rel",
+        string="Khâu 2 - File chứng minh",
+        help="Tối đa 3 file, mỗi file không quá 5MB.",
+    )
+    stage3_employee_ids = fields.Many2many(
+        "res.users",
+        "menu_item_stage3_employee_rel",
+        string="Khâu 3 - Nhân viên thực hiện",
+        help="Nhân viên thực hiện khâu 3: NCC sản xuất và giao hàng.",
+    )
+    stage3_site_id = fields.Many2one(
+        "crall.production.site",
+        string="Khâu 3 - Cơ sở thực hiện",
+        help="Cơ sở thực hiện khâu 3: NCC sản xuất và giao hàng.",
+    )
+    stage3_info = fields.Text(string="Khâu 3 - Thông tin chế biến")
+    stage3_address = fields.Char(string="Khâu 3 - Địa chỉ thực hiện")
+    stage3_file_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_stage3_file_rel",
+        string="Khâu 3 - File chứng minh",
+        help="Tối đa 3 file, mỗi file không quá 5MB.",
+    )
+    stage4_employee_ids = fields.Many2many(
+        "res.users",
+        "menu_item_stage4_employee_rel",
+        string="Khâu 4 - Nhân viên thực hiện",
+        help="Nhân viên thực hiện khâu 4: Tiếp nhận, kiểm tra và giao hàng.",
+    )
+    stage4_site_id = fields.Many2one(
+        "crall.production.site",
+        string="Khâu 4 - Cơ sở thực hiện",
+        help="Cơ sở thực hiện khâu 4: Tiếp nhận, kiểm tra và giao hàng.",
+    )
+    stage4_info = fields.Text(string="Khâu 4 - Thông tin chế biến")
+    stage4_address = fields.Char(string="Khâu 4 - Địa chỉ thực hiện")
+    stage4_file_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_stage4_file_rel",
+        string="Khâu 4 - File chứng minh",
+        help="Tối đa 3 file, mỗi file không quá 5MB.",
+    )
     supplier_procedure_code = fields.Char(
         string="Mã quy trình NCC", copy=False, index=True,
         help="ma_quy_trinh nhận từ API nhà cung cấp.",
@@ -127,6 +228,26 @@ class MenuItem(models.Model):
     def _compute_cost_per_serving(self):
         for item in self:
             item.cost_per_serving = sum(item.ingredient_ids.mapped("cost"))
+
+    @api.constrains(
+        "stage1_file_ids", "stage2_file_ids",
+        "stage3_file_ids", "stage4_file_ids",
+    )
+    def _check_stage_proof_files(self):
+        for item in self:
+            for stage_no in (1, 2, 3, 4):
+                files = item["stage%s_file_ids" % stage_no]
+                if len(files) > DISH_STAGE_MAX_FILES:
+                    raise ValidationError(
+                        _("Khâu %s: file chứng minh tối đa %s file.")
+                        % (stage_no, DISH_STAGE_MAX_FILES)
+                    )
+                for attachment in files:
+                    if (attachment.file_size or 0) > DISH_STAGE_MAX_FILE_SIZE:
+                        raise ValidationError(
+                            _("Khâu %s: file '%s' vượt quá 5MB.")
+                            % (stage_no, attachment.name)
+                        )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -207,6 +328,11 @@ class MenuItem(models.Model):
             or stored.get("danh_sach_nguyen_lieu")
             or []
         )
+        khau_list = (
+            self._supplier_dish_stage_payload()
+            or stored.get("danh_sach_khau")
+            or []
+        )
         return serialize_supplier_dish(
             self.item_code,
             self.name,
@@ -214,8 +340,54 @@ class MenuItem(models.Model):
             self.supplier_age_group_id,
             self.supplier_procedure_code,
             ingredients,
-            stored.get("danh_sach_khau") or [],
+            khau_list,
         )
+
+    def _supplier_dish_stage_payload(self):
+        """Build ``danh_sach_khau`` from the Bước 2 stage tabs.
+
+        Mỗi tab có mã khâu + thứ tự cố định (``DISH_STAGE_CODES``).
+        Tab trống (không nhân viên, không cơ sở, không file) thì bỏ qua.
+        File đính kèm local không có đường dẫn công khai nên
+        ``duong_dan`` để trống.
+        """
+        self.ensure_one()
+        khau_list = []
+        for prefix, ma_khau, thu_tu in DISH_STAGE_CODES:
+            employees = self["%s_employee_ids" % prefix]
+            site = self["%s_site_id" % prefix]
+            files = self["%s_file_ids" % prefix]
+            if not employees and not site and not files:
+                continue
+            entry = {"ma_khau": ma_khau, "thu_tu": thu_tu}
+            if site:
+                entry["ma_co_so"] = site.code or ""
+            performer_codes = [
+                user.employee_code or user.login or ""
+                for user in employees
+            ]
+            performer_codes = [code for code in performer_codes if code]
+            if performer_codes:
+                entry["danh_sach_nguoi_thuc_hien"] = performer_codes
+            file_entries = []
+            for attachment in files:
+                mimetype = attachment.mimetype or ""
+                file_entries.append(
+                    {
+                        "ma_file": str(attachment.id),
+                        "ten_file": attachment.name or "",
+                        "loai": (
+                            "image"
+                            if mimetype.startswith("image")
+                            else "document"
+                        ),
+                        "duong_dan": "",
+                    }
+                )
+            if file_entries:
+                entry["danh_sach_files"] = file_entries
+            khau_list.append(entry)
+        return khau_list
 
     def _supplier_push_ingredients(self):
         """Map ingredient lines to ``danh_sach_nguyen_lieu`` entries."""

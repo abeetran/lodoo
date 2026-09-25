@@ -49,6 +49,24 @@ class TestProductionProcessPush(TransactionCase):
         )
         self.assertEqual(result["tag"], "display_notification")
 
+    def test_dish_product_type_maps_to_dish(self):
+        step = self.env["set_top_menu.production.step"].create(
+            {"name": "Sơ chế", "code": "SO_CHE"}
+        )
+        process = self.env["set_top_menu.production.process"].create(
+            {
+                "name": "Quy trình món ăn",
+                "code": "QT002",
+                "product_type": "thuc_an",
+                "line_ids": [(0, 0, {"step_id": step.id, "sequence": 1})],
+            }
+        )
+        payload = process._supplier_process_push_payload()
+        self.assertEqual(payload["loai_san_pham"], "dish")
+        self.assertEqual(
+            payload["danh_sach_khau"], [{"ma_khau": "SO_CHE", "thu_tu": 1}]
+        )
+
     def test_action_empty_raises(self):
         with self.assertRaises(UserError):
             self.env[

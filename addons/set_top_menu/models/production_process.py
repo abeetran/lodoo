@@ -22,13 +22,14 @@ DEFAULT_SUPPLIER_PROCESS_API_URL = (
 SUPPLIER_PRODUCT_TYPE_MAP = {
     "food": "thuc_pham",
     "thuc_pham": "thuc_pham",
+    "dish": "thuc_an",
     "thuc_an": "thuc_an",
 }
-# Chiều đẩy lên NCC: đảo của map chiều lấy về. "thuc_pham" phía mình
-# tương ứng "food" phía NCC (đúng mẫu API), "thuc_an" giữ nguyên.
+# Chiều đẩy lên NCC: thực phẩm (thuc_pham) -> "food",
+# món ăn (thuc_an) -> "dish".
 PRODUCT_TYPE_TO_SUPPLIER_MAP = {
     "thuc_pham": "food",
-    "thuc_an": "thuc_an",
+    "thuc_an": "dish",
 }
 
 

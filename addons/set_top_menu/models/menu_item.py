@@ -31,6 +31,7 @@ def serialize_supplier_dish(
     procedure_code,
     ingredients,
     khau_list,
+    media_list=None,
 ):
     """Build the POST body dict for ``supplier/dishes/merge`` from plain values.
 
@@ -44,6 +45,7 @@ def serialize_supplier_dish(
         "ma_quy_trinh": procedure_code or "",
         "danh_sach_nguyen_lieu": ingredients or [],
         "danh_sach_khau": khau_list or [],
+        "danh_sach_anh": media_list or [],
     }
 
 
@@ -333,23 +335,77 @@ class MenuItem(models.Model):
             or stored.get("danh_sach_khau")
             or []
         )
+        age_group = self.age_group_id
+        nhom_tuoi_id = (
+            age_group.supplier_age_id
+            if age_group and age_group.supplier_age_id
+            else (self.supplier_age_group_id or False)
+        )
+        process = self.process_id
+        ma_quy_trinh = (
+            process.code
+            if process and process.code
+            else (self.supplier_procedure_code or "")
+        )
         return serialize_supplier_dish(
             self.item_code,
             self.name,
             description_text,
-            self.supplier_age_group_id,
-            self.supplier_procedure_code,
+            nhom_tuoi_id,
+            ma_quy_trinh,
             ingredients,
             khau_list,
+            self._supplier_dish_media_payload(),
         )
+
+    def _supplier_dish_media_payload(self):
+        """Build ``danh_sach_anh`` from the media tab (images + documents)."""
+        self.ensure_one()
+        return [
+            self._supplier_file_entry(attachment)
+            for attachment in (
+                self.dish_image_ids + self.dish_document_ids
+            )
+        ]
+
+    def _supplier_file_duong_dan(self, attachment):
+        """Build the public link of one ``ir.attachment``.
+
+        Dạng tuyệt đối: domain hiện tại (``web.base.url``) + link tải
+        ``/web/content/<id>``. File kiểu link thì dùng thẳng URL gốc.
+        """
+        self.ensure_one()
+        if attachment.type == "url" and attachment.url:
+            return attachment.url
+        base_url = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("web.base.url")
+            or ""
+        ).rstrip("/")
+        path = "/web/content/%s" % attachment.id
+        return "%s%s" % (base_url, path) if base_url else path
+
+    def _supplier_file_entry(self, attachment):
+        """Map one ``ir.attachment`` to the supplier file entry format."""
+        mimetype = attachment.mimetype or ""
+        return {
+            "ma_file": str(attachment.id),
+            "ten_file": attachment.name or "",
+            "loai": (
+                "image"
+                if mimetype.startswith("image")
+                else "document"
+            ),
+            "duong_dan": self._supplier_file_duong_dan(attachment),
+        }
 
     def _supplier_dish_stage_payload(self):
         """Build ``danh_sach_khau`` from the Bước 2 stage tabs.
 
         Mỗi tab có mã khâu + thứ tự cố định (``DISH_STAGE_CODES``).
         Tab trống (không nhân viên, không cơ sở, không file) thì bỏ qua.
-        File đính kèm local không có đường dẫn công khai nên
-        ``duong_dan`` để trống.
+        ``duong_dan`` của file là link tuyệt đối theo domain hiện tại.
         """
         self.ensure_one()
         khau_list = []
@@ -369,21 +425,9 @@ class MenuItem(models.Model):
             performer_codes = [code for code in performer_codes if code]
             if performer_codes:
                 entry["danh_sach_nguoi_thuc_hien"] = performer_codes
-            file_entries = []
-            for attachment in files:
-                mimetype = attachment.mimetype or ""
-                file_entries.append(
-                    {
-                        "ma_file": str(attachment.id),
-                        "ten_file": attachment.name or "",
-                        "loai": (
-                            "image"
-                            if mimetype.startswith("image")
-                            else "document"
-                        ),
-                        "duong_dan": "",
-                    }
-                )
+            file_entries = [
+                self._supplier_file_entry(attachment) for attachment in files
+            ]
             if file_entries:
                 entry["danh_sach_files"] = file_entries
             khau_list.append(entry)

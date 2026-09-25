@@ -13,6 +13,10 @@ def _attachment(env, name, size):
     )
 
 
+def _set_base_url(env, url="https://odoo.vi-du.vn"):
+    env["ir.config_parameter"].sudo().set_param("web.base.url", url)
+
+
 def _dish_vals(env):
     uom = env.ref("uom.product_uom_unit")
     return {
@@ -65,6 +69,7 @@ class TestMenuItemStages(TransactionCase):
                 self.assertIn('required="1"', node)
 
     def test_stage_payload_maps_step2_tabs(self):
+        _set_base_url(self.env)
         user_model = self.env["res.users"]
         user1 = user_model.create(
             {"name": "NV Khau 1", "login": "nv_khau_1",
@@ -105,13 +110,19 @@ class TestMenuItemStages(TransactionCase):
                             "ma_file": str(photo.id),
                             "ten_file": "anh-che-bien.jpg",
                             "loai": "image",
-                            "duong_dan": "",
+                            "duong_dan": (
+                                "https://odoo.vi-du.vn/web/content/%s"
+                                % photo.id
+                            ),
                         },
                         {
                             "ma_file": str(doc.id),
                             "ten_file": "bien-ban.pdf",
                             "loai": "document",
-                            "duong_dan": "",
+                            "duong_dan": (
+                                "https://odoo.vi-du.vn/web/content/%s"
+                                % doc.id
+                            ),
                         },
                     ],
                 },
@@ -150,6 +161,118 @@ class TestMenuItemStages(TransactionCase):
         self.assertEqual(
             dish._supplier_dish_payload()["danh_sach_khau"], stored
         )
+
+    def test_payload_uses_age_group_process_and_media(self):
+        _set_base_url(self.env)
+        age_group = self.env["set_top_menu.age.group"].create(
+            {"name": "Mầm non", "supplier_age_id": 1}
+        )
+        process = self.env["set_top_menu.production.process"].create(
+            {
+                "name": "Quy trình món",
+                "code": "QT-MON-01",
+                "product_type": "thuc_an",
+            }
+        )
+        template = self.env["product.template"].create(
+            {"name": "Thịt heo", "default_code": "TP-THIT-001"}
+        )
+        variant = template.product_variant_id
+        photo = _attachment(self.env, "mon-an.jpg", 100)
+        doc = _attachment(self.env, "chung-nhan.pdf", 100)
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MA-001",
+                name="Thịt heo sốt cà chua",
+                description="<p>Món mặn phục vụ bữa trưa</p>",
+                age_group_id=age_group.id,
+                process_id=process.id,
+                dish_image_ids=[(6, 0, [photo.id])],
+                dish_document_ids=[(6, 0, [doc.id])],
+            )
+        )
+        self.env["set_top_menu.menu.ingredient"].create(
+            {
+                "menu_item_id": dish.id,
+                "product_id": variant.id,
+                "quantity": 0.08,
+                "uom_id": variant.uom_id.id,
+            }
+        )
+        payload = dish._supplier_dish_payload()
+        self.assertEqual(payload["ma_mon_an"], "MA-001")
+        self.assertEqual(payload["ten_mon_an"], "Thịt heo sốt cà chua")
+        self.assertEqual(payload["nhom_tuoi_id"], 1)
+        self.assertEqual(payload["mo_ta"], "Món mặn phục vụ bữa trưa")
+        self.assertEqual(payload["ma_quy_trinh"], "QT-MON-01")
+        self.assertEqual(
+            payload["danh_sach_nguyen_lieu"],
+            [
+                {
+                    "ma_nguyen_lieu": "TP-THIT-001",
+                    "dinh_luong": 0.08,
+                    "don_vi_tinh_id": variant.uom_id.id,
+                }
+            ],
+        )
+        self.assertEqual(
+            payload["danh_sach_anh"],
+            [
+                {
+                    "ma_file": str(photo.id),
+                    "ten_file": "mon-an.jpg",
+                    "loai": "image",
+                    "duong_dan": (
+                        "https://odoo.vi-du.vn/web/content/%s" % photo.id
+                    ),
+                },
+                {
+                    "ma_file": str(doc.id),
+                    "ten_file": "chung-nhan.pdf",
+                    "loai": "document",
+                    "duong_dan": (
+                        "https://odoo.vi-du.vn/web/content/%s" % doc.id
+                    ),
+                },
+            ],
+        )
+
+    def test_file_link_falls_back_to_relative_without_base_url(self):
+        _set_base_url(self.env, "")
+        photo = _attachment(self.env, "mon-an.jpg", 100)
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MON-LINK-001",
+                dish_image_ids=[(6, 0, [photo.id])],
+            )
+        )
+        self.assertEqual(
+            dish._supplier_dish_media_payload(),
+            [
+                {
+                    "ma_file": str(photo.id),
+                    "ten_file": "mon-an.jpg",
+                    "loai": "image",
+                    "duong_dan": "/web/content/%s" % photo.id,
+                }
+            ],
+        )
+
+    def test_payload_falls_back_to_supplier_codes(self):
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MON-FB-001",
+                supplier_age_group_id=2,
+                supplier_procedure_code="NCC-QT-9",
+            )
+        )
+        payload = dish._supplier_dish_payload()
+        self.assertEqual(payload["nhom_tuoi_id"], 2)
+        self.assertEqual(payload["ma_quy_trinh"], "NCC-QT-9")
+        self.assertEqual(payload["danh_sach_anh"], [])
 
     def test_form_has_two_steps_and_media_tab(self):
         view = self.env.ref("set_top_menu.view_menu_item_form")

@@ -85,6 +85,16 @@
                                 </tree>
                             </field>
                         </page>
+                        <page string="Nhân viên thực hiện" name="employees">
+                            <field name="employee_ids" nolabel="1"
+                                   options="{'no_create': True}">
+                                <tree>
+                                    <field name="name"/>
+                                    <field name="login"/>
+                                    <field name="employee_code"/>
+                                </tree>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
             </form>

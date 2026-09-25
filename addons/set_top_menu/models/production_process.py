@@ -6,6 +6,8 @@ import requests
 from odoo import _, api, Command, fields, models
 from odoo.exceptions import UserError
 
+from odoo.addons.crall_material.models.hnck_client import HnckClient
+
 
 _logger = logging.getLogger(__name__)
 
@@ -20,6 +22,12 @@ DEFAULT_SUPPLIER_PROCESS_API_URL = (
 SUPPLIER_PRODUCT_TYPE_MAP = {
     "food": "thuc_pham",
     "thuc_pham": "thuc_pham",
+    "thuc_an": "thuc_an",
+}
+# Chiều đẩy lên NCC: đảo của map chiều lấy về. "thuc_pham" phía mình
+# tương ứng "food" phía NCC (đúng mẫu API), "thuc_an" giữ nguyên.
+PRODUCT_TYPE_TO_SUPPLIER_MAP = {
+    "thuc_pham": "food",
     "thuc_an": "thuc_an",
 }
 
@@ -39,14 +47,50 @@ class ProductionStep(models.Model):
         string="Mã khâu NCC", index=True, copy=False,
         help="id nhận từ API nhà cung cấp.",
     )
+    employee_ids = fields.Many2many(
+        "res.users",
+        string="Nhân viên thực hiện",
+        help="Danh sách nhân viên thực hiện khâu sản xuất (lấy từ danh sách người dùng).",
+    )
 
     _sql_constraints = [
         ("code_unique", "unique(code)", "Mã khâu sản xuất không được trùng."),
     ]
 
+    def action_push_supplier_steps(self):
+        """Nút Đồng bộ: chỉ hiện khi tick chọn khâu trên danh sách.
+
+        Gửi các khâu đang chọn lên API ``supplier/steps/merge`` (POST,
+        ký X-Signature; token hết hạn thì tự lấy mới).
+        """
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một khâu sản xuất để đồng bộ."))
+        payloads = [
+            {"ma_khau": step.code or "", "ten_khau": step.name or ""}
+            for step in self
+        ]
+        result = HnckClient(self.env).push_supplier_steps(payloads)
+        message = _("Đã gửi %s khâu sản xuất lên API nhà cung cấp.") % len(payloads)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ khâu sản xuất"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
     def action_open_create_popup(self):
-        """Nút Thêm mới: mở form tạo khâu trong dialog (popup)."""
-        form_view = self.env.ref("set_top_menu.view_production_step_form")
+        """Nút Thêm mới: mở form tạo khâu trong dialog (popup).
+
+        Popup tạo mới ẩn trường nhân viên thực hiện; trường này chỉ
+        nhập ở màn hình cập nhật (form đầy đủ).
+        """
+        form_view = self.env.ref("set_top_menu.view_production_step_form_create")
         return {
             "type": "ir.actions.act_window",
             "name": "Thêm khâu sản xuất",
@@ -214,6 +258,48 @@ class ProductionProcess(models.Model):
     def _compute_step_count(self):
         for process in self:
             process.step_count = len(process.line_ids)
+
+    def action_push_supplier_processes(self):
+        """Nút Đồng bộ: chỉ hiện khi tick chọn quy trình trên danh sách.
+
+        Gửi các quy trình đang chọn lên API ``supplier/processes/merge``
+        (POST, ký X-Signature; token hết hạn thì tự lấy mới).
+        """
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một quy trình sản xuất để đồng bộ."))
+        payloads = [process._supplier_process_push_payload() for process in self]
+        result = HnckClient(self.env).push_supplier_processes(payloads)
+        message = _("Đã gửi %s quy trình sản xuất lên API nhà cung cấp.") % len(payloads)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ quy trình sản xuất"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def _supplier_process_push_payload(self):
+        """Serialize one process into the supplier merge body format."""
+        self.ensure_one()
+        return {
+            "ma_quy_trinh": self.code or "",
+            "ten_quy_trinh": self.name or "",
+            "loai_san_pham": PRODUCT_TYPE_TO_SUPPLIER_MAP.get(
+                self.product_type or "", self.product_type or ""
+            ),
+            "danh_sach_khau": [
+                {
+                    "ma_khau": line.step_id.code or "",
+                    "thu_tu": line.sequence or 0,
+                }
+                for line in self.line_ids.sorted("sequence")
+            ],
+        }
 
     @api.model
     def sync_supplier_processes(self, url=None, token=None, referer=None,

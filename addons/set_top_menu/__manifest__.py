@@ -33,6 +33,7 @@
         "views/client_management_views.xml",
         "views/client_contract_views.xml",
         "views/menu_item_views.xml",
+        "views/res_users_views.xml",
         "views/material_views.xml",
         "views/kitchen_plan_views.xml",
         "views/production_process_views.xml",

@@ -100,6 +100,11 @@ class MenuItem(models.Model):
     production_site_ids = fields.Many2many(
         "crall.production.site", string="Cơ sở sản xuất"
     )
+    employee_ids = fields.Many2many(
+        "res.users",
+        string="Nhân viên thực hiện",
+        help="Danh sách nhân viên thực hiện món ăn (lấy từ danh sách người dùng).",
+    )
     supplier_procedure_code = fields.Char(
         string="Mã quy trình NCC", copy=False, index=True,
         help="ma_quy_trinh nhận từ API nhà cung cấp.",

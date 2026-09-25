@@ -9,9 +9,12 @@
                     <button name="action_open_create_popup" type="object"
                             string="Thêm mới" icon="fa-plus" class="btn-primary"
                             display="always"/>
+                    <button name="action_push_supplier_steps" type="object"
+                            string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
                 </header>
                 <field name="code" optional="show"/>
                 <field name="name"/>
+                <field name="employee_ids" widget="many2many_tags" optional="show"/>
                 <field name="note" optional="show"/>
                 <field name="active" column_invisible="True"/>
             </tree>
@@ -23,6 +26,33 @@
         <field name="model">set_top_menu.production.step</field>
         <field name="arch" type="xml">
             <form string="Khâu sản xuất">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Tên khâu sản xuất"/>
+                        <h1><field name="name" placeholder="Ví dụ: Sơ chế"/></h1>
+                    </div>
+                    <group>
+                        <field name="code" placeholder="Ví dụ: KHAU-001"/>
+                        <field name="active"/>
+                    </group>
+                    <!-- <group>
+                        <field name="employee_ids" widget="many2many_tags"
+                               options="{'no_create': True}"
+                               placeholder="Chọn nhân viên thực hiện"/>
+                    </group> -->
+                    <group>
+                        <field name="note" placeholder="Ghi chú về khâu sản xuất"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_production_step_form_create" model="ir.ui.view">
+        <field name="name">set_top_menu.production.step.form.create</field>
+        <field name="model">set_top_menu.production.step</field>
+        <field name="arch" type="xml">
+            <form string="Thêm khâu sản xuất">
                 <sheet>
                     <div class="oe_title">
                         <label for="name" string="Tên khâu sản xuất"/>
@@ -74,6 +104,10 @@
         <field name="model">set_top_menu.production.process</field>
         <field name="arch" type="xml">
             <tree string="QL Quy trình SX">
+                <header>
+                    <button name="action_push_supplier_processes" type="object"
+                            string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
+                </header>
                 <field name="code" optional="show"/>
                 <field name="name"/>
                 <field name="product_type" optional="show"/>

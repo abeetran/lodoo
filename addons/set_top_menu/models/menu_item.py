@@ -231,6 +231,13 @@ class MenuItem(models.Model):
         for item in self:
             item.cost_per_serving = sum(item.ingredient_ids.mapped("cost"))
 
+    @staticmethod
+    def _is_pdf_file(attachment):
+        """Nhận diện file PDF theo mimetype hoặc phần mở rộng .pdf."""
+        mimetype = (attachment.mimetype or "").lower()
+        filename = (attachment.name or "").lower()
+        return mimetype == "application/pdf" or filename.endswith(".pdf")
+
     @api.constrains(
         "stage1_file_ids", "stage2_file_ids",
         "stage3_file_ids", "stage4_file_ids",
@@ -245,6 +252,11 @@ class MenuItem(models.Model):
                         % (stage_no, DISH_STAGE_MAX_FILES)
                     )
                 for attachment in files:
+                    if not self._is_pdf_file(attachment):
+                        raise ValidationError(
+                            _("Khâu %s: file '%s' phải là file PDF.")
+                            % (stage_no, attachment.name)
+                        )
                     if (attachment.file_size or 0) > DISH_STAGE_MAX_FILE_SIZE:
                         raise ValidationError(
                             _("Khâu %s: file '%s' vượt quá 5MB.")
@@ -359,14 +371,18 @@ class MenuItem(models.Model):
         )
 
     def _supplier_dish_media_payload(self):
-        """Build ``danh_sach_anh`` from the media tab (images + documents)."""
+        """Build ``danh_sach_anh`` from the media tab (images + documents).
+
+        Mỗi entry gồm ``ten_anh`` và ``duong_dan`` (cùng các trường
+        định danh file dùng chung).
+        """
         self.ensure_one()
-        return [
-            self._supplier_file_entry(attachment)
-            for attachment in (
-                self.dish_image_ids + self.dish_document_ids
-            )
-        ]
+        entries = []
+        for attachment in self.dish_image_ids + self.dish_document_ids:
+            entry = self._supplier_file_entry(attachment)
+            entry["ten_anh"] = attachment.name or ""
+            entries.append(entry)
+        return entries
 
     def _supplier_app_base_url(self):
         """Domain đang chạy app (local là localhost, server là domain server).

@@ -31,7 +31,7 @@ def _dish_vals(env):
 
 class TestMenuItemStages(TransactionCase):
     def test_stage_files_reject_more_than_3(self):
-        files = [_attachment(self.env, "f%s" % i, 10) for i in range(4)]
+        files = [_attachment(self.env, "f%s.pdf" % i, 10) for i in range(4)]
         with self.assertRaises(ValidationError):
             self.env["set_top_menu.menu.item"].create(
                 dict(
@@ -41,7 +41,7 @@ class TestMenuItemStages(TransactionCase):
             )
 
     def test_stage_files_reject_oversize(self):
-        big = _attachment(self.env, "big.bin", 6 * 1024 * 1024)
+        big = _attachment(self.env, "big.pdf", 6 * 1024 * 1024)
         with self.assertRaises(ValidationError):
             self.env["set_top_menu.menu.item"].create(
                 dict(
@@ -51,7 +51,7 @@ class TestMenuItemStages(TransactionCase):
             )
 
     def test_stage_files_accept_valid(self):
-        files = [_attachment(self.env, "ok%s" % i, 100) for i in range(3)]
+        files = [_attachment(self.env, "ok%s.pdf" % i, 100) for i in range(3)]
         dish = self.env["set_top_menu.menu.item"].create(
             dict(
                 _dish_vals(self.env),
@@ -59,6 +59,16 @@ class TestMenuItemStages(TransactionCase):
             )
         )
         self.assertEqual(len(dish.stage3_file_ids), 3)
+
+    def test_stage_files_reject_non_pdf(self):
+        photo = _attachment(self.env, "anh.jpg", 100)
+        with self.assertRaises(ValidationError):
+            self.env["set_top_menu.menu.item"].create(
+                dict(
+                    _dish_vals(self.env),
+                    stage1_file_ids=[(6, 0, [photo.id])],
+                )
+            )
 
     def test_form_marks_stage_required_fields(self):
         view = self.env.ref("set_top_menu.view_menu_item_form")
@@ -84,15 +94,15 @@ class TestMenuItemStages(TransactionCase):
         site = self.env["crall.production.site"].create(
             {"name": "Cơ sở 1", "code": "CS001"}
         )
-        photo = _attachment(self.env, "anh-che-bien.jpg", 100)
-        doc = _attachment(self.env, "bien-ban.pdf", 100)
+        doc1 = _attachment(self.env, "bien-ban-1.pdf", 100)
+        doc2 = _attachment(self.env, "bien-ban-2.pdf", 100)
         dish = self.env["set_top_menu.menu.item"].create(
             dict(
                 _dish_vals(self.env),
                 item_code="MON-KHAU-001",
                 stage1_employee_ids=[(6, 0, [user1.id, user2.id])],
                 stage1_site_id=site.id,
-                stage3_file_ids=[(6, 0, [photo.id, doc.id])],
+                stage3_file_ids=[(6, 0, [doc1.id, doc2.id])],
             )
         )
         self.assertEqual(
@@ -109,21 +119,21 @@ class TestMenuItemStages(TransactionCase):
                     "thu_tu": 3,
                     "danh_sach_files": [
                         {
-                            "ma_file": str(photo.id),
-                            "ten_file": "anh-che-bien.jpg",
-                            "loai": "image",
-                            "duong_dan": (
-                                "https://odoo.vi-du.vn/web/content/%s"
-                                % photo.id
-                            ),
-                        },
-                        {
-                            "ma_file": str(doc.id),
-                            "ten_file": "bien-ban.pdf",
+                            "ma_file": str(doc1.id),
+                            "ten_file": "bien-ban-1.pdf",
                             "loai": "document",
                             "duong_dan": (
                                 "https://odoo.vi-du.vn/web/content/%s"
-                                % doc.id
+                                % doc1.id
+                            ),
+                        },
+                        {
+                            "ma_file": str(doc2.id),
+                            "ten_file": "bien-ban-2.pdf",
+                            "loai": "document",
+                            "duong_dan": (
+                                "https://odoo.vi-du.vn/web/content/%s"
+                                % doc2.id
                             ),
                         },
                     ],
@@ -224,6 +234,7 @@ class TestMenuItemStages(TransactionCase):
                 {
                     "ma_file": str(photo.id),
                     "ten_file": "mon-an.jpg",
+                    "ten_anh": "mon-an.jpg",
                     "loai": "image",
                     "duong_dan": (
                         "https://odoo.vi-du.vn/web/content/%s" % photo.id
@@ -232,6 +243,7 @@ class TestMenuItemStages(TransactionCase):
                 {
                     "ma_file": str(doc.id),
                     "ten_file": "chung-nhan.pdf",
+                    "ten_anh": "chung-nhan.pdf",
                     "loai": "document",
                     "duong_dan": (
                         "https://odoo.vi-du.vn/web/content/%s" % doc.id
@@ -275,6 +287,7 @@ class TestMenuItemStages(TransactionCase):
                 {
                     "ma_file": str(photo.id),
                     "ten_file": "mon-an.jpg",
+                    "ten_anh": "mon-an.jpg",
                     "loai": "image",
                     "duong_dan": "/web/content/%s" % photo.id,
                 }

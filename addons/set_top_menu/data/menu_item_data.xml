@@ -28,15 +28,15 @@
     <record id="allergen_sesame" model="set_top_menu.allergen"><field name="name">Mè</field></record>
     <record id="allergen_tree_nuts" model="set_top_menu.allergen"><field name="name">Các loại hạt cây</field></record>
 
-    <record id="age_group_6_12m" model="set_top_menu.age.group"><field name="name">Trẻ 6 - 12 tháng</field></record>
-    <record id="age_group_12_18m" model="set_top_menu.age.group"><field name="name">Trẻ 12 - 18 tháng</field></record>
-    <record id="age_group_18_24m" model="set_top_menu.age.group"><field name="name">Trẻ 18 - 24 tháng</field></record>
-    <record id="age_group_24_36m" model="set_top_menu.age.group"><field name="name">Trẻ 24 - 36 tháng</field></record>
-    <record id="age_group_36_72m" model="set_top_menu.age.group"><field name="name">Trẻ 36 - 72 tháng</field></record>
-    <record id="age_group_class_1_2" model="set_top_menu.age.group"><field name="name">Nhóm lớp 1 - 2</field></record>
-    <record id="age_group_class_3_4" model="set_top_menu.age.group"><field name="name">Nhóm lớp 3 - 4</field></record>
+    <record id="age_group_6_12m" model="set_top_menu.age.group"><field name="name">Trẻ 6 - 12 tháng</field><field name="supplier_age_id">1</field></record>
+    <record id="age_group_12_18m" model="set_top_menu.age.group"><field name="name">Trẻ 12 - 18 tháng</field><field name="supplier_age_id">2</field></record>
+    <record id="age_group_18_24m" model="set_top_menu.age.group"><field name="name">Trẻ 18 - 24 tháng</field><field name="supplier_age_id">3</field></record>
+    <record id="age_group_24_36m" model="set_top_menu.age.group"><field name="name">Trẻ 24 - 36 tháng</field><field name="supplier_age_id">4</field></record>
+    <record id="age_group_36_72m" model="set_top_menu.age.group"><field name="name">Trẻ 36 - 72 tháng</field><field name="supplier_age_id">5</field></record>
+    <record id="age_group_class_1_2" model="set_top_menu.age.group"><field name="name">Nhóm lớp 1 - 2</field><field name="supplier_age_id">6</field></record>
+    <record id="age_group_class_3_4" model="set_top_menu.age.group"><field name="name">Nhóm lớp 3 - 4</field><field name="supplier_age_id">7</field></record>
     <record id="age_group_class_4_5" model="set_top_menu.age.group"><field name="name">Nhóm lớp 4 - 5</field></record>
-    <record id="age_group_class_5_6" model="set_top_menu.age.group"><field name="name">Nhóm lớp 5 - 6</field></record>
-    <record id="age_group_class_7_8_9" model="set_top_menu.age.group"><field name="name">Nhóm lớp 7 - 8 - 9</field></record>
-    <record id="age_group_class_10_11_12" model="set_top_menu.age.group"><field name="name">Nhóm lớp 10 - 11 - 12</field></record>
+    <record id="age_group_class_5_6" model="set_top_menu.age.group"><field name="name">Nhóm lớp 5 - 6</field><field name="supplier_age_id">8</field></record>
+    <record id="age_group_class_7_8_9" model="set_top_menu.age.group"><field name="name">Nhóm lớp 7 - 8 - 9</field><field name="supplier_age_id">9</field></record>
+    <record id="age_group_class_10_11_12" model="set_top_menu.age.group"><field name="name">Nhóm lớp 10 - 11 - 12</field><field name="supplier_age_id">10</field></record>
 </odoo>

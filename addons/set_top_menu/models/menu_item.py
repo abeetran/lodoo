@@ -469,9 +469,15 @@ class Allergen(models.Model):
 class AgeGroup(models.Model):
     _name = "set_top_menu.age.group"
     _description = "Nhóm tuổi"
-    _order = "id"
+    _order = "supplier_age_id, id"
 
     name = fields.Char(required=True)
     color = fields.Integer()
+    supplier_age_id = fields.Integer(
+        string="ID nhóm tuổi NCC",
+        index=True,
+        copy=False,
+        help="nhom_tuoi_id 1-10 từ API nhà cung cấp.",
+    )
 
     _sql_constraints = [("name_unique", "unique(name)", "Nhóm tuổi đã tồn tại.")]

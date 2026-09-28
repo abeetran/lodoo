@@ -393,7 +393,7 @@ class MenuItem(models.Model):
             if site:
                 entry["ma_co_so"] = (site.code or "").upper()
             performer_codes = [
-                (user.employee_code or user.login or "").upper()
+                (user.employee_code or "").upper()
                 for user in employees
             ]
             performer_codes = [code for code in performer_codes if code]

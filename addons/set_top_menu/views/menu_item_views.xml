@@ -40,7 +40,7 @@
                             <field name="item_code" placeholder="Ví dụ: MON-001"/>
                             <field name="process_id" options="{'no_create': True, 'no_create_edit': True}"
                                    domain="[('product_type', '=', 'thuc_an')]"
-                                   readonly="id > 0"/>
+                                   readonly="id > 0" required="1"/>
                             <field name="product_id" readonly="1"/>
                         </group>
                         <group>
@@ -53,7 +53,7 @@
                         </group>
                     </group>
                     <group>
-                        <field name="age_group_id"
+                        <field name="age_group_id" required="1"
                                domain="[('supplier_age_id', '!=', False)]"/>
                         <field name="supplier_procedure_code" readonly="1"/>
                         <field name="supplier_age_group_id" readonly="1"/>
@@ -129,10 +129,10 @@
                             <field name="step_code" invisible="1"/>
                             <field name="step_name" invisible="1"/>
                             <field name="sequence" invisible="1"/>
-                            <field name="employee_ids" widget="many2many_tags"
+                            <field name="employee_ids" widget="many2many_tags" required="1"
                                    options="{'no_create': True}"/>
                             <field name="site_id" options="{'no_create': True}"/>
-                            <field name="info"/>
+                            <field name="info" required="1"/>
                             <field name="address"/>
                             <field name="file_ids" widget="many2many_binary" nolabel="1"/>
                         </form>

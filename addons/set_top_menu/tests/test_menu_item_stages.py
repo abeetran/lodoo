@@ -229,7 +229,7 @@ class TestMenuItemStages(TransactionCase):
             ],
         )
 
-    def test_stage_payload_falls_back_to_login_without_employee_code(self):
+    def test_stage_payload_omits_user_without_employee_code(self):
         step = _make_step(self.env, "Sơ chế", "SO_CHE_L1")
         user = self.env["res.users"].create(
             {"name": "NV No Code", "login": "nv_no_code"}
@@ -242,9 +242,7 @@ class TestMenuItemStages(TransactionCase):
         self.assertEqual(len(payload), 1)
         self.assertEqual(payload[0]["ma_khau"], "SO_CHE_L1")
         self.assertEqual(payload[0]["thu_tu"], 2)
-        self.assertEqual(
-            payload[0]["danh_sach_nguoi_thuc_hien"], ["NV_NO_CODE"]
-        )
+        self.assertNotIn("danh_sach_nguoi_thuc_hien", payload[0])
         self.assertNotIn("danh_sach_files", payload[0])
 
     def test_stage_payload_uppercases_codes(self):
@@ -678,3 +676,65 @@ class TestDishProcessLocked(TransactionCase):
         seg = view.arch_db.split('name="process_id"')[1].split(">")[0]
         self.assertIn("readonly", seg)
         self.assertIn("id", seg)
+
+
+class TestMenuItemRequiredFields(TransactionCase):
+    def _form_arch(self):
+        view = self.env.ref("set_top_menu.view_menu_item_form")
+        return ET.fromstring(view.arch_db)
+
+    def test_step1_required_fields_in_form_arch(self):
+        arch = self._form_arch()
+        by_name = {}
+        for node in arch.iter("field"):
+            by_name.setdefault(node.get("name"), node)
+        for fname in ("process_id", "age_group_id"):
+            self.assertIn(fname, by_name)
+            self.assertEqual(by_name[fname].get("required"), "1")
+
+    def test_step2_required_fields_in_stage_subview(self):
+        arch = self._form_arch()
+        stage = [
+            node for node in arch.iter("field")
+            if node.get("name") == "stage_line_ids"
+        ]
+        self.assertTrue(stage)
+        subform = stage[0].find("form")
+        self.assertIsNotNone(subform)
+        by_name = {
+            node.get("name"): node for node in subform.iter("field")
+        }
+        for fname in ("employee_ids", "info"):
+            self.assertIn(fname, by_name)
+            self.assertEqual(by_name[fname].get("required"), "1")
+        for fname in ("site_id", "address", "file_ids"):
+            self.assertIn(fname, by_name)
+            self.assertIsNone(by_name[fname].get("required"))
+
+    def test_required_flags_on_models(self):
+        item_fields = self.env["set_top_menu.menu.item"]._fields
+        self.assertTrue(item_fields["name"].required)
+        self.assertTrue(item_fields["item_code"].required)
+        self.assertTrue(item_fields["serving_uom_id"].required)
+        stage_fields = self.env["set_top_menu.menu.item.stage"]._fields
+        self.assertTrue(stage_fields["employee_ids"].required)
+        self.assertTrue(stage_fields["info"].required)
+        self.assertFalse(stage_fields["site_id"].required)
+
+    def test_create_without_process_allowed_for_supplier_sync(self):
+        dish = self.env["set_top_menu.menu.item"].create(
+            _dish_vals(self.env)
+        )
+        self.assertFalse(dish.process_id)
+        self.assertFalse(dish.age_group_id)
+
+    def test_onchange_process_builds_lines_missing_required_inputs(self):
+        dish = self.env["set_top_menu.menu.item"].new(_dish_vals(self.env))
+        process = _make_process(self.env, code="QT-REQ-001")
+        dish.process_id = process
+        dish._onchange_process_id()
+        self.assertEqual(len(dish.stage_line_ids), 3)
+        for line in dish.stage_line_ids:
+            self.assertTrue(line.step_id)
+            self.assertFalse(line.employee_ids)
+            self.assertFalse(line.info)

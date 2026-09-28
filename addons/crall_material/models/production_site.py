@@ -27,7 +27,7 @@ class CrallProductionSite(models.Model):
             raise UserError(_("Vui lòng chọn ít nhất một cơ sở sản xuất."))
         records = [
             {
-                "ma_co_so": site.code or "",
+                "ma_co_so": (site.code or "").upper(),
                 "ten_co_so": site.name or "",
                 "dia_chi": site.address or "",
             }

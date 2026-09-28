@@ -67,7 +67,7 @@ class ProductionStep(models.Model):
         if not self:
             raise UserError(_("Vui lòng chọn ít nhất một khâu sản xuất để đồng bộ."))
         payloads = [
-            {"ma_khau": step.code or "", "ten_khau": step.name or ""}
+            {"ma_khau": (step.code or "").upper(), "ten_khau": step.name or ""}
             for step in self
         ]
         result = HnckClient(self.env).push_supplier_steps(payloads)
@@ -288,14 +288,14 @@ class ProductionProcess(models.Model):
         """Serialize one process into the supplier merge body format."""
         self.ensure_one()
         return {
-            "ma_quy_trinh": self.code or "",
+            "ma_quy_trinh": (self.code or "").upper(),
             "ten_quy_trinh": self.name or "",
             "loai_san_pham": PRODUCT_TYPE_TO_SUPPLIER_MAP.get(
                 self.product_type or "", self.product_type or ""
             ),
             "danh_sach_khau": [
                 {
-                    "ma_khau": line.step_id.code or "",
+                    "ma_khau": (line.step_id.code or "").upper(),
                     "thu_tu": line.sequence or 0,
                 }
                 for line in self.line_ids.sorted("sequence")

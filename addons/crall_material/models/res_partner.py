@@ -355,9 +355,11 @@ class ResPartner(models.Model):
             raise UserError(_("Vui lòng chọn ít nhất một nhà cung cấp."))
         records = [
             {
-                "ma_co_so": partner.ref
-                or partner.crall_sub_supplier_code
-                or "",
+                "ma_co_so": (
+                    partner.ref
+                    or partner.crall_sub_supplier_code
+                    or ""
+                ).upper(),
                 "ten_co_so": partner.name or "",
                 "dia_chi": partner.street or "",
             }

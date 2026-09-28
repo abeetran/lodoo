@@ -243,9 +243,31 @@ class TestMenuItemStages(TransactionCase):
         self.assertEqual(payload[0]["ma_khau"], "SO_CHE_L1")
         self.assertEqual(payload[0]["thu_tu"], 2)
         self.assertEqual(
-            payload[0]["danh_sach_nguoi_thuc_hien"], ["nv_no_code"]
+            payload[0]["danh_sach_nguoi_thuc_hien"], ["NV_NO_CODE"]
         )
         self.assertNotIn("danh_sach_files", payload[0])
+
+    def test_stage_payload_uppercases_codes(self):
+        step = _make_step(self.env, "Sơ chế", "so_che_low")
+        site = self.env["crall.production.site"].create(
+            {"name": "Cơ sở thường", "code": "cs_low"}
+        )
+        user = self.env["res.users"].create(
+            {"name": "NV Thường", "login": "nv_low", "employee_code": "nv001"}
+        )
+        dish = self._dish("mon-thuong-001")
+        self._line(
+            dish, step, sequence=1,
+            employee_ids=[(6, 0, [user.id])],
+            site_id=site.id,
+        )
+        payload = dish._supplier_dish_stage_payload()
+        self.assertEqual(len(payload), 1)
+        self.assertEqual(payload[0]["ma_khau"], "SO_CHE_LOW")
+        self.assertEqual(payload[0]["ma_co_so"], "CS_LOW")
+        self.assertEqual(
+            payload[0]["danh_sach_nguoi_thuc_hien"], ["NV001"]
+        )
 
     def test_stage_payload_empty_and_stored_fallback(self):
         dish = self._dish("MON-KHAU-003")

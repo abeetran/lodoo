@@ -44,11 +44,11 @@ def serialize_supplier_dish(
     Pure function (no record access) so the body format stays testable.
     """
     return {
-        "ma_mon_an": item_code or "",
+        "ma_mon_an": (item_code or "").upper(),
         "ten_mon_an": name or "",
         "nhom_tuoi_id": age_group_id or False,
         "mo_ta": description_text or "",
-        "ma_quy_trinh": procedure_code or "",
+        "ma_quy_trinh": (procedure_code or "").upper(),
         "danh_sach_nguyen_lieu": ingredients or [],
         "danh_sach_khau": khau_list or [],
         "danh_sach_anh": media_list or [],
@@ -387,13 +387,13 @@ class MenuItem(models.Model):
             if not employees and not site and not files:
                 continue
             entry = {
-                "ma_khau": line.step_id.code or "",
+                "ma_khau": (line.step_id.code or "").upper(),
                 "thu_tu": line.sequence or 0,
             }
             if site:
-                entry["ma_co_so"] = site.code or ""
+                entry["ma_co_so"] = (site.code or "").upper()
             performer_codes = [
-                user.employee_code or user.login or ""
+                (user.employee_code or user.login or "").upper()
                 for user in employees
             ]
             performer_codes = [code for code in performer_codes if code]
@@ -426,7 +426,7 @@ class MenuItem(models.Model):
                 continue
             lines.append(
                 {
-                    "ma_nguyen_lieu": code,
+                    "ma_nguyen_lieu": code.upper(),
                     "dinh_luong": line.quantity,
                     "don_vi_tinh_id": line.uom_id.id,
                 }

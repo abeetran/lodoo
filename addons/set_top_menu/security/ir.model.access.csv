@@ -12,3 +12,4 @@ access_kitchen_plan_line_user,kitchen.plan.line.user,model_set_top_menu_kitchen_
 access_production_step_user,production.step.user,model_set_top_menu_production_step,base.group_user,1,1,1,1
 access_production_process_user,production.process.user,model_set_top_menu_production_process,base.group_user,1,1,1,1
 access_production_process_line_user,production.process.line.user,model_set_top_menu_production_process_line,base.group_user,1,1,1,1
+access_dish_push_wizard_user,dish.push.wizard.user,model_set_top_menu_dish_push_wizard,base.group_user,1,1,1,1

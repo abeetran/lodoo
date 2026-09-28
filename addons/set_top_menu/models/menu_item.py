@@ -231,12 +231,19 @@ class MenuItem(models.Model):
         for item in self:
             item.cost_per_serving = sum(item.ingredient_ids.mapped("cost"))
 
-    @staticmethod
-    def _is_pdf_file(attachment):
-        """Nhận diện file PDF theo mimetype hoặc phần mở rộng .pdf."""
+    #: File chứng minh ở khâu Bước 2 chỉ nhận ảnh và PDF.
+    ALLOWED_STAGE_EXTENSIONS = (
+        ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
+    )
+
+    @classmethod
+    def _is_allowed_stage_file(cls, attachment):
+        """Nhận diện file ảnh/PDF theo mimetype hoặc phần mở rộng."""
         mimetype = (attachment.mimetype or "").lower()
         filename = (attachment.name or "").lower()
-        return mimetype == "application/pdf" or filename.endswith(".pdf")
+        if mimetype == "application/pdf" or mimetype.startswith("image/"):
+            return True
+        return filename.endswith(cls.ALLOWED_STAGE_EXTENSIONS)
 
     @api.constrains(
         "stage1_file_ids", "stage2_file_ids",
@@ -252,9 +259,9 @@ class MenuItem(models.Model):
                         % (stage_no, DISH_STAGE_MAX_FILES)
                     )
                 for attachment in files:
-                    if not self._is_pdf_file(attachment):
+                    if not self._is_allowed_stage_file(attachment):
                         raise ValidationError(
-                            _("Khâu %s: file '%s' phải là file PDF.")
+                            _("Khâu %s: file '%s' phải là file ảnh hoặc PDF.")
                             % (stage_no, attachment.name)
                         )
                     if (attachment.file_size or 0) > DISH_STAGE_MAX_FILE_SIZE:

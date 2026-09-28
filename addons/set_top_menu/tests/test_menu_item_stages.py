@@ -51,7 +51,11 @@ class TestMenuItemStages(TransactionCase):
             )
 
     def test_stage_files_accept_valid(self):
-        files = [_attachment(self.env, "ok%s.pdf" % i, 100) for i in range(3)]
+        files = [
+            _attachment(self.env, "ok0.pdf", 100),
+            _attachment(self.env, "ok1.pdf", 100),
+            _attachment(self.env, "anh.jpg", 100),
+        ]
         dish = self.env["set_top_menu.menu.item"].create(
             dict(
                 _dish_vals(self.env),
@@ -60,13 +64,13 @@ class TestMenuItemStages(TransactionCase):
         )
         self.assertEqual(len(dish.stage3_file_ids), 3)
 
-    def test_stage_files_reject_non_pdf(self):
-        photo = _attachment(self.env, "anh.jpg", 100)
+    def test_stage_files_reject_other_types(self):
+        notes = _attachment(self.env, "ghi-chu.txt", 100)
         with self.assertRaises(ValidationError):
             self.env["set_top_menu.menu.item"].create(
                 dict(
                     _dish_vals(self.env),
-                    stage1_file_ids=[(6, 0, [photo.id])],
+                    stage1_file_ids=[(6, 0, [notes.id])],
                 )
             )
 

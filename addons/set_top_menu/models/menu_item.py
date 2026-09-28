@@ -1,5 +1,6 @@
 import json
 import logging
+from urllib.parse import quote
 
 from odoo import Command, _, api, fields, http, models
 from odoo.exceptions import UserError, ValidationError
@@ -417,14 +418,20 @@ class MenuItem(models.Model):
     def _supplier_file_duong_dan(self, attachment):
         """Build the public link of one ``ir.attachment``.
 
-        Dạng tuyệt đối: domain đang chạy app + link tải
-        ``/web/content/<id>``. File kiểu link thì dùng thẳng URL gốc.
+        Dạng tuyệt đối: domain đang chạy app + link tải dạng file
+        ``/web/content/<id>/<tên-file>`` (kết thúc bằng .png/.jpg/.pdf
+        thật để bên nhận đọc trực tiếp). File kiểu link thì dùng thẳng
+        URL gốc.
         """
         self.ensure_one()
         if attachment.type == "url" and attachment.url:
             return attachment.url
         base_url = self._supplier_app_base_url()
+        # ir.attachment không có datas_fname: tên file lúc tải lên nằm ở name.
+        filename = attachment.name or ""
         path = "/web/content/%s" % attachment.id
+        if filename:
+            path = "%s/%s" % (path, quote(filename))
         return "%s%s" % (base_url, path) if base_url else path
 
     def _supplier_file_entry(self, attachment):

@@ -2,6 +2,7 @@ import base64
 import json
 from types import SimpleNamespace
 from unittest.mock import patch
+from urllib.parse import quote
 
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
@@ -128,7 +129,7 @@ class TestMenuItemStages(TransactionCase):
                             "ten_file": "bien-ban-1.pdf",
                             "loai": "document",
                             "duong_dan": (
-                                "https://odoo.vi-du.vn/web/content/%s"
+                                "https://odoo.vi-du.vn/web/content/%s/bien-ban-1.pdf"
                                 % doc1.id
                             ),
                         },
@@ -137,7 +138,7 @@ class TestMenuItemStages(TransactionCase):
                             "ten_file": "bien-ban-2.pdf",
                             "loai": "document",
                             "duong_dan": (
-                                "https://odoo.vi-du.vn/web/content/%s"
+                                "https://odoo.vi-du.vn/web/content/%s/bien-ban-2.pdf"
                                 % doc2.id
                             ),
                         },
@@ -244,7 +245,8 @@ class TestMenuItemStages(TransactionCase):
                     "ten_anh": "mon-an.jpg",
                     "loai": "image",
                     "duong_dan": (
-                        "https://odoo.vi-du.vn/web/content/%s" % photo.id
+                        "https://odoo.vi-du.vn/web/content/%s/mon-an.jpg"
+                        % photo.id
                     ),
                 },
                 {
@@ -253,7 +255,8 @@ class TestMenuItemStages(TransactionCase):
                     "ten_anh": "chung-nhan.pdf",
                     "loai": "document",
                     "duong_dan": (
-                        "https://odoo.vi-du.vn/web/content/%s" % doc.id
+                        "https://odoo.vi-du.vn/web/content/%s/chung-nhan.pdf"
+                        % doc.id
                     ),
                 },
             ],
@@ -275,8 +278,28 @@ class TestMenuItemStages(TransactionCase):
         with patch("odoo.http.request", fake_request):
             link = dish._supplier_file_duong_dan(photo)
         self.assertEqual(
-            link, "https://app.server.vn/web/content/%s" % photo.id
+            link, "https://app.server.vn/web/content/%s/mon-an.jpg" % photo.id
         )
+
+    def test_file_link_quotes_filename(self):
+        _set_base_url(self.env, "https://odoo.vi-du.vn")
+        photo = _attachment(self.env, "ảnh chế biến.jpg", 100)
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MON-LINK-003",
+                dish_image_ids=[(6, 0, [photo.id])],
+            )
+        )
+        [entry] = dish._supplier_dish_media_payload()
+        self.assertTrue(
+            entry["duong_dan"].endswith(
+                "/web/content/%s/%s" % (photo.id, quote("ảnh chế biến.jpg"))
+            ),
+            entry["duong_dan"],
+        )
+        self.assertNotIn(" ", entry["duong_dan"])
+        self.assertEqual(entry["ten_anh"], "ảnh chế biến.jpg")
 
     def test_file_link_falls_back_to_relative_without_base_url(self):
         _set_base_url(self.env, "")
@@ -296,7 +319,7 @@ class TestMenuItemStages(TransactionCase):
                     "ten_file": "mon-an.jpg",
                     "ten_anh": "mon-an.jpg",
                     "loai": "image",
-                    "duong_dan": "/web/content/%s" % photo.id,
+                    "duong_dan": "/web/content/%s/mon-an.jpg" % photo.id,
                 }
             ],
         )

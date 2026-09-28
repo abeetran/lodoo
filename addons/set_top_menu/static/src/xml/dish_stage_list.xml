@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="set_top_menu.DishStageList">
+        <div class="o_dish_stage_columns row">
+            <div class="o_dish_stage_menu col-12 col-md-4">
+                <t t-foreach="stages" t-as="stage" t-key="stageKey(stage)">
+                    <div class="o_dish_stage_item"
+                         t-att-class="{ 'o_dish_stage_active': selected and stageKey(stage) === stageKey(selected) }"
+                         t-on-click="() => this.selectStage(stage)">
+                        <span class="o_dish_stage_sequence" t-esc="stageSequence(stage)"/>
+                        <span class="o_dish_stage_name" t-esc="stageName(stage)"/>
+                    </div>
+                </t>
+                <p t-if="!stages.length" class="text-muted">Quy trình chưa có khâu nào.</p>
+            </div>
+            <div class="o_dish_stage_detail col-12 col-md-8" t-if="selected">
+                <!-- <p class="o_dish_stage_content">
+                    Đây là nội dung của khâu sản xuất: <t t-esc="stageName(selected)"/>
+                </p> -->
+                <DishStageForm record="selected" title="stageName(selected)" fieldNodes="fieldNodes"/>
+            </div>
+        </div>
+    </t>
+
+    <t t-name="set_top_menu.DishStageForm">
+        <div class="o_dish_stage_form">
+            <h3 class="o_dish_stage_title" t-esc="props.title"/>
+            <div class="row">
+                <div class="col-12 col-md-6 o_dish_stage_field" t-if="fieldNode('employee_ids')">
+                    <label class="o_form_label" t-esc="fieldLabel('employee_ids')"/>
+                    <Field name="'employee_ids'" record="props.record" fieldInfo="fieldNode('employee_ids')"/>
+                </div>
+                <div class="col-12 col-md-6 o_dish_stage_field" t-if="fieldNode('site_id')">
+                    <label class="o_form_label" t-esc="fieldLabel('site_id')"/>
+                    <Field name="'site_id'" record="props.record" fieldInfo="fieldNode('site_id')"/>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 o_dish_stage_field" t-if="fieldNode('info')">
+                    <label class="o_form_label" t-esc="fieldLabel('info')"/>
+                    <Field name="'info'" record="props.record" fieldInfo="fieldNode('info')"/>
+                </div>
+                <div class="col-12 o_dish_stage_field" t-if="fieldNode('address')">
+                    <label class="o_form_label" t-esc="fieldLabel('address')"/>
+                    <Field name="'address'" record="props.record" fieldInfo="fieldNode('address')"/>
+                </div>
+            </div>
+            <div class="o_dish_stage_field" t-if="fieldNode('file_ids')">
+                <label class="o_form_label" t-esc="fieldLabel('file_ids')"/>
+                <Field name="'file_ids'" record="props.record" fieldInfo="fieldNode('file_ids')"/>
+            </div>
+        </div>
+    </t>
+</templates>

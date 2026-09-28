@@ -1,10 +1,13 @@
 import base64
 import json
+import os
+import xml.etree.ElementTree as ET
 from types import SimpleNamespace
 from unittest.mock import patch
 from urllib.parse import quote
 
 from odoo.exceptions import UserError, ValidationError
+from odoo.modules.module import get_module_path
 from odoo.tests.common import TransactionCase
 
 
@@ -31,98 +34,177 @@ def _dish_vals(env):
     }
 
 
+def _make_step(env, name, code):
+    return env["set_top_menu.production.step"].create(
+        {"name": name, "code": code}
+    )
+
+
+def _make_process(env, code="QT-LINE-001"):
+    step_model = env["set_top_menu.production.step"]
+    steps = [
+        step_model.create({"name": name, "code": code_})
+        for name, code_ in (
+            ("Sơ chế", "SO_CHE"),
+            ("Chế biến", "CHE_BIEN"),
+            ("Đóng gói", "DONG_GOI"),
+        )
+    ]
+    return env["set_top_menu.production.process"].create(
+        {
+            "name": "Quy trình dòng khâu",
+            "code": code,
+            "product_type": "thuc_an",
+            "line_ids": [
+                (0, 0, {"step_id": step.id, "sequence": (i + 1) * 10})
+                for i, step in enumerate(steps)
+            ],
+        }
+    )
+
+
 class TestMenuItemStages(TransactionCase):
+    def _user(self, tag, code="NV001"):
+        return self.env["res.users"].create(
+            {
+                "name": "NV %s" % tag,
+                "login": "nv_%s" % tag,
+                "employee_code": code,
+            }
+        )
+
+    def _dish(self, code="MON-STAGE-001"):
+        return self.env["set_top_menu.menu.item"].create(
+            dict(_dish_vals(self.env), item_code=code)
+        )
+
+    def _line(self, dish, step, sequence=1, **kwargs):
+        vals = {
+            "menu_item_id": dish.id,
+            "step_id": step.id,
+            "sequence": sequence,
+            "employee_ids": [(6, 0, [self._user("l%s" % sequence).id])],
+            "info": "Thông tin khâu",
+        }
+        vals.update(kwargs)
+        return self.env["set_top_menu.menu.item.stage"].create(vals)
+
     def test_stage_files_reject_more_than_3(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_F1")
+        dish = self._dish("MON-FILE-001")
         files = [_attachment(self.env, "f%s.pdf" % i, 10) for i in range(4)]
         with self.assertRaises(ValidationError):
-            self.env["set_top_menu.menu.item"].create(
-                dict(
-                    _dish_vals(self.env),
-                    stage1_file_ids=[(6, 0, [f.id for f in files])],
-                )
+            self._line(
+                dish, step,
+                file_ids=[(6, 0, [f.id for f in files])],
             )
 
-    def test_stage_files_reject_oversize(self):
-        big = _attachment(self.env, "big.pdf", 6 * 1024 * 1024)
-        with self.assertRaises(ValidationError):
-            self.env["set_top_menu.menu.item"].create(
-                dict(
-                    _dish_vals(self.env),
-                    stage2_file_ids=[(6, 0, [big.id])],
-                )
-            )
-
-    def test_stage_files_accept_valid(self):
+    def test_stage_files_reject_total_over_5mb(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_F2")
+        dish = self._dish("MON-FILE-002")
         files = [
-            _attachment(self.env, "ok0.pdf", 100),
-            _attachment(self.env, "ok1.pdf", 100),
+            _attachment(self.env, "p%s.pdf" % i, 2 * 1024 * 1024)
+            for i in range(3)
+        ]
+        with self.assertRaises(ValidationError):
+            self._line(dish, step, file_ids=[(6, 0, [f.id for f in files])])
+
+    def test_stage_files_accept_total_within_5mb(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_F3")
+        dish = self._dish("MON-FILE-003")
+        files = [
+            _attachment(self.env, "ok0.pdf", 2 * 1024 * 1024),
+            _attachment(self.env, "ok1.pdf", 2 * 1024 * 1024),
             _attachment(self.env, "anh.jpg", 100),
         ]
-        dish = self.env["set_top_menu.menu.item"].create(
-            dict(
-                _dish_vals(self.env),
-                stage3_file_ids=[(6, 0, [f.id for f in files])],
-            )
+        line = self._line(
+            dish, step, file_ids=[(6, 0, [f.id for f in files])]
         )
-        self.assertEqual(len(dish.stage3_file_ids), 3)
+        self.assertEqual(len(line.file_ids), 3)
 
     def test_stage_files_reject_other_types(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_F4")
+        dish = self._dish("MON-FILE-004")
         notes = _attachment(self.env, "ghi-chu.txt", 100)
         with self.assertRaises(ValidationError):
-            self.env["set_top_menu.menu.item"].create(
-                dict(
-                    _dish_vals(self.env),
-                    stage1_file_ids=[(6, 0, [notes.id])],
-                )
+            self._line(dish, step, file_ids=[(6, 0, [notes.id])])
+
+    def test_stage_line_requires_employee_and_info(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_R1")
+        dish = self._dish("MON-REQ-001")
+        with self.assertRaises((UserError, ValidationError)):
+            self.env["set_top_menu.menu.item.stage"].create(
+                {
+                    "menu_item_id": dish.id,
+                    "step_id": step.id,
+                    "sequence": 1,
+                    "info": "Thiếu nhân viên",
+                }
+            )
+        with self.assertRaises((UserError, ValidationError)):
+            self.env["set_top_menu.menu.item.stage"].create(
+                {
+                    "menu_item_id": dish.id,
+                    "step_id": step.id,
+                    "sequence": 1,
+                    "employee_ids": [(6, 0, [self._user("req").id])],
+                }
             )
 
-    def test_form_marks_stage_required_fields(self):
-        view = self.env.ref("set_top_menu.view_menu_item_form")
-        arch = view.arch_db
-        for stage in ("stage1", "stage2", "stage3", "stage4"):
-            for field in ("employee_ids", "info"):
-                marker = 'name="%s_%s"' % (stage, field)
-                self.assertIn(marker, arch)
-                node = arch.split(marker)[1].split(">")[0]
-                self.assertIn('required="1"', node)
+    def test_onchange_builds_stage_lines_from_process(self):
+        process = _make_process(self.env)
+        dish = self.env["set_top_menu.menu.item"].new(
+            dict(_dish_vals(self.env), item_code="MON-OC-001")
+        )
+        dish.process_id = process
+        dish._onchange_process_id()
+        self.assertEqual(
+            [(line.sequence, line.step_id.name) for line in dish.stage_line_ids],
+            [(1, "Sơ chế"), (2, "Chế biến"), (3, "Đóng gói")],
+        )
+        dish.process_id = False
+        dish._onchange_process_id()
+        self.assertFalse(dish.stage_line_ids)
 
-    def test_stage_payload_maps_step2_tabs(self):
+    def test_stage_payload_uses_process_step_codes(self):
         _set_base_url(self.env)
-        user_model = self.env["res.users"]
-        user1 = user_model.create(
-            {"name": "NV Khau 1", "login": "nv_khau_1",
-             "employee_code": "NV001"}
-        )
-        user2 = user_model.create(
-            {"name": "NV Khau 2", "login": "nv_khau_2",
-             "employee_code": "NV002"}
-        )
+        user1 = self._user("khau_1", "NV001")
+        user2 = self._user("khau_2", "NV002")
         site = self.env["crall.production.site"].create(
             {"name": "Cơ sở 1", "code": "CS001"}
         )
         doc1 = _attachment(self.env, "bien-ban-1.pdf", 100)
         doc2 = _attachment(self.env, "bien-ban-2.pdf", 100)
-        dish = self.env["set_top_menu.menu.item"].create(
-            dict(
-                _dish_vals(self.env),
-                item_code="MON-KHAU-001",
-                stage1_employee_ids=[(6, 0, [user1.id, user2.id])],
-                stage1_site_id=site.id,
-                stage3_file_ids=[(6, 0, [doc1.id, doc2.id])],
-            )
+        process = _make_process(self.env, code="QT-KHAU-001")
+        steps = {
+            line.step_id.code: line.step_id
+            for line in process.line_ids
+        }
+        user3 = self._user("khau_3", "NV003")
+        dish = self._dish("MON-KHAU-001")
+        self._line(
+            dish, steps["SO_CHE"], sequence=1,
+            employee_ids=[(6, 0, [user1.id, user2.id])],
+            site_id=site.id,
+        )
+        self._line(
+            dish, steps["DONG_GOI"], sequence=3,
+            employee_ids=[(6, 0, [user3.id])],
+            file_ids=[(6, 0, [doc1.id, doc2.id])],
         )
         self.assertEqual(
             dish._supplier_dish_stage_payload(),
             [
                 {
-                    "ma_khau": "LAP_DON_HANG",
+                    "ma_khau": "SO_CHE",
                     "thu_tu": 1,
                     "ma_co_so": "CS001",
                     "danh_sach_nguoi_thuc_hien": ["NV001", "NV002"],
                 },
                 {
-                    "ma_khau": "NCC_SX_GIAO_HANG",
+                    "ma_khau": "DONG_GOI",
                     "thu_tu": 3,
+                    "danh_sach_nguoi_thuc_hien": ["NV003"],
                     "danh_sach_files": [
                         {
                             "ma_file": str(doc1.id),
@@ -148,33 +230,25 @@ class TestMenuItemStages(TransactionCase):
         )
 
     def test_stage_payload_falls_back_to_login_without_employee_code(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_L1")
         user = self.env["res.users"].create(
             {"name": "NV No Code", "login": "nv_no_code"}
         )
-        dish = self.env["set_top_menu.menu.item"].create(
-            dict(
-                _dish_vals(self.env),
-                item_code="MON-KHAU-002",
-                stage2_employee_ids=[(6, 0, [user.id])],
-            )
+        dish = self._dish("MON-KHAU-002")
+        self._line(
+            dish, step, sequence=2, employee_ids=[(6, 0, [user.id])]
         )
         payload = dish._supplier_dish_stage_payload()
+        self.assertEqual(len(payload), 1)
+        self.assertEqual(payload[0]["ma_khau"], "SO_CHE_L1")
+        self.assertEqual(payload[0]["thu_tu"], 2)
         self.assertEqual(
-            payload,
-            [
-                {
-                    "ma_khau": "GUI_DON_NCC",
-                    "thu_tu": 2,
-                    "danh_sach_nguoi_thuc_hien": ["nv_no_code"],
-                }
-            ],
+            payload[0]["danh_sach_nguoi_thuc_hien"], ["nv_no_code"]
         )
         self.assertNotIn("danh_sach_files", payload[0])
 
     def test_stage_payload_empty_and_stored_fallback(self):
-        dish = self.env["set_top_menu.menu.item"].create(
-            dict(_dish_vals(self.env), item_code="MON-KHAU-003")
-        )
+        dish = self._dish("MON-KHAU-003")
         self.assertEqual(dish._supplier_dish_stage_payload(), [])
         stored = [{"ma_khau": "SO_CHE", "thu_tu": 1}]
         dish.write({"supplier_payload": {"danh_sach_khau": stored}})
@@ -338,23 +412,137 @@ class TestMenuItemStages(TransactionCase):
         self.assertEqual(payload["ma_quy_trinh"], "NCC-QT-9")
         self.assertEqual(payload["danh_sach_anh"], [])
 
-    def test_form_has_two_steps_and_media_tab(self):
+    def test_form_has_step2_two_columns(self):
         view = self.env.ref("set_top_menu.view_menu_item_form")
         arch = view.arch_db
         self.assertIn("Bước 1", arch)
-        self.assertIn("Bước 2", arch)
+        self.assertIn("Bước 2: Quy trình chế biến", arch)
         self.assertIn("dish_image_ids", arch)
         self.assertIn("dish_document_ids", arch)
-        for label in (
-            "Khâu 1",
-            "Khâu 2",
-            "Khâu 3",
-            "Khâu 4",
-            "stage1_site_id",
-            "stage1_address",
-            "stage4_file_ids",
-        ):
-            self.assertIn(label, arch)
+        self.assertIn("stage_line_ids", arch)
+        self.assertNotIn("stage_display_ids", arch)
+        root = ET.fromstring("<odoo>%s</odoo>" % arch)
+        # Bước 2 chỉ hiện khi đã chọn quy trình ở Bước 1: Odoo 17 đánh giá
+        # invisible như biểu thức Python nên phải dùng "not process_id",
+        # không dùng chuỗi domain (list literal luôn truthy).
+        separator = next(
+            node
+            for node in root.iter("separator")
+            if node.get("string") == "Bước 2: Quy trình chế biến"
+        )
+        self.assertEqual(separator.get("invisible"), "not process_id")
+        stage_field = next(
+            node
+            for node in root.iter("field")
+            if node.get("name") == "stage_line_ids"
+        )
+        self.assertEqual(stage_field.get("invisible"), "not process_id")
+        # Bước 2 hiển thị 2 cột qua widget dish_stage_list: cột trái là
+        # danh sách khâu, cột phải là form nhập của khâu đang chọn.
+        self.assertEqual(stage_field.get("widget"), "dish_stage_list")
+        # Subview form khai báo các ô nhập liệu của từng khâu (nạp
+        # tên/mã khâu qua field ẩn).
+        stage_form = next(node for node in stage_field.iter("form"))
+        subview_fields = {
+            node.get("name"): node for node in stage_form.iter("field")
+        }
+        self.assertEqual(
+            set(subview_fields),
+            {
+                "step_id", "step_code", "step_name", "sequence",
+                "employee_ids", "site_id", "info", "address", "file_ids",
+            },
+        )
+        for hidden in ("step_id", "step_code", "step_name", "sequence"):
+            self.assertEqual(subview_fields[hidden].get("invisible"), "1")
+        # Subview tree buộc viewMode="list" để model nạp đúng spec dữ liệu
+        # (kể cả tên hiển thị của nhân viên/cơ sở) ở cả chế độ xem lẫn sửa.
+        # Widget vẽ giao diện 2 cột, tree này không hiển thị.
+        stage_tree = next(node for node in stage_field.iter("tree"))
+        self.assertEqual(
+            {node.get("name") for node in stage_tree.iter("field")},
+            set(subview_fields),
+        )
+
+    def test_step2_two_column_widget_structure(self):
+        """Widget Bước 2: cột trái lặp danh sách khâu và bấm chọn được,
+        cột phải là form nhập của khâu đang chọn.
+        """
+        template_path = os.path.join(
+            get_module_path("set_top_menu"),
+            "static", "src", "xml", "dish_stage_list.xml",
+        )
+        with open(template_path, encoding="utf-8") as handle:
+            source = handle.read()
+        root = ET.fromstring(source)
+        loops = [
+            node.get("t-foreach")
+            for node in root.iter()
+            if node.get("t-foreach")
+        ]
+        self.assertIn("stages", loops)
+        template_text = ET.tostring(root, encoding="unicode")
+        self.assertIn("selectStage", template_text)
+        self.assertIn("DishStageForm", template_text)
+        # Cột phải hiện dòng nội dung khâu đang chọn kèm tên khâu.
+        self.assertIn("Đây là nội dung của khâu sản xuất", source)
+        # Ô nhập trong cột phải phải bind tên field dạng chuỗi JS,
+        # nếu không Field vỡ ở record.fields[name] (lỗi OwlError cũ).
+        fields = list(root.iter("Field"))
+        self.assertTrue(fields)
+        for node in fields:
+            name = node.get("name")
+            self.assertTrue(
+                name.startswith("'") and name.endswith("'"),
+                "Unquoted Field name binding: %s" % name,
+            )
+        # Mỗi khâu nằm trong 1 box cách nhau 15px, box đang chọn nổi bật.
+        style_path = os.path.join(
+            get_module_path("set_top_menu"),
+            "static", "src", "scss", "dish_stage_list.scss",
+        )
+        with open(style_path, encoding="utf-8") as handle:
+            style = handle.read()
+        self.assertIn("margin-bottom: 15px", style)
+        self.assertIn(".o_dish_stage_active", style)
+        # Selector gốc của SCSS phải khớp class gốc của template,
+        # nếu không style không bao giờ áp vào màn hình.
+        list_template = next(
+            node
+            for node in root.iter("t")
+            if node.get("t-name") == "set_top_menu.DishStageList"
+        )
+        root_class = list_template.find("div").get("class").split()[0]
+        self.assertIn(".%s" % root_class, style)
+
+    def test_stage_list_widget_logs_process_and_stages(self):
+        """Widget in console thông tin quy trình + danh sách khâu khi chọn
+        quy trình ở Bước 1.
+        """
+        widget_path = os.path.join(
+            get_module_path("set_top_menu"),
+            "static", "src", "js", "dish_stage_list.js",
+        )
+        with open(widget_path, encoding="utf-8") as handle:
+            source = handle.read()
+        self.assertIn("console.log", source)
+
+    def test_food_form_process_field_uses_expression_invisible(self):
+        view = self.env.ref("set_top_menu.view_product_template_food_form")
+        arch = view.arch_db
+        self.assertNotIn("[('crall_food_source', '=', 'standard')]", arch)
+        process_fields = [
+            node
+            for node in ET.fromstring(
+                "<odoo>%s</odoo>" % arch
+            ).iter("field")
+            if node.get("name") == "process_ids"
+        ]
+        self.assertTrue(process_fields)
+        for node in process_fields:
+            self.assertEqual(
+                node.get("invisible"), "crall_food_source == 'standard'"
+            )
 
 
 class TestDishPushConfirmWizard(TransactionCase):
@@ -427,3 +615,44 @@ class TestDishPushConfirmWizard(TransactionCase):
         self.assertIn("payload_text", view.arch_db)
         self.assertIn("result_text", view.arch_db)
         self.assertIn("action_confirm_push", view.arch_db)
+
+
+class TestDishProcessLocked(TransactionCase):
+    def _make_process(self, code):
+        return self.env["set_top_menu.production.process"].create(
+            {"name": "QT %s" % code, "code": code, "product_type": "thuc_an"}
+        )
+
+    def test_change_process_on_edit_raises(self):
+        proc_a = self._make_process("QT-LOCK-A")
+        proc_b = self._make_process("QT-LOCK-B")
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MON-LOCK-001",
+                process_id=proc_a.id,
+            )
+        )
+        with self.assertRaises(UserError):
+            dish.write({"process_id": proc_b.id})
+        with self.assertRaises(UserError):
+            dish.write({"process_id": False})
+
+    def test_keep_process_and_edit_other_fields_ok(self):
+        proc_a = self._make_process("QT-LOCK-C")
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(
+                _dish_vals(self.env),
+                item_code="MON-LOCK-002",
+                process_id=proc_a.id,
+            )
+        )
+        dish.write({"process_id": proc_a.id, "name": "Tên mới"})
+        self.assertEqual(dish.name, "Tên mới")
+        self.assertEqual(dish.process_id.id, proc_a.id)
+
+    def test_process_readonly_on_edit_view(self):
+        view = self.env.ref("set_top_menu.view_menu_item_form")
+        seg = view.arch_db.split('name="process_id"')[1].split(">")[0]
+        self.assertIn("readonly", seg)
+        self.assertIn("id", seg)

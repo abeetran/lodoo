@@ -11,18 +11,22 @@ from odoo.addons.crall_material.models.hnck_client import HnckClient
 
 _logger = logging.getLogger(__name__)
 
-# Quy trình chế biến món ăn gồm 4 khâu cố định, lưu trực tiếp trên món ăn.
-DISH_STAGES = ("stage1", "stage2", "stage3", "stage4")
-# Mã khâu + thứ tự cố định khi đẩy danh sách khâu lên NCC.
-DISH_STAGE_CODES = (
-    ("stage1", "LAP_DON_HANG", 1),
-    ("stage2", "GUI_DON_NCC", 2),
-    ("stage3", "NCC_SX_GIAO_HANG", 3),
-    ("stage4", "TIEP_NHAN_GIAO_HANG", 4),
-)
-# File chứng minh mỗi khâu: tối đa 3 file, mỗi file không quá 5MB.
+# File minh chứng mỗi khâu: ảnh/PDF, tối đa 3 file, tổng dung lượng tối đa 5MB.
 DISH_STAGE_MAX_FILES = 3
-DISH_STAGE_MAX_FILE_SIZE = 5 * 1024 * 1024
+DISH_STAGE_MAX_TOTAL_SIZE = 5 * 1024 * 1024
+#: File minh chứng ở khâu Bước 2 chỉ nhận ảnh và PDF.
+ALLOWED_STAGE_EXTENSIONS = (
+    ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
+)
+
+
+def is_allowed_stage_file(attachment):
+    """Nhận diện file ảnh/PDF theo mimetype hoặc phần mở rộng."""
+    mimetype = (attachment.mimetype or "").lower()
+    filename = (attachment.name or "").lower()
+    if mimetype == "application/pdf" or mimetype.startswith("image/"):
+        return True
+    return filename.endswith(ALLOWED_STAGE_EXTENSIONS)
 
 
 def serialize_supplier_dish(
@@ -134,81 +138,10 @@ class MenuItem(models.Model):
         string="Giấy tờ chứng minh",
         help="Giấy tờ chứng minh món ăn.",
     )
-    stage1_employee_ids = fields.Many2many(
-        "res.users",
-        "menu_item_stage1_employee_rel",
-        string="Khâu 1 - Nhân viên thực hiện",
-        help="Nhân viên thực hiện khâu 1: Lập đơn hàng.",
-    )
-    stage1_site_id = fields.Many2one(
-        "crall.production.site",
-        string="Khâu 1 - Cơ sở thực hiện",
-        help="Cơ sở thực hiện khâu 1: Lập đơn hàng.",
-    )
-    stage1_info = fields.Text(string="Khâu 1 - Thông tin chế biến")
-    stage1_address = fields.Char(string="Khâu 1 - Địa chỉ thực hiện")
-    stage1_file_ids = fields.Many2many(
-        "ir.attachment",
-        "menu_item_stage1_file_rel",
-        string="Khâu 1 - File chứng minh",
-        help="Tối đa 3 file, mỗi file không quá 5MB.",
-    )
-    stage2_employee_ids = fields.Many2many(
-        "res.users",
-        "menu_item_stage2_employee_rel",
-        string="Khâu 2 - Nhân viên thực hiện",
-        help="Nhân viên thực hiện khâu 2: Gửi đơn tới NCC phụ.",
-    )
-    stage2_site_id = fields.Many2one(
-        "crall.production.site",
-        string="Khâu 2 - Cơ sở thực hiện",
-        help="Cơ sở thực hiện khâu 2: Gửi đơn tới NCC phụ.",
-    )
-    stage2_info = fields.Text(string="Khâu 2 - Thông tin chế biến")
-    stage2_address = fields.Char(string="Khâu 2 - Địa chỉ thực hiện")
-    stage2_file_ids = fields.Many2many(
-        "ir.attachment",
-        "menu_item_stage2_file_rel",
-        string="Khâu 2 - File chứng minh",
-        help="Tối đa 3 file, mỗi file không quá 5MB.",
-    )
-    stage3_employee_ids = fields.Many2many(
-        "res.users",
-        "menu_item_stage3_employee_rel",
-        string="Khâu 3 - Nhân viên thực hiện",
-        help="Nhân viên thực hiện khâu 3: NCC sản xuất và giao hàng.",
-    )
-    stage3_site_id = fields.Many2one(
-        "crall.production.site",
-        string="Khâu 3 - Cơ sở thực hiện",
-        help="Cơ sở thực hiện khâu 3: NCC sản xuất và giao hàng.",
-    )
-    stage3_info = fields.Text(string="Khâu 3 - Thông tin chế biến")
-    stage3_address = fields.Char(string="Khâu 3 - Địa chỉ thực hiện")
-    stage3_file_ids = fields.Many2many(
-        "ir.attachment",
-        "menu_item_stage3_file_rel",
-        string="Khâu 3 - File chứng minh",
-        help="Tối đa 3 file, mỗi file không quá 5MB.",
-    )
-    stage4_employee_ids = fields.Many2many(
-        "res.users",
-        "menu_item_stage4_employee_rel",
-        string="Khâu 4 - Nhân viên thực hiện",
-        help="Nhân viên thực hiện khâu 4: Tiếp nhận, kiểm tra và giao hàng.",
-    )
-    stage4_site_id = fields.Many2one(
-        "crall.production.site",
-        string="Khâu 4 - Cơ sở thực hiện",
-        help="Cơ sở thực hiện khâu 4: Tiếp nhận, kiểm tra và giao hàng.",
-    )
-    stage4_info = fields.Text(string="Khâu 4 - Thông tin chế biến")
-    stage4_address = fields.Char(string="Khâu 4 - Địa chỉ thực hiện")
-    stage4_file_ids = fields.Many2many(
-        "ir.attachment",
-        "menu_item_stage4_file_rel",
-        string="Khâu 4 - File chứng minh",
-        help="Tối đa 3 file, mỗi file không quá 5MB.",
+    stage_line_ids = fields.One2many(
+        "set_top_menu.menu.item.stage", "menu_item_id",
+        string="Khâu chế biến", copy=True,
+        help="Danh sách khâu theo quy trình đã chọn ở bước 1.",
     )
     supplier_procedure_code = fields.Char(
         string="Mã quy trình NCC", copy=False, index=True,
@@ -233,44 +166,27 @@ class MenuItem(models.Model):
         for item in self:
             item.cost_per_serving = sum(item.ingredient_ids.mapped("cost"))
 
-    #: File chứng minh ở khâu Bước 2 chỉ nhận ảnh và PDF.
-    ALLOWED_STAGE_EXTENSIONS = (
-        ".pdf", ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp",
-    )
+    @api.onchange("process_id")
+    def _onchange_process_id(self):
+        """Chọn quy trình ở bước 1: dựng một dòng khâu cho mỗi khâu của quy trình.
 
-    @classmethod
-    def _is_allowed_stage_file(cls, attachment):
-        """Nhận diện file ảnh/PDF theo mimetype hoặc phần mở rộng."""
-        mimetype = (attachment.mimetype or "").lower()
-        filename = (attachment.name or "").lower()
-        if mimetype == "application/pdf" or mimetype.startswith("image/"):
-            return True
-        return filename.endswith(cls.ALLOWED_STAGE_EXTENSIONS)
-
-    @api.constrains(
-        "stage1_file_ids", "stage2_file_ids",
-        "stage3_file_ids", "stage4_file_ids",
-    )
-    def _check_stage_proof_files(self):
-        for item in self:
-            for stage_no in (1, 2, 3, 4):
-                files = item["stage%s_file_ids" % stage_no]
-                if len(files) > DISH_STAGE_MAX_FILES:
-                    raise ValidationError(
-                        _("Khâu %s: file chứng minh tối đa %s file.")
-                        % (stage_no, DISH_STAGE_MAX_FILES)
-                    )
-                for attachment in files:
-                    if not self._is_allowed_stage_file(attachment):
-                        raise ValidationError(
-                            _("Khâu %s: file '%s' phải là file ảnh hoặc PDF.")
-                            % (stage_no, attachment.name)
-                        )
-                    if (attachment.file_size or 0) > DISH_STAGE_MAX_FILE_SIZE:
-                        raise ValidationError(
-                            _("Khâu %s: file '%s' vượt quá 5MB.")
-                            % (stage_no, attachment.name)
-                        )
+        Cột trái Bước 2 liệt kê các dòng, cột phải là form nhập của dòng
+        đang chọn. Đổi quy trình khi tạo mới sẽ dựng lại toàn bộ dòng khâu.
+        """
+        if not self.process_id:
+            self.stage_line_ids = [(5, 0, 0)]
+            return
+        lines = self.process_id.line_ids.sorted("sequence")
+        self.stage_line_ids = [(5, 0, 0)] + [
+            (
+                0, 0,
+                {
+                    "sequence": index,
+                    "step_id": line.step_id.id,
+                },
+            )
+            for index, line in enumerate(lines, start=1)
+        ]
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -303,6 +219,13 @@ class MenuItem(models.Model):
         return self.mapped("product_id")
 
     def write(self, vals):
+        if "process_id" in vals:
+            new_process_id = vals["process_id"] or False
+            for item in self:
+                if (item.process_id.id or False) != new_process_id:
+                    raise UserError(
+                        _("Không được thay đổi quy trình sản xuất khi sửa món ăn.")
+                    )
         result = super().write(vals)
         if "sale_price" in vals:
             self.mapped("product_id").write({"list_price": vals["sale_price"]})
@@ -449,21 +372,24 @@ class MenuItem(models.Model):
         }
 
     def _supplier_dish_stage_payload(self):
-        """Build ``danh_sach_khau`` from the Bước 2 stage tabs.
+        """Build ``danh_sach_khau`` from the Bước 2 stage lines.
 
-        Mỗi tab có mã khâu + thứ tự cố định (``DISH_STAGE_CODES``).
-        Tab trống (không nhân viên, không cơ sở, không file) thì bỏ qua.
-        ``duong_dan`` của file là link tuyệt đối theo domain hiện tại.
+        Mỗi dòng là một khâu của quy trình (``ma_khau`` = mã khâu sản xuất,
+        ``thu_tu`` = thứ tự dòng). Dòng trống (không nhân viên, không
+        cơ sở, không file) thì bỏ qua.
         """
         self.ensure_one()
         khau_list = []
-        for prefix, ma_khau, thu_tu in DISH_STAGE_CODES:
-            employees = self["%s_employee_ids" % prefix]
-            site = self["%s_site_id" % prefix]
-            files = self["%s_file_ids" % prefix]
+        for line in self.stage_line_ids.sorted("sequence"):
+            employees = line.employee_ids
+            site = line.site_id
+            files = line.file_ids
             if not employees and not site and not files:
                 continue
-            entry = {"ma_khau": ma_khau, "thu_tu": thu_tu}
+            entry = {
+                "ma_khau": line.step_id.code or "",
+                "thu_tu": line.sequence or 0,
+            }
             if site:
                 entry["ma_co_so"] = site.code or ""
             performer_codes = [
@@ -662,6 +588,76 @@ class MenuItem(models.Model):
                 _("Không tìm thấy đơn vị tính nào để tạo món ăn mới.")
             )
         return fallback.id
+
+class MenuItemStage(models.Model):
+    _name = "set_top_menu.menu.item.stage"
+    _description = "Khâu chế biến món ăn"
+    _order = "sequence, id"
+
+    menu_item_id = fields.Many2one(
+        "set_top_menu.menu.item",
+        string="Món ăn",
+        required=True,
+        ondelete="cascade",
+        index=True,
+    )
+    sequence = fields.Integer(string="Thứ tự", default=1)
+    step_id = fields.Many2one(
+        "set_top_menu.production.step",
+        string="Khâu sản xuất",
+        required=True,
+        ondelete="restrict",
+        help="Khâu thuộc quy trình chế biến đã chọn ở bước 1.",
+    )
+    step_code = fields.Char(
+        related="step_id.code", string="Mã khâu", readonly=True,
+    )
+    step_name = fields.Char(
+        related="step_id.name", string="Tên khâu", readonly=True,
+    )
+    employee_ids = fields.Many2many(
+        "res.users",
+        "menu_item_stage_employee_rel",
+        string="Nhân viên thực hiện",
+        required=True,
+        help="Nhân viên thực hiện khâu (lấy từ danh sách người dùng).",
+    )
+    site_id = fields.Many2one(
+        "crall.production.site",
+        string="Cơ sở thực hiện",
+        help="Cơ sở thực hiện khâu (lấy từ danh sách cơ sở sản xuất).",
+    )
+    info = fields.Text(string="Thông tin chế biến", required=True)
+    address = fields.Char(string="Địa chỉ thực hiện")
+    file_ids = fields.Many2many(
+        "ir.attachment",
+        "menu_item_stage_file_rel",
+        string="File minh chứng",
+        help="Ảnh/PDF, tối đa 3 file, tổng dung lượng tối đa 5MB.",
+    )
+
+    @api.constrains("file_ids")
+    def _check_proof_files(self):
+        for line in self:
+            step_name = line.step_id.name or ""
+            if len(line.file_ids) > DISH_STAGE_MAX_FILES:
+                raise ValidationError(
+                    _("Khâu '%s': file minh chứng tối đa %s file.")
+                    % (step_name, DISH_STAGE_MAX_FILES)
+                )
+            for attachment in line.file_ids:
+                if not is_allowed_stage_file(attachment):
+                    raise ValidationError(
+                        _("Khâu '%s': file '%s' phải là file ảnh hoặc PDF.")
+                        % (step_name, attachment.name)
+                    )
+            total_size = sum(line.file_ids.mapped("file_size") or [0])
+            if total_size > DISH_STAGE_MAX_TOTAL_SIZE:
+                raise ValidationError(
+                    _("Khâu '%s': tổng dung lượng file minh chứng tối đa 5MB.")
+                    % step_name
+                )
+
 
 class MenuIngredient(models.Model):
     _name = "set_top_menu.menu.ingredient"

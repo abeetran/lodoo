@@ -45,8 +45,11 @@
     "assets": {
         "web.assets_backend": [
             "set_top_menu/static/src/js/custom_navbar.js",
+            "set_top_menu/static/src/js/dish_stage_list.js",
             "set_top_menu/static/src/xml/custom_navbar.xml",
+            "set_top_menu/static/src/xml/dish_stage_list.xml",
             "set_top_menu/static/src/scss/custom_navbar.scss",
+            "set_top_menu/static/src/scss/dish_stage_list.scss",
         ],
     },
 

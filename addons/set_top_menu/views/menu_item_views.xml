@@ -39,7 +39,8 @@
                         <group>
                             <field name="item_code" placeholder="Ví dụ: MON-001"/>
                             <field name="process_id" options="{'no_create': True, 'no_create_edit': True}"
-                                   domain="[('product_type', '=', 'thuc_an')]"/>
+                                   domain="[('product_type', '=', 'thuc_an')]"
+                                   readonly="id > 0"/>
                             <field name="product_id" readonly="1"/>
                         </group>
                         <group>
@@ -105,65 +106,37 @@
                             </group>
                         </page>
                     </notebook>
-                    <separator string="Bước 2: Quy trình chế biến"/>
-                    <notebook>
-                        <page string="Khâu 1: Lập đơn hàng" name="stage1">
-                            <group>
-                                <field name="stage1_employee_ids" widget="many2many_tags"
-                                       options="{'no_create': True}" required="1"/>
-                                <field name="stage1_site_id" options="{'no_create': True}"/>
-                            </group>
-                            <group>
-                                <field name="stage1_info" required="1"/>
-                                <field name="stage1_address"/>
-                            </group>
-                            <group string="File chứng minh (tối đa 3 file, mỗi file không quá 5MB)">
-                                <field name="stage1_file_ids" widget="many2many_binary" nolabel="1"/>
-                            </group>
-                        </page>
-                        <page string="Khâu 2: Gửi đơn tới NCC phụ" name="stage2">
-                            <group>
-                                <field name="stage2_employee_ids" widget="many2many_tags"
-                                       options="{'no_create': True}" required="1"/>
-                                <field name="stage2_site_id" options="{'no_create': True}"/>
-                            </group>
-                            <group>
-                                <field name="stage2_info" required="1"/>
-                                <field name="stage2_address"/>
-                            </group>
-                            <group string="File chứng minh (tối đa 3 file, mỗi file không quá 5MB)">
-                                <field name="stage2_file_ids" widget="many2many_binary" nolabel="1"/>
-                            </group>
-                        </page>
-                        <page string="Khâu 3: NCC sản xuất và giao hàng" name="stage3">
-                            <group>
-                                <field name="stage3_employee_ids" widget="many2many_tags"
-                                       options="{'no_create': True}" required="1"/>
-                                <field name="stage3_site_id" options="{'no_create': True}"/>
-                            </group>
-                            <group>
-                                <field name="stage3_info" required="1"/>
-                                <field name="stage3_address"/>
-                            </group>
-                            <group string="File chứng minh (tối đa 3 file, mỗi file không quá 5MB)">
-                                <field name="stage3_file_ids" widget="many2many_binary" nolabel="1"/>
-                            </group>
-                        </page>
-                        <page string="Khâu 4: Tiếp nhận, kiểm tra và giao hàng" name="stage4">
-                            <group>
-                                <field name="stage4_employee_ids" widget="many2many_tags"
-                                       options="{'no_create': True}" required="1"/>
-                                <field name="stage4_site_id" options="{'no_create': True}"/>
-                            </group>
-                            <group>
-                                <field name="stage4_info" required="1"/>
-                                <field name="stage4_address"/>
-                            </group>
-                            <group string="File chứng minh (tối đa 3 file, mỗi file không quá 5MB)">
-                                <field name="stage4_file_ids" widget="many2many_binary" nolabel="1"/>
-                            </group>
-                        </page>
-                    </notebook>
+                    <separator string="Bước 2: Quy trình chế biến" invisible="not process_id"/>
+                    <field name="stage_line_ids" widget="dish_stage_list" nolabel="1"
+                           invisible="not process_id">
+                        <!-- Subview tree chỉ để khai báo dữ liệu cần nạp
+                             (buộc viewMode="list" để model dùng đúng spec,
+                             kể cả tên hiển thị của nhân viên/cơ sở).
+                             Widget vẽ giao diện 2 cột, tree này không hiển thị. -->
+                        <tree string="Nạp dữ liệu khâu chế biến">
+                            <field name="sequence"/>
+                            <field name="step_id"/>
+                            <field name="step_code"/>
+                            <field name="step_name"/>
+                            <field name="employee_ids"/>
+                            <field name="site_id"/>
+                            <field name="info"/>
+                            <field name="address"/>
+                            <field name="file_ids"/>
+                        </tree>
+                        <form string="Khâu chế biến">
+                            <field name="step_id" invisible="1"/>
+                            <field name="step_code" invisible="1"/>
+                            <field name="step_name" invisible="1"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="employee_ids" widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                            <field name="site_id" options="{'no_create': True}"/>
+                            <field name="info"/>
+                            <field name="address"/>
+                            <field name="file_ids" widget="many2many_binary" nolabel="1"/>
+                        </form>
+                    </field>
                 </sheet>
             </form>
         </field>

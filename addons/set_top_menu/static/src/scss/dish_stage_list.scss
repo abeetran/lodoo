@@ -1,0 +1,55 @@
+.o_dish_stage_columns {
+    .o_dish_stage_item {
+        border: 1px solid #adb5bd;
+        border-radius: 4px;
+        padding: 10px 12px;
+        margin-bottom: 15px;
+        cursor: pointer;
+        background-color: #f1f8f8;
+        color: #343a40;
+
+        &:hover {
+            border-color: #017e84;
+            background-color: #e2efef;
+        }
+
+        &.o_dish_stage_active {
+            border: 2px solid #015e64;
+            background-color: #017e84;
+            color: #fff;
+        }
+
+        .o_dish_stage_sequence {
+            margin-right: 8px;
+        }
+    }
+
+    .o_dish_stage_detail {
+        border: 2px solid #017e84;
+        border-radius: 4px;
+        padding: 12px 16px;
+        background-color: #f4fbfb;
+    }
+
+    .o_dish_stage_form {
+        .o_dish_stage_field {
+            margin-bottom: 10px;
+
+            .o_form_label {
+                color: #015e64;
+            }
+
+            .o_input,
+            textarea.o_input,
+            .o_field_many2one .o_input {
+                border: 1px solid #017e84;
+                border-radius: 4px;
+                background-color: #fff;
+            }
+
+            .o_field_many2many_tags .badge {
+                font-size: 100%;
+            }
+        }
+    }
+}

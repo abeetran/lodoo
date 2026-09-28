@@ -553,6 +553,9 @@ class ProductionProcessLine(models.Model):
         required=True,
         ondelete="restrict",
     )
+    step_code = fields.Char(
+        related="step_id.code", string="Mã khâu", readonly=True,
+    )
     sequence = fields.Integer(string="Thứ tự", default=10)
     number = fields.Integer(
         string="STT",

@@ -1,5 +1,6 @@
 import psycopg2
 import xml.etree.ElementTree as ET
+from unittest.mock import patch
 
 from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
@@ -148,3 +149,79 @@ class TestMenu(TransactionCase):
         node = ET.fromstring(view.arch_db).find(".//field[@name='active']")
         self.assertIsNotNone(node)
         self.assertEqual(node.get("invisible"), "1")
+
+    def test_action_builds_menu_payload(self):
+        age = self.env["set_top_menu.age.group"].create(
+            {"name": "Mầm non", "supplier_age_id": "1"}
+        )
+        school1 = self.env["res.partner"].create(
+            {"name": "Trường Hoa Sen", "school_code": "5", "is_company": True}
+        )
+        school2 = self.env["res.partner"].create(
+            {"name": "Trường Hoa Mai", "school_code": "7", "is_company": True}
+        )
+        menu = self.env["set_top_menu.menu"].create(
+            {
+                "name": "Thực đơn Thứ 2 - Mầm non",
+                "code": "td-t2-mamnon",
+                "age_group_id": age.id,
+                "weekday": "mon",
+                "school_ids": [(6, 0, [school1.id, school2.id])],
+            }
+        )
+        client_path = "odoo.addons.set_top_menu.models.menu.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.push_supplier_menus.return_value = {
+                "ok": True
+            }
+            result = menu.action_push_supplier_menus()
+        mock_client.return_value.push_supplier_menus.assert_called_once_with(
+            [
+                {
+                    "ma_thuc_don": "TD-T2-MAMNON",
+                    "ten_thuc_don": "Thực đơn Thứ 2 - Mầm non",
+                    "nhom_tuoi_id": 1,
+                    "thu_ap_dung": 1,
+                    "trang_thai": True,
+                    "danh_sach_mon": [],
+                    "danh_sach_truong": [5, 7],
+                }
+            ]
+        )
+        self.assertEqual(result["tag"], "display_notification")
+
+    def test_action_payload_missing_references(self):
+        age = self.env["set_top_menu.age.group"].create(
+            {"name": "Nhóm tự tạo"}
+        )
+        school = self.env["res.partner"].create(
+            {
+                "name": "Trường tự tạo",
+                "school_code": "SCH-LOCAL",
+                "is_company": True,
+            }
+        )
+        menu = self.env["set_top_menu.menu"].create(
+            {
+                "name": "Thực đơn thiếu mã NCC",
+                "code": "TD-NOREF",
+                "age_group_id": age.id,
+                "weekday": "sun",
+                "status": "stopped",
+                "school_ids": [(6, 0, [school.id])],
+            }
+        )
+        payload = menu._supplier_menu_push_payload()
+        self.assertEqual(payload["nhom_tuoi_id"], 0)
+        self.assertEqual(payload["thu_ap_dung"], 7)
+        self.assertFalse(payload["trang_thai"])
+        self.assertEqual(payload["danh_sach_mon"], [])
+        self.assertEqual(payload["danh_sach_truong"], [])
+
+    def test_action_empty_raises(self):
+        with self.assertRaises(UserError):
+            self.env["set_top_menu.menu"].action_push_supplier_menus()
+
+    def test_menu_tree_has_sync_button(self):
+        view = self.env.ref("set_top_menu.view_menu_tree")
+        self.assertIn("action_push_supplier_menus", view.arch_db)

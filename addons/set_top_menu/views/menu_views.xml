@@ -5,6 +5,10 @@
         <field name="model">set_top_menu.menu</field>
         <field name="arch" type="xml">
             <tree string="Thực đơn">
+                <header>
+                    <button name="action_push_supplier_menus" type="object"
+                            string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
+                </header>
                 <field name="name"/>
                 <field name="code"/>
                 <field name="audience_schedule_display"/>

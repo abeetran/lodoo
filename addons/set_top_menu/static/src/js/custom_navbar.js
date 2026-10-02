@@ -37,7 +37,7 @@ patch(NavBar.prototype, {
                 id: "menus",
                 label: "Thực đơn",
                 icon: "fa-list",
-                action: "set_top_menu.action_menu_items",
+                action: "set_top_menu.action_menus",
             },
             {
                 id: "orders",

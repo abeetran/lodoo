@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_menu_tree" model="ir.ui.view">
+        <field name="name">set_top_menu.menu.tree</field>
+        <field name="model">set_top_menu.menu</field>
+        <field name="arch" type="xml">
+            <tree string="Thực đơn">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="audience_schedule_display"/>
+                <field name="school_ids" string="Phạm vi áp dụng" widget="many2many_tags"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'applying'"
+                       decoration-muted="status == 'stopped'"/>
+                <field name="note" optional="show"/>
+                <field name="active" column_invisible="True"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_menu_form" model="ir.ui.view">
+        <field name="name">set_top_menu.menu.form</field>
+        <field name="model">set_top_menu.menu</field>
+        <field name="arch" type="xml">
+            <form string="Thực đơn">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Tên thực đơn"/>
+                        <h1><field name="name" placeholder="Ví dụ: Thực đơn tuần 1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code" placeholder="Ví dụ: TD-001"/>
+                            <field name="age_group_id" placeholder="Chọn nhóm tuổi"/>
+                            <field name="weekday"/>
+                        </group>
+                        <group>
+                            <field name="status" widget="radio"/>
+                            <field name="school_ids" widget="many2many_tags"
+                                   placeholder="Chọn các trường áp dụng"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ghi chú" name="note">
+                            <field name="note" nolabel="1" placeholder="Ghi chú về thực đơn"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_menu_search" model="ir.ui.view">
+        <field name="name">set_top_menu.menu.search</field>
+        <field name="model">set_top_menu.menu</field>
+        <field name="arch" type="xml">
+            <search string="Tìm kiếm thực đơn">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="age_group_id"/>
+                <field name="school_ids"/>
+                <filter name="applying" string="Đang áp dụng"
+                        domain="[('status', '=', 'applying')]"/>
+                <filter name="stopped" string="Ngừng áp dụng"
+                        domain="[('status', '=', 'stopped')]"/>
+                <group expand="0" string="Nhóm theo">
+                    <filter name="group_status" string="Trạng thái"
+                            context="{'group_by': 'status'}"/>
+                    <filter name="group_weekday" string="Thứ áp dụng"
+                            context="{'group_by': 'weekday'}"/>
+                    <filter name="group_school" string="Trường áp dụng"
+                            context="{'group_by': 'school_ids'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_menus" model="ir.actions.act_window">
+        <field name="name">Thực đơn</field>
+        <field name="res_model">set_top_menu.menu</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_menu_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Tạo thực đơn mới</p>
+            <p>Khai báo thực đơn theo trường, nhóm tuổi và thứ áp dụng.</p>
+        </field>
+    </record>
+</odoo>

@@ -1,4 +1,3 @@
-import json
 import logging
 from urllib.parse import quote
 
@@ -234,27 +233,37 @@ class MenuItem(models.Model):
     def action_push_supplier_dishes(self):
         """Nút Đồng bộ: chỉ hiện khi tick chọn món ăn trên danh sách.
 
-        Mở popup in cấu trúc JSON sẽ gửi để xác nhận; chỉ khi nhấn
-        Xác nhận trên popup mới gọi API ``supplier/dishes/merge``.
+        Gửi thẳng các món đang chọn lên API ``supplier/dishes/merge``
+        (POST, ký X-Signature; token hết hạn thì tự lấy mới) rồi báo
+        kết quả bằng thông báo màn hình (kèm message API trả về).
         """
         if not self:
             raise UserError(_("Vui lòng chọn ít nhất một món ăn để đồng bộ."))
         payloads = [dish._supplier_dish_payload() for dish in self]
-        wizard = self.env["set_top_menu.dish.push.wizard"].create(
-            {
-                "name": _("Đồng bộ %s món ăn") % len(payloads),
-                "payload_text": json.dumps(
-                    payloads, ensure_ascii=False, indent=2
-                ),
-            }
+        result = HnckClient(self.env).push_supplier_dishes(payloads)
+        api_message = result.get("message") if isinstance(result, dict) else None
+        succeeded = not isinstance(result, dict) or result.get(
+            "success", True
         )
+        if succeeded:
+            message = _("Đã gửi %s món ăn lên API nhà cung cấp.") % len(
+                payloads
+            )
+            notif_type = "success"
+        else:
+            message = _("Đồng bộ %s món ăn thất bại.") % len(payloads)
+            notif_type = "danger"
+        if api_message:
+            message = "%s %s" % (message, api_message)
         return {
-            "type": "ir.actions.act_window",
-            "name": _("Xác nhận đồng bộ món ăn"),
-            "res_model": "set_top_menu.dish.push.wizard",
-            "view_mode": "form",
-            "res_id": wizard.id,
-            "target": "new",
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ món ăn"),
+                "message": message,
+                "type": notif_type,
+                "sticky": notif_type == "danger",
+            },
         }
 
     def _supplier_dish_payload(self):
@@ -749,43 +758,3 @@ class AgeGroup(models.Model):
     )
 
     _sql_constraints = [("name_unique", "unique(name)", "Nhóm tuổi đã tồn tại.")]
-
-
-class DishPushWizard(models.TransientModel):
-    _name = "set_top_menu.dish.push.wizard"
-    _description = "Xác nhận đồng bộ món ăn"
-
-    name = fields.Char(string="Tiêu đề", readonly=True)
-    state = fields.Selection(
-        [("draft", "Chờ xác nhận"), ("done", "Đã gửi")],
-        string="Trạng thái",
-        default="draft",
-        required=True,
-    )
-    payload_text = fields.Text(
-        string="Dữ liệu sẽ gửi (JSON)", readonly=True
-    )
-    result_text = fields.Text(string="Phản hồi từ HNCK", readonly=True)
-
-    def action_confirm_push(self):
-        """Nút Xác nhận: gửi JSON đã duyệt lên HNCK rồi hiện kết quả."""
-        self.ensure_one()
-        payloads = json.loads(self.payload_text or "[]")
-        if not payloads:
-            raise UserError(_("Không có dữ liệu nào để đồng bộ."))
-        result = HnckClient(self.env).push_supplier_dishes(payloads)
-        if isinstance(result, dict):
-            result_text = json.dumps(
-                result, ensure_ascii=False, indent=2, default=str
-            )
-        else:
-            result_text = str(result)
-        self.write({"state": "done", "result_text": result_text})
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Kết quả đồng bộ món ăn"),
-            "res_model": "set_top_menu.dish.push.wizard",
-            "view_mode": "form",
-            "res_id": self.id,
-            "target": "new",
-        }

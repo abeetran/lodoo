@@ -1,5 +1,4 @@
 import base64
-import json
 import os
 import xml.etree.ElementTree as ET
 from types import SimpleNamespace
@@ -582,29 +581,30 @@ class TestMenuItemStages(TransactionCase):
             )
 
 
-class TestDishPushConfirmWizard(TransactionCase):
-    def test_sync_opens_confirm_popup_without_sending(self):
-        dish = self.env["set_top_menu.menu.item"].create(
-            dict(_dish_vals(self.env), item_code="MON-POP-001")
-        )
+class TestDishPushDirect(TransactionCase):
+    def _push(self, dish, response):
         client_path = (
             "odoo.addons.set_top_menu.models.menu_item.HnckClient"
         )
         with patch(client_path) as mock_client:
+            mock_client.return_value.push_supplier_dishes.return_value = (
+                response
+            )
             action = dish.action_push_supplier_dishes()
-            mock_client.return_value.push_supplier_dishes.assert_not_called()
-        self.assertEqual(
-            action["res_model"], "set_top_menu.dish.push.wizard"
+        return action, mock_client
+
+    def test_push_sends_and_notifies_success(self):
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(_dish_vals(self.env), item_code="MON-PUSH-001")
         )
-        self.assertEqual(action["target"], "new")
-        wizard = self.env["set_top_menu.dish.push.wizard"].browse(
-            action["res_id"]
+        action, mock_client = self._push(
+            dish, {"success": True, "message": "Đã nhận 1 món ăn."}
         )
-        self.assertTrue(wizard.exists())
-        self.assertEqual(wizard.state, "draft")
-        body = json.loads(wizard.payload_text)
+        body = (
+            mock_client.return_value.push_supplier_dishes.call_args[0][0]
+        )
         self.assertEqual(len(body), 1)
-        self.assertEqual(body[0]["ma_mon_an"], "MON-POP-001")
+        self.assertEqual(body[0]["ma_mon_an"], "MON-PUSH-001")
         for key in (
             "ten_mon_an",
             "nhom_tuoi_id",
@@ -615,43 +615,26 @@ class TestDishPushConfirmWizard(TransactionCase):
             "danh_sach_anh",
         ):
             self.assertIn(key, body[0])
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(action["params"]["type"], "success")
+        self.assertFalse(action["params"]["sticky"])
+        self.assertIn("Đã nhận 1 món ăn.", action["params"]["message"])
 
-    def test_confirm_sends_approved_payload(self):
-        payloads = [{"ma_mon_an": "MA-001", "ten_mon_an": "Món duyệt"}]
-        wizard = self.env["set_top_menu.dish.push.wizard"].create(
-            {
-                "name": "Đồng bộ 1 món ăn",
-                "payload_text": json.dumps(payloads),
-            }
+    def test_push_api_failure_notifies_danger(self):
+        dish = self.env["set_top_menu.menu.item"].create(
+            dict(_dish_vals(self.env), item_code="MON-PUSH-002")
         )
-        client_path = (
-            "odoo.addons.set_top_menu.models.menu_item.HnckClient"
+        action, _mock_client = self._push(
+            dish, {"success": False, "message": "Mã món đã tồn tại."}
         )
-        with patch(client_path) as mock_client:
-            mock_client.return_value.push_supplier_dishes.return_value = {
-                "ok": True
-            }
-            action = wizard.action_confirm_push()
-        mock_client.return_value.push_supplier_dishes.assert_called_once_with(
-            payloads
-        )
-        self.assertEqual(wizard.state, "done")
-        self.assertIn("ok", wizard.result_text)
-        self.assertEqual(action["res_id"], wizard.id)
-        self.assertEqual(action["target"], "new")
+        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(action["params"]["type"], "danger")
+        self.assertTrue(action["params"]["sticky"])
+        self.assertIn("Mã món đã tồn tại.", action["params"]["message"])
 
-    def test_confirm_empty_payload_raises(self):
-        wizard = self.env["set_top_menu.dish.push.wizard"].create(
-            {"name": "Rỗng", "payload_text": "[]"}
-        )
+    def test_push_empty_selection_raises(self):
         with self.assertRaises(UserError):
-            wizard.action_confirm_push()
-
-    def test_wizard_form_view_has_confirm_button(self):
-        view = self.env.ref("set_top_menu.view_dish_push_wizard_form")
-        self.assertIn("payload_text", view.arch_db)
-        self.assertIn("result_text", view.arch_db)
-        self.assertIn("action_confirm_push", view.arch_db)
+            self.env["set_top_menu.menu.item"].action_push_supplier_dishes()
 
 
 class TestDishProcessLocked(TransactionCase):

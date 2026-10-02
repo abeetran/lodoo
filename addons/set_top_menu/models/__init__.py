@@ -7,3 +7,4 @@ from . import production_process
 from . import sale_order
 from . import warehouse
 from . import menu
+from . import order_fetch_wizard

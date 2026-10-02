@@ -605,3 +605,97 @@ class TestPushSupplierMenus(TransactionCase):
         _valid_token_params(icp)
         with self.assertRaises(UserError):
             HnckClient(self.env).push_supplier_menus([])
+
+
+class TestFetchSupplierOrders(TransactionCase):
+    def test_fetch_builds_query_and_auth(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        calls = []
+
+        def fake_get(url, headers=None, timeout=None):
+            calls.append({"url": url, "headers": dict(headers or {})})
+            return _FakeResponse(
+                200,
+                payload={
+                    "success": True,
+                    "data": [],
+                    "pagination": {"total": 0},
+                },
+                headers=headers,
+            )
+
+        get_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.get"
+        )
+        with patch(get_path, side_effect=fake_get):
+            result = HnckClient(self.env).fetch_supplier_orders(
+                {
+                    "page": 1,
+                    "per_page": 20,
+                    "status": "DANG_GIAO",
+                    "order_date_from": "2026-09-01",
+                    "order_date_to": "",
+                }
+            )
+        self.assertTrue(result["success"])
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(
+            calls[0]["url"],
+            "https://example.com/api/supplier/orders"
+            "?page=1&per_page=20&status=DANG_GIAO"
+            "&order_date_from=2026-09-01",
+        )
+        self.assertIn("stale-token", calls[0]["headers"]["Authorization"])
+        self.assertEqual(calls[0]["headers"]["Accept"], "application/json")
+
+    def test_fetch_refreshes_token_once_on_401(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        calls = []
+
+        def fake_get(url, headers=None, timeout=None):
+            calls.append(dict(headers or {}))
+            if len(calls) == 1:
+                return _FakeResponse(
+                    401,
+                    text='{"message":"Unauthenticated."}',
+                    headers=headers,
+                )
+            return _FakeResponse(
+                200, payload={"success": True, "data": []}, headers=headers
+            )
+
+        def fake_refresh(inner_self):
+            icp.set_param("crall_material.hnck_access_token", "fresh-token")
+            icp.set_param(
+                "crall_material.hnck_token_expires_at", str(time.time() + 3600)
+            )
+            return "fresh-token"
+
+        get_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.get"
+        )
+        with (
+            patch(get_path, side_effect=fake_get),
+            patch.object(HnckClient, "refresh_token", fake_refresh),
+        ):
+            result = HnckClient(self.env).fetch_supplier_orders({"page": 1})
+        self.assertTrue(result["success"])
+        self.assertEqual(len(calls), 2)
+        self.assertIn("stale-token", calls[0]["Authorization"])
+        self.assertIn("fresh-token", calls[1]["Authorization"])
+
+    def test_fetch_http_error_raises(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+
+        def fake_get(url, headers=None, timeout=None):
+            return _FakeResponse(500, text="boom", headers=headers)
+
+        get_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.get"
+        )
+        with patch(get_path, side_effect=fake_get):
+            with self.assertRaises(UserError):
+                HnckClient(self.env).fetch_supplier_orders({"page": 1})

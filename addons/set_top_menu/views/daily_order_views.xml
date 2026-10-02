@@ -118,10 +118,62 @@
         <field name="context">{'default_catering_state': 'draft'}</field>
     </record>
 
+    <record id="view_daily_order_tree" model="ir.ui.view">
+        <field name="name">sale.order.daily.tree</field>
+        <field name="model">sale.order</field>
+        <field name="arch" type="xml">
+            <tree string="Đơn hàng hằng ngày">
+                <header>
+                    <button name="action_open_fetch_wizard" type="object"
+                            string="Lấy ĐH" icon="fa-download" class="btn-primary"
+                            display="always"/>
+                </header>
+                <field name="catering_reference" string="Mã ĐH"/>
+                <field name="date_order" string="Ngày đặt"/>
+                <field name="partner_id" string="Khách hàng"/>
+                <field name="amount_total" string="Tổng tiền"/>
+                <field name="catering_state" string="Trạng thái" widget="badge"
+                       decoration-success="catering_state == 'delivered'"
+                       decoration-info="catering_state in ('confirmed', 'ready')"
+                       decoration-warning="catering_state in ('in_production', 'dispatched')"
+                       decoration-muted="catering_state in ('draft', 'cancelled')"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_order_fetch_wizard_form" model="ir.ui.view">
+        <field name="name">set_top_menu.order.fetch.wizard.form</field>
+        <field name="model">set_top_menu.order.fetch.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Lấy đơn hàng">
+                <sheet>
+                    <field name="state" invisible="1"/>
+                    <group invisible="state != 'draft'">
+                        <field name="order_code"/>
+                        <field name="school_id"/>
+                        <field name="status"/>
+                        <field name="order_date_from"/>
+                        <field name="order_date_to"/>
+                        <field name="page"/>
+                    </group>
+                    <group invisible="state != 'done'">
+                        <field name="result_text" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_fetch" type="object"
+                            string="Xác nhận" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button string="Đóng" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
     <record id="action_daily_orders_tree_view" model="ir.actions.act_window.view">
         <field name="sequence" eval="1"/>
         <field name="view_mode">tree</field>
-        <field name="view_id" ref="sale.view_order_tree"/>
+        <field name="view_id" ref="view_daily_order_tree"/>
         <field name="act_window_id" ref="action_daily_orders"/>
     </record>
     <record id="action_daily_orders_form_view" model="ir.actions.act_window.view">

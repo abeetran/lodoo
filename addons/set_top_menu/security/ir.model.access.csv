@@ -16,3 +16,4 @@ access_production_process_line_user,production.process.line.user,model_set_top_m
 access_dish_push_wizard_user,dish.push.wizard.user,model_set_top_menu_dish_push_wizard,base.group_user,1,1,1,1
 access_warehouse_user,warehouse.user,model_set_top_menu_warehouse,base.group_user,1,1,1,1
 access_menu_user,menu.user,model_set_top_menu_menu,base.group_user,1,1,1,1
+access_order_fetch_wizard_user,order.fetch.wizard.user,model_set_top_menu_order_fetch_wizard,base.group_user,1,1,1,1

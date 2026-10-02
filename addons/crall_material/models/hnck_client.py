@@ -7,7 +7,7 @@ import os
 import secrets
 import time
 from email.utils import parsedate_to_datetime
-from urllib.parse import urlsplit
+from urllib.parse import urlencode, urlsplit
 
 import requests
 
@@ -25,6 +25,7 @@ PROCESSES_MERGE_PATH = "supplier/processes/merge"
 WAREHOUSES_MERGE_PATH = "supplier/warehouses/merge"
 FOODS_MERGE_PATH = "supplier/foods/merge"
 MENUS_MERGE_PATH = "supplier/menus/merge"
+ORDERS_FETCH_PATH = "supplier/orders"
 TOKEN_SAFETY_MARGIN = 60
 CLOCK_OFFSET_PARAM = "crall_material.hnck_clock_offset"
 # Chênh lệch giờ server HNCK - local cho phép lưu (giây). Ngưỡng rộng
@@ -285,6 +286,59 @@ class HnckClient:
         if not isinstance(dishes, list):
             raise UserError(_("API món ăn không trả về danh sách món ăn."))
         return dishes
+
+    def fetch_supplier_orders(self, params):
+        """Fetch the supplier order list (GET ``supplier/orders`` + params).
+
+        Token handling is automatic: :meth:`get_token` reuses the cached
+        token while it is still valid and calls the token API for a new
+        one only when it is missing or expired.
+        """
+        query = urlencode(
+            {key: value for key, value in (params or {}).items() if value}
+        )
+        request_url = self.base_url() + ORDERS_FETCH_PATH
+        if query:
+            request_url = "%s?%s" % (request_url, query)
+        headers = {**self.auth_headers(), "Accept": "application/json"}
+        try:
+            response = requests.get(request_url, headers=headers, timeout=30)
+            self.sync_clock_from_response(response)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as error:
+            if self._http_status(error) != 401:
+                _logger.exception("Could not fetch supplier orders")
+                raise UserError(
+                    _("Không thể lấy danh sách đơn hàng: %s") % error
+                ) from error
+            _logger.warning(
+                "Fetch supplier orders got 401, refreshing token and retrying once"
+            )
+            self.sync_clock_from_response(getattr(error, "response", None))
+            self.refresh_token()
+            try:
+                headers = {**self.auth_headers(), "Accept": "application/json"}
+                response = requests.get(
+                    request_url, headers=headers, timeout=30
+                )
+                self.sync_clock_from_response(response)
+                response.raise_for_status()
+                return response.json()
+            except requests.exceptions.RequestException as retry_error:
+                _logger.exception("Could not fetch supplier orders")
+                raise UserError(
+                    _("Không thể lấy danh sách đơn hàng: %s") % retry_error
+                ) from retry_error
+        except requests.exceptions.RequestException as error:
+            _logger.exception("Could not fetch supplier orders")
+            raise UserError(
+                _("Không thể lấy danh sách đơn hàng: %s") % error
+            ) from error
+        except ValueError as error:
+            raise UserError(
+                _("API đơn hàng trả về dữ liệu JSON không hợp lệ.")
+            ) from error
 
     @staticmethod
     def _dish_list(payload):

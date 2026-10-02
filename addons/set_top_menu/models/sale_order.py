@@ -1,6 +1,8 @@
-from odoo import Command, api, fields, models
+from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
+
+from odoo.addons.crall_material.models.hnck_client import HnckClient
 
 
 class SaleOrder(models.Model):
@@ -279,6 +281,207 @@ class SaleOrder(models.Model):
         result = super().action_draft()
         self.write({"catering_state": "draft"})
         return result
+
+    def action_open_fetch_wizard(self):
+        """Nút Lấy ĐH: mở popup nhập tham số lấy đơn hàng từ HNCK."""
+        form_view = self.env.ref("set_top_menu.view_order_fetch_wizard_form")
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Lấy đơn hàng từ HNCK"),
+            "res_model": "set_top_menu.order.fetch.wizard",
+            "view_mode": "form",
+            "views": [(form_view.id, "form")],
+            "target": "new",
+        }
+
+    @api.model
+    def fetch_supplier_orders(
+        self, page=1, per_page=20, status="DANG_GIAO",
+        date_from=False, date_to=False, order_code=False, school_id=False,
+    ):
+        """Lấy đơn hàng từ HNCK rồi tạo/cập nhật đơn hàng hằng ngày."""
+        params = {"per_page": per_page}
+        if page:
+            params["page"] = page
+        if status:
+            params["status"] = status
+        if order_code:
+            params["code"] = order_code
+        if school_id:
+            params["school_id"] = school_id
+        if date_from:
+            params["order_date_from"] = str(date_from)
+        if date_to:
+            params["order_date_to"] = str(date_to)
+        result = HnckClient(self.env).fetch_supplier_orders(params)
+        if not isinstance(result, dict):
+            raise UserError(_("API đơn hàng không trả về dữ liệu hợp lệ."))
+        if result.get("success") is False:
+            raise UserError(
+                _("HNCK báo lỗi lấy đơn hàng: %s")
+                % (result.get("message") or _("Không rõ nguyên nhân."))
+            )
+        payloads = result.get("data") or []
+        if not isinstance(payloads, list):
+            raise UserError(_("API đơn hàng không trả về danh sách đơn hàng."))
+        counts = {
+            "fetched": len(payloads),
+            "total": (result.get("pagination") or {}).get("total")
+            or len(payloads),
+            "created": 0,
+            "updated": 0,
+            "skipped_no_code": 0,
+            "skipped_locked": 0,
+            "lines_ok": 0,
+            "lines_skipped": 0,
+            "partners_created": 0,
+        }
+        for payload in payloads:
+            if isinstance(payload, dict):
+                self._crall_upsert_order(payload, counts)
+            else:
+                counts["skipped_no_code"] += 1
+        return counts
+
+    @api.model
+    def _crall_upsert_order(self, payload, counts):
+        code = self._order_value(payload, "code", "order_code", "ma_don_hang")
+        code = str(code).strip() if code not in (None, "") else ""
+        if not code:
+            counts["skipped_no_code"] += 1
+            return
+        order = self.search([("catering_reference", "=", code)], limit=1)
+        if order and order._is_kitchen_locked():
+            counts["skipped_locked"] += 1
+            return
+        partner = self._crall_order_partner(payload.get("school"), counts)
+        line_commands = []
+        products = payload.get("products") or []
+        if not isinstance(products, list):
+            products = []
+        for item in products:
+            if not isinstance(item, dict):
+                counts["lines_skipped"] += 1
+                continue
+            item_code = self._order_value(
+                item, "code", "product_code", "ma_san_pham"
+            )
+            item_code = (
+                str(item_code).strip()
+                if item_code not in (None, "")
+                else ""
+            )
+            template = (
+                self._match_food_template(item_code) if item_code else None
+            )
+            if not template:
+                counts["lines_skipped"] += 1
+                continue
+            raw_qty = self._order_value(
+                item,
+                "quantity",
+                "qty",
+                "so_luong",
+                "product_uom_qty",
+            )
+            try:
+                quantity = float(raw_qty if raw_qty not in (None, "") else 1)
+            except (TypeError, ValueError):
+                quantity = 1.0
+            line_commands.append(
+                (
+                    0,
+                    0,
+                    {
+                        "product_id": template.product_variant_id.id,
+                        "product_uom_qty": quantity,
+                    },
+                )
+            )
+            counts["lines_ok"] += 1
+        provided_date = self._crall_order_date(payload)
+        order_vals = {
+            "partner_id": partner.id,
+            "commitment_date": fields.Datetime.now(),
+            "order_line": ([(5, 0, 0)] if order else []) + line_commands,
+        }
+        if provided_date or not order:
+            order_vals["date_order"] = provided_date or fields.Date.today()
+        if order:
+            order.write(order_vals)
+            counts["updated"] += 1
+        else:
+            order_vals["catering_reference"] = code
+            self.create(order_vals)
+            counts["created"] += 1
+
+    @api.model
+    def _crall_order_partner(self, school, counts):
+        Partner = self.env["res.partner"]
+        name = ""
+        if isinstance(school, dict):
+            name = self._order_value(
+                school, "name", "school_name", "display_name", "title"
+            )
+            name = str(name).strip() if name not in (None, "") else ""
+        if name:
+            partner = Partner.search([("name", "=", name)], limit=1)
+            if partner:
+                return partner
+        else:
+            partner = Partner.search(
+                [("name", "=", _("Khách hàng HNCK"))], limit=1
+            )
+            if partner:
+                return partner
+            name = _("Khách hàng HNCK")
+        counts["partners_created"] += 1
+        return Partner.create(
+            {"name": name, "is_company": True, "customer_rank": 1}
+        )
+
+    @api.model
+    def _match_food_template(self, code):
+        templates = self.env["product.template"]
+        if not code:
+            return templates.browse()
+        domain = [
+            "|",
+            ("default_code", "=", code),
+            ("crall_supplier_code", "=", code),
+        ]
+        return templates.search(
+            domain + [("crall_food_source", "=", "foods")], limit=1
+        ) or templates.search(domain, limit=1)
+
+    @staticmethod
+    def _crall_order_date(payload):
+        """Ngày tạo đơn từ API (False khi thiếu/không đọc được)."""
+        raw = SaleOrder._order_value(
+            payload,
+            "order_date",
+            "created_at",
+            "create_date",
+            "date_order",
+            "ngay_tao",
+        )
+        if raw in (None, ""):
+            return False
+        try:
+            return fields.Date.from_string(str(raw).strip()[:10])
+        except ValueError:
+            return False
+
+    @staticmethod
+    def _order_value(payload, *keys, **kwargs):
+        default = kwargs.get("default")
+        if not isinstance(payload, dict):
+            return default
+        for key in keys:
+            value = payload.get(key)
+            if value not in (None, ""):
+                return value
+        return default
 
     def write(self, vals):
         # Kitchen state synchronization must remain possible after production starts,

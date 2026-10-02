@@ -8,3 +8,4 @@ from . import test_food_create_required
 from . import test_material_views
 from . import test_material_food_push
 from . import test_menu
+from . import test_order_fetch

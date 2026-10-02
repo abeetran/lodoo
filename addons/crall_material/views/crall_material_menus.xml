@@ -72,20 +72,20 @@
         id="menu_crall_supplier"
         name="Nhà cung cấp"
         action="action_crall_supplier_list"
-        sequence="92"
+        sequence="93"
     />
 
     <menuitem
         id="menu_crall_production_site"
         name="Cơ sở sản xuất"
         action="action_crall_production_site_list"
-        sequence="93"
+        sequence="94"
     />
 
     <menuitem
         id="menu_crall_standard_food"
         name="Danh mục thực phẩm chuẩn"
         action="action_crall_standard_food_list"
-        sequence="91"
+        sequence="92"
     />
 </odoo>

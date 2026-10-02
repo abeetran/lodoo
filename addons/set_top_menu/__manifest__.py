@@ -39,6 +39,7 @@
         "views/production_process_views.xml",
         "views/sale_order_views.xml",
         "views/daily_order_views.xml",
+        "views/warehouse_views.xml",
         "views/web_login_views.xml",
     ],
 

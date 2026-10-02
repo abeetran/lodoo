@@ -1,3 +1,4 @@
+from odoo.exceptions import ValidationError
 from odoo.tests.common import TransactionCase
 from odoo.tools.safe_eval import safe_eval
 
@@ -92,3 +93,60 @@ class TestFoodSourceSeparation(TransactionCase):
         ).ids
         self.assertIn(standard.id, found_ids)
         self.assertNotIn(food.id, found_ids)
+
+    def test_foods_default_code_must_be_unique(self):
+        self.env["product.template"].create(
+            {
+                "name": "Rau muống",
+                "default_code": "TP-001",
+                "crall_food_source": "foods",
+            }
+        )
+        with self.assertRaises(ValidationError):
+            self.env["product.template"].create(
+                {
+                    "name": "Rau muống trùng mã",
+                    "default_code": "TP-001",
+                    "crall_food_source": "foods",
+                }
+            )
+        other = self.env["product.template"].create(
+            {
+                "name": "Thịt ba chỉ",
+                "default_code": "TP-002",
+                "crall_food_source": "foods",
+            }
+        )
+        with self.assertRaises(ValidationError):
+            other.write({"default_code": "TP-001"})
+
+    def test_foods_default_code_empty_allowed(self):
+        first = self.env["product.template"].create(
+            {"name": "Rau không mã 1", "crall_food_source": "foods"}
+        )
+        second = self.env["product.template"].create(
+            {"name": "Rau không mã 2", "crall_food_source": "foods"}
+        )
+        self.assertFalse(first.default_code)
+        self.assertFalse(second.default_code)
+
+    def test_foods_default_code_ignores_other_sources(self):
+        self.env["product.template"].create(
+            {
+                "name": "Rau chuẩn",
+                "default_code": "TP-001",
+                "crall_supplier_id": "1",
+                "crall_food_source": "standard",
+            }
+        )
+        self.env["product.template"].create(
+            {"name": "Sản phẩm thường", "default_code": "TP-001"}
+        )
+        food = self.env["product.template"].create(
+            {
+                "name": "Rau muống",
+                "default_code": "TP-001",
+                "crall_food_source": "foods",
+            }
+        )
+        self.assertEqual(food.default_code, "TP-001")

@@ -5,7 +5,7 @@
         <field name="view_mode">kanban,tree,form</field>
         <!-- Mọi thứ trừ món chuẩn: tạo tay + foods + bản ghi cũ chưa dấu -->
         <field name="domain">["|", ("crall_food_source", "!=", "standard"), ("crall_food_source", "=", False)]</field>
-        <field name="context">{'default_purchase_ok': True, 'default_crall_food_source': 'foods'}</field>
+        <field name="context">{'default_purchase_ok': True, 'default_crall_food_source': 'foods', 'set_top_menu_require_food_fields': True}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Tạo nguyên liệu mới

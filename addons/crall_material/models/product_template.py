@@ -4,7 +4,7 @@ import urllib.parse
 import requests
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 _logger = logging.getLogger(__name__)
@@ -91,6 +91,35 @@ class ProductTemplate(models.Model):
     @api.onchange("crall_standard_food_id")
     def _onchange_crall_standard_food(self):
         self._inverse_crall_standard_food()
+
+    @api.constrains("default_code", "crall_food_source")
+    def _check_foods_default_code_unique(self):
+        """Mã tham chiếu nội bộ không được trùng trong Thực phẩm (material).
+
+        Chỉ áp dụng cho bản ghi nguồn foods; thực phẩm chuẩn, sản phẩm món
+        ăn và sản phẩm thường không bị ảnh hưởng. Mã trống được phép vì
+        nhiều thực phẩm đồng bộ từ API không có mã.
+        """
+        for record in self.filtered(
+            lambda item: item.crall_food_source == "foods"
+            and item.default_code
+        ):
+            dupe = self.search(
+                [
+                    ("id", "!=", record.id),
+                    ("crall_food_source", "=", "foods"),
+                    ("default_code", "=", record.default_code),
+                ],
+                limit=1,
+            )
+            if dupe:
+                raise ValidationError(
+                    _(
+                        "Mã tham chiếu nội bộ '%s' đã được dùng "
+                        "cho thực phẩm khác."
+                    )
+                    % record.default_code
+                )
 
     @api.depends("crall_standard_food_id.name", "crall_food_category")
     def _compute_crall_food_category_name(self):

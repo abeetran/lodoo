@@ -9,6 +9,8 @@
                     <button name="action_open_create_popup" type="object"
                             string="Thêm mới" icon="fa-plus" class="btn-primary"
                             display="always"/>
+                    <button name="action_push_supplier_warehouses" type="object"
+                            string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
                 </header>
                 <field name="code" optional="show"/>
                 <field name="name"/>

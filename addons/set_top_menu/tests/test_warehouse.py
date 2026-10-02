@@ -1,4 +1,6 @@
-from odoo.exceptions import ValidationError
+from unittest.mock import patch
+
+from odoo.exceptions import UserError, ValidationError
 from odoo.tests.common import TransactionCase
 
 
@@ -58,3 +60,52 @@ class TestWarehouse(TransactionCase):
         action = self.env.ref("set_top_menu.action_warehouses")
         self.assertEqual(menu.action._name, "ir.actions.act_window")
         self.assertEqual(menu.action.id, action.id)
+
+    def test_action_builds_warehouse_payload(self):
+        warehouse_model = self.env["set_top_menu.warehouse"]
+        warehouse1 = warehouse_model.create(
+            {
+                "name": "Kho trung tâm Đống Đa",
+                "code": "KHO01",
+                "address": "45 Đường Tây Sơn, quận Đống Đa, Hà Nội",
+                "area": 500.5,
+            }
+        )
+        warehouse2 = warehouse_model.create(
+            {
+                "name": "Kho Cầu Giấy",
+                "code": "kho02",
+                "address": "12 Đường Cầu Giấy, Hà Nội",
+            }
+        )
+        client_path = "odoo.addons.set_top_menu.models.warehouse.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.push_supplier_warehouses.return_value = {
+                "ok": True
+            }
+            result = (warehouse1 + warehouse2).action_push_supplier_warehouses()
+        mock_client.return_value.push_supplier_warehouses.assert_called_once_with(
+            [
+                {
+                    "ma_kho": "KHO01",
+                    "ten_kho": "Kho trung tâm Đống Đa",
+                    "dia_chi": "45 Đường Tây Sơn, quận Đống Đa, Hà Nội",
+                    "dien_tich": 500.5,
+                },
+                {
+                    "ma_kho": "KHO02",
+                    "ten_kho": "Kho Cầu Giấy",
+                    "dia_chi": "12 Đường Cầu Giấy, Hà Nội",
+                    "dien_tich": 0.0,
+                },
+            ]
+        )
+        self.assertEqual(result["tag"], "display_notification")
+
+    def test_action_empty_raises(self):
+        with self.assertRaises(UserError):
+            self.env["set_top_menu.warehouse"].action_push_supplier_warehouses()
+
+    def test_warehouse_tree_has_sync_button(self):
+        view = self.env.ref("set_top_menu.view_warehouse_tree")
+        self.assertIn("action_push_supplier_warehouses", view.arch_db)

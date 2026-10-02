@@ -1,5 +1,7 @@
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError, ValidationError
+
+from odoo.addons.crall_material.models.hnck_client import HnckClient
 
 
 class Warehouse(models.Model):
@@ -39,4 +41,36 @@ class Warehouse(models.Model):
             "view_mode": "form",
             "views": [(form_view.id, "form")],
             "target": "new",
+        }
+
+    def action_push_supplier_warehouses(self):
+        """Nút Đồng bộ: chỉ hiện khi tick chọn kho trên danh sách.
+
+        Gửi các kho đang chọn lên API ``supplier/warehouses/merge`` (POST,
+        ký X-Signature; token hết hạn thì tự lấy mới).
+        """
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một kho để đồng bộ."))
+        payloads = [
+            {
+                "ma_kho": (warehouse.code or "").upper(),
+                "ten_kho": warehouse.name or "",
+                "dia_chi": warehouse.address or "",
+                "dien_tich": warehouse.area or 0.0,
+            }
+            for warehouse in self
+        ]
+        result = HnckClient(self.env).push_supplier_warehouses(payloads)
+        message = _("Đã gửi %s kho lên API nhà cung cấp.") % len(payloads)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ kho"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
         }

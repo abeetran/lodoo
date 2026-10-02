@@ -198,12 +198,16 @@ class TestMenuItemStages(TransactionCase):
                 {
                     "ma_khau": "SO_CHE",
                     "thu_tu": 1,
+                    "ghi_chu": "Thông tin khâu",
+                    "dia_chi": "",
                     "ma_co_so": "CS001",
                     "danh_sach_nguoi_thuc_hien": ["NV001", "NV002"],
                 },
                 {
                     "ma_khau": "DONG_GOI",
                     "thu_tu": 3,
+                    "ghi_chu": "Thông tin khâu",
+                    "dia_chi": "",
                     "danh_sach_nguoi_thuc_hien": ["NV003"],
                     "danh_sach_files": [
                         {
@@ -266,6 +270,19 @@ class TestMenuItemStages(TransactionCase):
         self.assertEqual(
             payload[0]["danh_sach_nguoi_thuc_hien"], ["NV001"]
         )
+
+    def test_stage_payload_includes_note_and_address(self):
+        step = _make_step(self.env, "Sơ chế", "SO_CHE_NOTE")
+        dish = self._dish("MON-KHAU-NOTE")
+        self._line(
+            dish, step, sequence=1,
+            info="Rửa sạch, để ráo",
+            address="45 Đường Tây Sơn, Hà Nội",
+        )
+        payload = dish._supplier_dish_stage_payload()
+        self.assertEqual(len(payload), 1)
+        self.assertEqual(payload[0]["ghi_chu"], "Rửa sạch, để ráo")
+        self.assertEqual(payload[0]["dia_chi"], "45 Đường Tây Sơn, Hà Nội")
 
     def test_stage_payload_empty_and_stored_fallback(self):
         dish = self._dish("MON-KHAU-003")

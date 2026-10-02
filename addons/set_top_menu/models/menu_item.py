@@ -375,8 +375,9 @@ class MenuItem(models.Model):
         """Build ``danh_sach_khau`` from the Bước 2 stage lines.
 
         Mỗi dòng là một khâu của quy trình (``ma_khau`` = mã khâu sản xuất,
-        ``thu_tu`` = thứ tự dòng). Dòng trống (không nhân viên, không
-        cơ sở, không file) thì bỏ qua.
+        ``thu_tu`` = thứ tự dòng, ``ghi_chu`` = thông tin chế biến,
+        ``dia_chi`` = địa chỉ thực hiện). Dòng trống (không nhân viên,
+        không cơ sở, không file) thì bỏ qua.
         """
         self.ensure_one()
         khau_list = []
@@ -389,6 +390,8 @@ class MenuItem(models.Model):
             entry = {
                 "ma_khau": (line.step_id.code or "").upper(),
                 "thu_tu": line.sequence or 0,
+                "ghi_chu": line.info or "",
+                "dia_chi": line.address or "",
             }
             if site:
                 entry["ma_co_so"] = (site.code or "").upper()

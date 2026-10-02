@@ -363,14 +363,24 @@ class ProductTemplate(models.Model):
                 )
                 if uom:
                     values["uom_id"] = uom.id
-            # Đã tồn tại (khớp đúng supplier ID) -> cập nhật;
+            # Mỗi nguồn API sở hữu bản ghi riêng: standard-foods (danh mục
+            # chuẩn) và foods/paginate (thực phẩm) chung dãy ID nên phải khớp
+            # thêm theo nguồn. Nhờ đó "Lấy Thực phẩm" chỉ tạo/cập nhật bản
+            # ghi nguồn foods (hiện ở Thực phẩm), không bao giờ chạm vào
+            # bản ghi nguồn standard (hiện ở Thực phẩm chuẩn), và ngược lại.
+            # Đã tồn tại (khớp đúng supplier ID cùng nguồn) -> cập nhật;
             # chưa có mới khớp theo mã rồi nhận về, còn lại thì thêm mới.
             product = self.search(
-                [("crall_supplier_id", "=", supplier_id)], limit=1
+                [
+                    ("crall_supplier_id", "=", supplier_id),
+                    ("crall_food_source", "=", source),
+                ],
+                limit=1,
             )
             if not product and supplier_code:
                 product = self.search(
                     [
+                        ("crall_food_source", "=", source),
                         "|",
                         ("crall_supplier_code", "=", str(supplier_code)),
                         ("default_code", "=", str(supplier_code)),

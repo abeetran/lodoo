@@ -442,3 +442,83 @@ class TestPushSupplierWarehouses(TransactionCase):
         _valid_token_params(icp)
         with self.assertRaises(UserError):
             HnckClient(self.env).push_supplier_warehouses([])
+
+
+class TestPushSupplierFoods(TransactionCase):
+    def test_push_foods_posts_signed_body(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        calls = []
+
+        def fake_post(url, data=None, headers=None, timeout=None):
+            calls.append(
+                {
+                    "url": url,
+                    "body": json.loads(data.decode("utf-8")),
+                    "headers": dict(headers or {}),
+                }
+            )
+            return _FakeResponse(200, payload={"ok": True}, headers=headers)
+
+        post_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.post"
+        )
+        payload = [
+            {
+                "ma_san_pham": "TP-THIT-001",
+                "ten_san_pham": "Thịt heo tươi",
+                "ma_loai_sp": "969",
+                "ma_thuc_pham_chuan": "thit_nac",
+                "gtin": "8938505970001",
+                "quoc_gia": "Việt Nam",
+                "ma_quy_trinh": "QT001",
+            }
+        ]
+        with patch(post_path, side_effect=fake_post):
+            result = HnckClient(self.env).push_supplier_foods(payload)
+        self.assertEqual(result, {"ok": True})
+        self.assertEqual(len(calls), 1)
+        self.assertTrue(calls[0]["url"].endswith("supplier/foods/merge"))
+        self.assertEqual(calls[0]["body"], payload)
+        headers = calls[0]["headers"]
+        self.assertIn("stale-token", headers["Authorization"])
+        for key in ("X-Timestamp", "X-Nonce", "X-Signature"):
+            self.assertIn(key, headers)
+
+    def test_push_foods_refreshes_expired_token(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp, token="expired-token")
+        icp.set_param(
+            "crall_material.hnck_token_expires_at", str(time.time() - 10)
+        )
+        calls = []
+
+        def fake_post(url, data=None, headers=None, timeout=None):
+            calls.append(dict(headers or {}))
+            return _FakeResponse(200, payload={"ok": True}, headers=headers)
+
+        def fake_refresh(inner_self):
+            icp.set_param("crall_material.hnck_access_token", "fresh-token")
+            icp.set_param(
+                "crall_material.hnck_token_expires_at", str(time.time() + 3600)
+            )
+            return "fresh-token"
+
+        post_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.post"
+        )
+        with (
+            patch(post_path, side_effect=fake_post),
+            patch.object(HnckClient, "refresh_token", fake_refresh),
+        ):
+            HnckClient(self.env).push_supplier_foods(
+                [{"ma_san_pham": "TP-THIT-001"}]
+            )
+        self.assertEqual(len(calls), 1)
+        self.assertIn("fresh-token", calls[0]["Authorization"])
+
+    def test_push_foods_empty_raises(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        with self.assertRaises(UserError):
+            HnckClient(self.env).push_supplier_foods([])

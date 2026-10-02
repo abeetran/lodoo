@@ -49,6 +49,11 @@ class ProductTemplate(models.Model):
         copy=False,
         index=True,
     )
+    crall_country = fields.Char(
+        string="Quốc gia",
+        default="Việt Nam",
+        help="Quốc gia xuất xứ của thực phẩm (gửi lên HNCK lúc đồng bộ).",
+    )
 
     @api.depends("crall_food_category_id")
     def _compute_crall_standard_food(self):

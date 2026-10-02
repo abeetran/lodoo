@@ -1,5 +1,7 @@
 from odoo import _, api, fields, models
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
+
+from odoo.addons.crall_material.models.hnck_client import HnckClient
 
 
 class ProductProduct(models.Model):
@@ -87,3 +89,46 @@ class ProductTemplate(models.Model):
             elif command[0] in (0, 4):
                 return True
         return False
+
+    def action_push_supplier_foods(self):
+        """Nút Đồng bộ: chỉ hiện khi tick chọn thực phẩm trên danh sách.
+
+        Gửi các thực phẩm đang chọn lên API ``supplier/foods/merge`` (POST,
+        ký X-Signature; token hết hạn thì tự lấy mới).
+        """
+        if not self:
+            raise UserError(_("Vui lòng chọn ít nhất một thực phẩm để đồng bộ."))
+        payloads = [template._supplier_food_push_payload() for template in self]
+        result = HnckClient(self.env).push_supplier_foods(payloads)
+        message = _("Đã gửi %s thực phẩm lên API nhà cung cấp.") % len(payloads)
+        if isinstance(result, dict) and result.get("message"):
+            message = "%s %s" % (message, result["message"])
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Đồng bộ thực phẩm"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def _supplier_food_push_payload(self):
+        """Serialize one food into the supplier merge body format."""
+        self.ensure_one()
+        standard = self.crall_standard_food_id
+        process = self.process_ids.sorted("id")[:1]
+        return {
+            "ma_san_pham": (self.default_code or "").upper(),
+            "ten_san_pham": self.name or "",
+            "ma_loai_sp": str(self.crall_food_category_id or ""),
+            "ma_thuc_pham_chuan": (
+                standard.crall_supplier_code or standard.default_code or ""
+            )
+            if standard
+            else "",
+            "gtin": self.barcode or "",
+            "quoc_gia": self.crall_country or "Việt Nam",
+            "ma_quy_trinh": (process.code or "").upper() if process else "",
+        }

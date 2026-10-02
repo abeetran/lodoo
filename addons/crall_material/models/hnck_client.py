@@ -23,6 +23,7 @@ DISHES_MERGE_PATH = "supplier/dishes/merge"
 STEPS_MERGE_PATH = "supplier/steps/merge"
 PROCESSES_MERGE_PATH = "supplier/processes/merge"
 WAREHOUSES_MERGE_PATH = "supplier/warehouses/merge"
+FOODS_MERGE_PATH = "supplier/foods/merge"
 TOKEN_SAFETY_MARGIN = 60
 CLOCK_OFFSET_PARAM = "crall_material.hnck_clock_offset"
 # Chênh lệch giờ server HNCK - local cho phép lưu (giây). Ngưỡng rộng
@@ -346,6 +347,17 @@ class HnckClient:
         if not records:
             raise UserError(_("Không có kho nào để đồng bộ."))
         return self._signed_post(WAREHOUSES_MERGE_PATH, records)
+
+    def push_supplier_foods(self, records):
+        """Push food payloads to ``supplier/foods/merge`` (POST, signed).
+
+        Token handling is automatic: :meth:`get_token` reuses the cached
+        token while it is still valid and calls the token API for a new
+        one only when it is missing or expired.
+        """
+        if not records:
+            raise UserError(_("Không có thực phẩm nào để đồng bộ."))
+        return self._signed_post(FOODS_MERGE_PATH, records)
 
     def _signed_post(self, path, records):
         body_text = json.dumps(records, ensure_ascii=False, separators=(",", ":"))

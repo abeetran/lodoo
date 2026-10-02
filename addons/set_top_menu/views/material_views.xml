@@ -1,8 +1,26 @@
 <odoo>
+    <record id="view_material_product_tree" model="ir.ui.view">
+        <field name="name">product.template.material.tree</field>
+        <field name="model">product.template</field>
+        <field name="arch" type="xml">
+            <tree string="Thực phẩm">
+                <header>
+                    <button name="action_push_supplier_foods" type="object"
+                            string="Đồng bộ" icon="fa-upload" class="btn-primary"/>
+                </header>
+                <field name="name" string="Tên thực phẩm"/>
+                <field name="default_code" string="Mã" optional="show"/>
+                <field name="crall_standard_food_id" string="Danh mục chuẩn" optional="show"/>
+                <field name="crall_country" optional="show"/>
+            </tree>
+        </field>
+    </record>
+
     <record id="action_material_products" model="ir.actions.act_window">
         <field name="name">Thực phẩm</field>
         <field name="res_model">product.template</field>
-        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'tree', 'view_id': ref('view_material_product_tree')})]"/>
         <!-- Mọi thứ trừ món chuẩn: tạo tay + foods + bản ghi cũ chưa dấu -->
         <field name="domain">["|", ("crall_food_source", "!=", "standard"), ("crall_food_source", "=", False)]</field>
         <field name="context">{'default_purchase_ok': True, 'default_crall_food_source': 'foods', 'set_top_menu_require_food_fields': True}</field>
@@ -28,6 +46,9 @@
                 <field name="process_ids" widget="many2many_tags"
                        invisible="crall_food_source == 'standard'"
                        placeholder="Chọn các quy trình sản xuất cho thực phẩm"/>
+                <field name="crall_country"
+                       invisible="crall_food_source != 'foods'"
+                       placeholder="Việt Nam"/>
             </field>
         </field>
     </record>

@@ -150,6 +150,22 @@ class HnckClient:
         _logger.info("Fetched new HNCK access token (expires in %ss)", expires_in)
         return access_token
 
+    def clear_token(self):
+        """Xóa token HNCK đã lưu (dùng khi API trả 401)."""
+        self.env["ir.config_parameter"].sudo().search(
+            [
+                (
+                    "key",
+                    "in",
+                    [
+                        "crall_material.hnck_access_token",
+                        "crall_material.hnck_token_type",
+                        "crall_material.hnck_token_expires_at",
+                    ],
+                )
+            ]
+        ).unlink()
+
     def auth_headers(self):
         token = self.get_token()
         if token.lower().startswith("bearer "):
@@ -261,6 +277,7 @@ class HnckClient:
                 "Fetch supplier dishes got 401, refreshing token and retrying once"
             )
             self.sync_clock_from_response(getattr(error, "response", None))
+            self.clear_token()
             self.refresh_token()
             try:
                 headers = {**self.auth_headers(), "Accept": "application/json"}
@@ -316,6 +333,7 @@ class HnckClient:
                 "Fetch supplier orders got 401, refreshing token and retrying once"
             )
             self.sync_clock_from_response(getattr(error, "response", None))
+            self.clear_token()
             self.refresh_token()
             try:
                 headers = {**self.auth_headers(), "Accept": "application/json"}
@@ -443,6 +461,7 @@ class HnckClient:
                 path,
             )
             self.sync_clock_from_response(getattr(error, "response", None))
+            self.clear_token()
             self.refresh_token()
             try:
                 response = self._do_signed_post(url, path, body_bytes, body_text)

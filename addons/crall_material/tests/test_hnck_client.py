@@ -686,6 +686,38 @@ class TestFetchSupplierOrders(TransactionCase):
         self.assertIn("stale-token", calls[0]["Authorization"])
         self.assertIn("fresh-token", calls[1]["Authorization"])
 
+    def test_fetch_401_clears_token_when_refresh_fails(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        self.assertEqual(
+            icp.get_param("crall_material.hnck_access_token"), "stale-token"
+        )
+
+        def fake_get(url, headers=None, timeout=None):
+            return _FakeResponse(
+                401,
+                text='{"message":"Unauthenticated."}',
+                headers=headers,
+            )
+
+        def fake_refresh(inner_self):
+            raise UserError("token api down")
+
+        get_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.get"
+        )
+        with (
+            patch(get_path, side_effect=fake_get),
+            patch.object(HnckClient, "refresh_token", fake_refresh),
+        ):
+            with self.assertRaises(UserError):
+                HnckClient(self.env).fetch_supplier_orders({"page": 1})
+        self.assertFalse(icp.get_param("crall_material.hnck_access_token"))
+        self.assertFalse(icp.get_param("crall_material.hnck_token_type"))
+        self.assertFalse(
+            icp.get_param("crall_material.hnck_token_expires_at")
+        )
+
     def test_fetch_http_error_raises(self):
         icp = self.env["ir.config_parameter"].sudo()
         _valid_token_params(icp)

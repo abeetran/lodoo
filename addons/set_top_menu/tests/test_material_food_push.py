@@ -1,3 +1,4 @@
+import xml.etree.ElementTree as ET
 from unittest.mock import patch
 
 from odoo.exceptions import UserError
@@ -72,4 +73,10 @@ class TestMaterialFoodPush(TransactionCase):
 
     def test_material_form_has_country_field(self):
         view = self.env.ref("set_top_menu.view_product_template_food_form")
-        self.assertIn("crall_country", view.arch_db)
+        node = ET.fromstring(view.arch_db).find(
+            ".//field[@name='crall_country']"
+        )
+        self.assertIsNotNone(node)
+        self.assertEqual(
+            node.get("invisible"), "crall_food_source == 'standard'"
+        )

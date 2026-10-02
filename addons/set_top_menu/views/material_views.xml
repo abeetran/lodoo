@@ -47,7 +47,7 @@
                        invisible="crall_food_source == 'standard'"
                        placeholder="Chọn các quy trình sản xuất cho thực phẩm"/>
                 <field name="crall_country"
-                       invisible="crall_food_source != 'foods'"
+                       invisible="crall_food_source == 'standard'"
                        placeholder="Việt Nam"/>
             </field>
         </field>

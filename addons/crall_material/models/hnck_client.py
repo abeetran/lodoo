@@ -95,6 +95,24 @@ class HnckClient:
             return token
         return self.refresh_token()
 
+    def peek_cached_token(self):
+        """Đọc token trong cache mà không gọi API refresh.
+
+        Trả về ``(token, còn_hạn)`` để popup xem trước request.
+        """
+        parameters = self.env["ir.config_parameter"].sudo()
+        token = parameters.get_param("crall_material.hnck_access_token")
+        try:
+            expires_at = float(
+                parameters.get_param("crall_material.hnck_token_expires_at")
+                or 0
+            )
+        except (TypeError, ValueError):
+            expires_at = 0
+        return token, bool(
+            token and expires_at - TOKEN_SAFETY_MARGIN > time.time()
+        )
+
     def refresh_token(self):
         url = self.base_url() + TOKEN_PATH
         payload = {
@@ -243,6 +261,20 @@ class HnckClient:
         ).digest()
         return base64.b64encode(digest).decode("ascii")
 
+    def _signed_get_headers(self, url, nonce=False, timestamp=False):
+        """Header cho GET có chữ ký: ký đường dẫn, body rỗng."""
+        nonce = nonce or self.new_nonce()
+        timestamp = timestamp or self.timestamp()
+        return {
+            **self.auth_headers(),
+            "X-Timestamp": timestamp,
+            "X-Nonce": nonce,
+            "X-Signature": self.signature(
+                "GET", urlsplit(url).path, timestamp, nonce, b""
+            ),
+            "Accept": "application/json",
+        }
+
     def fetch_supplier_dishes(self, url=None):
         """Fetch the supplier dish list (GET ``supplier/dishes/merge``).
 
@@ -304,12 +336,14 @@ class HnckClient:
             raise UserError(_("API món ăn không trả về danh sách món ăn."))
         return dishes
 
-    def fetch_supplier_orders(self, params):
+    def fetch_supplier_orders(self, params, x_nonce=False, x_timestamp=False):
         """Fetch the supplier order list (GET ``supplier/orders`` + params).
 
         Token handling is automatic: :meth:`get_token` reuses the cached
         token while it is still valid and calls the token API for a new
-        one only when it is missing or expired.
+        one only when it is missing or expired. The GET is signed
+        (path only, empty body); pass ``x_nonce``/``x_timestamp`` to reuse
+        the values shown on the fetch popup, else fresh ones are made.
         """
         query = urlencode(
             {key: value for key, value in (params or {}).items() if value}
@@ -317,7 +351,7 @@ class HnckClient:
         request_url = self.base_url() + ORDERS_FETCH_PATH
         if query:
             request_url = "%s?%s" % (request_url, query)
-        headers = {**self.auth_headers(), "Accept": "application/json"}
+        headers = self._signed_get_headers(request_url, x_nonce, x_timestamp)
         try:
             response = requests.get(request_url, headers=headers, timeout=30)
             self.sync_clock_from_response(response)
@@ -336,7 +370,7 @@ class HnckClient:
             self.clear_token()
             self.refresh_token()
             try:
-                headers = {**self.auth_headers(), "Accept": "application/json"}
+                headers = self._signed_get_headers(request_url)
                 response = requests.get(
                     request_url, headers=headers, timeout=30
                 )

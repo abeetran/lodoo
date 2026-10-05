@@ -64,6 +64,17 @@ class TestHnckClientAuth(TransactionCase):
             ),
         )
 
+    def test_peek_cached_token_reports_validity(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        client = HnckClient(self.env)
+        self.assertEqual(client.peek_cached_token(), (False, False))
+        _valid_token_params(icp)
+        self.assertEqual(client.peek_cached_token(), ("stale-token", True))
+        icp.set_param(
+            "crall_material.hnck_token_expires_at", str(time.time() - 10)
+        )
+        self.assertEqual(client.peek_cached_token(), ("stale-token", False))
+
     def test_signed_post_refreshes_token_once_on_401(self):
         icp = self.env["ir.config_parameter"].sudo()
         _valid_token_params(icp)
@@ -648,6 +659,86 @@ class TestFetchSupplierOrders(TransactionCase):
         )
         self.assertIn("stale-token", calls[0]["headers"]["Authorization"])
         self.assertEqual(calls[0]["headers"]["Accept"], "application/json")
+
+    def test_fetch_signs_path_without_query(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        calls = []
+
+        def fake_get(url, headers=None, timeout=None):
+            calls.append({"url": url, "headers": dict(headers or {})})
+            return _FakeResponse(
+                200,
+                payload={"success": True, "data": []},
+                headers=headers,
+            )
+
+        get_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.get"
+        )
+        with patch(get_path, side_effect=fake_get):
+            HnckClient(self.env).fetch_supplier_orders(
+                {"page": 1, "per_page": 20, "status": "DANG_GIAO"},
+                x_nonce="fixed-nonce-001",
+                x_timestamp="1790044905",
+            )
+        sent = calls[0]["headers"]
+        self.assertIn("?page=1", calls[0]["url"])
+        self.assertEqual(sent["X-Nonce"], "fixed-nonce-001")
+        self.assertEqual(sent["X-Timestamp"], "1790044905")
+        self.assertEqual(
+            sent["X-Signature"],
+            HnckClient(self.env).signature(
+                "GET",
+                "/api/supplier/orders",
+                "1790044905",
+                "fixed-nonce-001",
+                b"",
+            ),
+        )
+
+    def test_fetch_401_retry_uses_fresh_signature(self):
+        icp = self.env["ir.config_parameter"].sudo()
+        _valid_token_params(icp)
+        calls = []
+
+        def fake_get(url, headers=None, timeout=None):
+            calls.append(dict(headers or {}))
+            if len(calls) == 1:
+                return _FakeResponse(
+                    401,
+                    text='{"message":"Unauthenticated."}',
+                    headers=headers,
+                )
+            return _FakeResponse(
+                200, payload={"success": True, "data": []}, headers=headers
+            )
+
+        def fake_refresh(inner_self):
+            icp.set_param("crall_material.hnck_access_token", "fresh-token")
+            icp.set_param(
+                "crall_material.hnck_token_expires_at", str(time.time() + 3600)
+            )
+            return "fresh-token"
+
+        get_path = (
+            "odoo.addons.crall_material.models.hnck_client.requests.get"
+        )
+        with (
+            patch(get_path, side_effect=fake_get),
+            patch.object(HnckClient, "refresh_token", fake_refresh),
+        ):
+            HnckClient(self.env).fetch_supplier_orders(
+                {"page": 1},
+                x_nonce="fixed-nonce-001",
+                x_timestamp="1790044905",
+            )
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0]["X-Nonce"], "fixed-nonce-001")
+        self.assertNotEqual(calls[1]["X-Nonce"], "fixed-nonce-001")
+        self.assertIn("X-Signature", calls[0])
+        self.assertIn("X-Signature", calls[1])
+        self.assertIn("fresh-token", calls[1]["Authorization"])
 
     def test_fetch_refreshes_token_once_on_401(self):
         icp = self.env["ir.config_parameter"].sudo()

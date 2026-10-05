@@ -295,11 +295,11 @@ class SaleOrder(models.Model):
         }
 
     @api.model
-    def fetch_supplier_orders(
+    def _order_fetch_params(
         self, page=1, per_page=20, status="DANG_GIAO",
         date_from=False, date_to=False, order_code=False, school_id=False,
     ):
-        """Lấy đơn hàng từ HNCK rồi tạo/cập nhật đơn hàng hằng ngày."""
+        """Dựng query params ``supplier/orders`` (trống thì bỏ param)."""
         params = {"per_page": per_page}
         if page:
             params["page"] = page
@@ -313,7 +313,31 @@ class SaleOrder(models.Model):
             params["order_date_from"] = str(date_from)
         if date_to:
             params["order_date_to"] = str(date_to)
-        result = HnckClient(self.env).fetch_supplier_orders(params)
+        return params
+
+    def fetch_supplier_orders(
+        self, page=1, per_page=20, status="DANG_GIAO",
+        date_from=False, date_to=False, order_code=False, school_id=False,
+        x_nonce=False, x_timestamp=False,
+    ):
+        """Lấy đơn hàng từ HNCK rồi tạo/cập nhật đơn hàng hằng ngày."""
+        params = self._order_fetch_params(
+            page=page,
+            per_page=per_page,
+            status=status,
+            date_from=date_from,
+            date_to=date_to,
+            order_code=order_code,
+            school_id=school_id,
+        )
+        sign_kwargs = {}
+        if x_nonce:
+            sign_kwargs["x_nonce"] = x_nonce
+        if x_timestamp:
+            sign_kwargs["x_timestamp"] = x_timestamp
+        result = HnckClient(self.env).fetch_supplier_orders(
+            params, **sign_kwargs
+        )
         if not isinstance(result, dict):
             raise UserError(_("API đơn hàng không trả về dữ liệu hợp lệ."))
         if result.get("success") is False:

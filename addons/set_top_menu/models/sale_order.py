@@ -22,7 +22,7 @@ class SaleOrder(models.Model):
     _rec_name = "catering_reference"
 
     catering_reference = fields.Char(
-        string="Mã đơn phục vụ", required=True, readonly=True, copy=False, default="Mới"
+        string="Mã đơn phục vụ", required=True, copy=False, default="Mới"
     )
     catering_state = fields.Selection(
         [
@@ -39,6 +39,14 @@ class SaleOrder(models.Model):
         required=True,
         copy=False,
         index=True,
+    )
+    hnck_order = fields.Boolean(
+        string="Đơn HNCK",
+        default=False,
+        readonly=True,
+        copy=False,
+        index=True,
+        help="Đơn lấy về từ HNCK qua nút Lấy ĐH; chỉ được cập nhật qua API.",
     )
     contract_id = fields.Many2one(
         "set_top_menu.client.contract",
@@ -209,6 +217,15 @@ class SaleOrder(models.Model):
                 "Không thể chỉnh sửa đơn hàng vì bếp đã bắt đầu thực hiện đơn này."
             )
 
+    def _check_hnck_editable(self):
+        if self.env.context.get("hnck_sync"):
+            return
+        if self.filtered("hnck_order"):
+            raise UserError(
+                "Đơn hàng HNCK chỉ được cập nhật qua nút Lấy ĐH, "
+                "không được chỉnh sửa trực tiếp trên hệ thống."
+            )
+
     def _ensure_menu_line_accountable_fields(self):
         """Complete hidden Sale fields before Odoo validates accountable lines."""
         for line in self.order_line.filtered(
@@ -359,7 +376,7 @@ class SaleOrder(models.Model):
             "created": 0,
             "updated": 0,
             "skipped_no_code": 0,
-            "skipped_locked": 0,
+            "skipped_manual": 0,
             "lines_ok": 0,
             "lines_skipped": 0,
             "partners_created": 0,
@@ -379,8 +396,8 @@ class SaleOrder(models.Model):
             counts["skipped_no_code"] += 1
             return
         order = self.search([("catering_reference", "=", code)], limit=1)
-        if order and order._is_kitchen_locked():
-            counts["skipped_locked"] += 1
+        if order and not order.hnck_order:
+            counts["skipped_manual"] += 1
             return
         partner = self._crall_order_partner(payload.get("school"), counts)
         line_commands = []
@@ -447,11 +464,12 @@ class SaleOrder(models.Model):
         if provided_date or not order:
             order_vals["date_order"] = provided_date or fields.Date.today()
         if order:
-            order.write(order_vals)
+            order.with_context(hnck_sync=True).write(order_vals)
             counts["updated"] += 1
         else:
             order_vals["catering_reference"] = code
-            self.create(order_vals)
+            order_vals["hnck_order"] = True
+            self.with_context(hnck_sync=True).create(order_vals)
             counts["created"] += 1
 
     @api.model
@@ -525,8 +543,15 @@ class SaleOrder(models.Model):
     def write(self, vals):
         # Kitchen state synchronization must remain possible after production starts,
         # while all user-editable business data is protected at model level.
+        if "catering_reference" in vals:
+            for order in self:
+                if vals["catering_reference"] != order.catering_reference:
+                    raise UserError(
+                        "Không được thay đổi mã đơn hàng sau khi đã tạo."
+                    )
         if set(vals) - {"catering_state"}:
             self._check_kitchen_editable()
+            self._check_hnck_editable()
         return super().write(vals)
 
 
@@ -640,6 +665,7 @@ class SaleOrderLine(models.Model):
             if vals.get("order_id"):
                 order = self.env["sale.order"].browse(vals["order_id"])
                 order._check_kitchen_editable()
+                order._check_hnck_editable()
                 if order.contract_id:
                     contract_task = self.env["set_top_menu.client.contract.task"].browse(
                         vals.get("contract_task_id")
@@ -659,6 +685,25 @@ class SaleOrderLine(models.Model):
                     vals["name"] = menu_item.name
                 vals.setdefault("price_unit", menu_item.sale_price)
                 vals["tax_id"] = [Command.clear()]
+            if not vals.get("product_id") and vals.get(
+                "product_template_id"
+            ):
+                template = self.env["product.template"].browse(
+                    vals["product_template_id"]
+                )
+                if template.exists() and template.product_variant_id:
+                    vals["product_id"] = template.product_variant_id.id
+            if vals.get("product_id") and (
+                not vals.get("name") or not vals.get("product_uom")
+            ):
+                product = self.env["product.product"].browse(vals["product_id"])
+                if product.exists():
+                    if not vals.get("name"):
+                        vals["name"] = (
+                            product.get_product_multiline_description_sale()
+                        )
+                    if not vals.get("product_uom"):
+                        vals["product_uom"] = product.uom_id.id
             if vals.get("contract_task_id"):
                 contract_task = self.env["set_top_menu.client.contract.task"].browse(
                     vals["contract_task_id"]
@@ -668,6 +713,7 @@ class SaleOrderLine(models.Model):
 
     def write(self, vals):
         self.mapped("order_id")._check_kitchen_editable()
+        self.mapped("order_id")._check_hnck_editable()
         contract_locked_fields = {
             "product_id",
             "product_template_id",
@@ -709,4 +755,5 @@ class SaleOrderLine(models.Model):
 
     def unlink(self):
         self.mapped("order_id")._check_kitchen_editable()
+        self.mapped("order_id")._check_hnck_editable()
         return super().unlink()

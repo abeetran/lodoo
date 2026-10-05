@@ -17,10 +17,12 @@
                     <button name="action_deliver" type="object" string="Đã giao"
                             class="btn-primary" invisible="catering_state != 'dispatched'"/>
                     <field name="catering_state" widget="statusbar"
-                           statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"/>
+                           statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"
+                           readonly="hnck_order"/>
                     <field name="state" invisible="1"/>
+                    <field name="hnck_order" invisible="1"/>
                 </header>
-                <sheet readonly="catering_state not in ('draft', 'confirmed')">
+                <sheet readonly="hnck_order or catering_state not in ('draft', 'confirmed')">
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_kitchen_plans" type="object" class="oe_stat_button"
                                 icon="fa-cutlery" invisible="kitchen_plan_count == 0">
@@ -29,7 +31,7 @@
                     </div>
                     <div class="oe_title">
                         <label for="catering_reference" string="Mã đơn hàng"/>
-                        <h1><field name="catering_reference" readonly="1"/></h1>
+                        <h1><field name="catering_reference" readonly="id"/></h1>
                     </div>
                     <group>
                         <group string="CHI TIẾT ĐƠN HÀNG">
@@ -53,6 +55,7 @@
                             <field name="total_meals" string="Tổng số suất ăn" readonly="1"/>
                             <field name="amount_untaxed" string="Tổng tiền" readonly="1"/>
                             <field name="company_id" string="Công ty"/>
+                            <field name="hnck_order" readonly="1"/>
                         </group>
                     </group>
                     <field name="currency_id" invisible="1"/>

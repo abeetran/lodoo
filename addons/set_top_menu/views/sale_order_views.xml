@@ -35,7 +35,9 @@
                 <button string="Hủy bỏ" special="cancel"
                         invisible="state not in ('draft', 'sent')"/>
                 <field name="catering_state" widget="statusbar"
-                       statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"/>
+                       statusbar_visible="draft,confirmed.in_production,ready,dispatched,delivered"
+                       readonly="hnck_order"/>
+                <field name="hnck_order" invisible="1"/>
                 <button name="action_dispatch" type="object" string="Xuất giao"
                         class="btn-primary" invisible="catering_state != 'ready'"/>
                 <button name="action_deliver" type="object" string="Đã giao"
@@ -48,7 +50,7 @@
                 </button>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="catering_reference" readonly="1"/>
+                <field name="catering_reference" readonly="id"/>
                 <field name="contract_id"/>
                 <field name="total_meals" readonly="1"/>
             </xpath>

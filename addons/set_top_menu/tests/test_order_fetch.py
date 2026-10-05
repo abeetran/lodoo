@@ -137,7 +137,7 @@ class TestOrderFetch(TransactionCase):
             order.order_line.product_id.product_tmpl_id, foods
         )
 
-    def test_fetch_updates_draft_skips_locked(self):
+    def test_fetch_skips_manual_orders(self):
         self._food("TP-THIT-001")
         self._food("TP-RAU-001")
         school = self._school()
@@ -180,12 +180,135 @@ class TestOrderFetch(TransactionCase):
                 "pagination": {"total": 2},
             }
             counts = self.env["sale.order"].fetch_supplier_orders()
-        self.assertEqual((counts["updated"], counts["skipped_locked"]), (1, 1))
-        self.assertEqual(len(draft.order_line), 1)
         self.assertEqual(
-            draft.order_line.product_id.default_code, "TP-RAU-001"
+            (counts["updated"], counts["skipped_manual"]), (0, 2)
         )
+        self.assertEqual(len(draft.order_line), 1)
+        self.assertEqual(draft.order_line.product_uom_qty, 9)
         self.assertEqual(len(locked.order_line), 0)
+
+    def test_fetch_updates_locked_hnck_order(self):
+        self._food("TP-THIT-001")
+        self._food("TP-RAU-001")
+        self._school()
+        client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": [
+                    _order_payload(
+                        code="DH-HNCK-001",
+                        products=[{"code": "TP-THIT-001"}],
+                    )
+                ],
+                "pagination": {"total": 1},
+            }
+            self.env["sale.order"].fetch_supplier_orders()
+        order = self.env["sale.order"].search(
+            [("catering_reference", "=", "DH-HNCK-001")], limit=1
+        )
+        self.assertTrue(order.hnck_order)
+        order.write({"catering_state": "in_production"})
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": [
+                    _order_payload(
+                        code="DH-HNCK-001",
+                        status="DANG_GIAO",
+                        products=[{"code": "TP-RAU-001"}],
+                    )
+                ],
+                "pagination": {"total": 1},
+            }
+            counts = self.env["sale.order"].fetch_supplier_orders()
+        self.assertEqual((counts["updated"], counts["skipped_manual"]), (1, 0))
+        self.assertEqual(order.catering_state, "dispatched")
+        self.assertEqual(len(order.order_line), 1)
+        self.assertEqual(
+            order.order_line.product_id.default_code, "TP-RAU-001"
+        )
+
+    def test_hnck_order_direct_write_blocked(self):
+        school = self._school()
+        other = self.env["res.partner"].create({"name": "Trường khác"})
+        hnck = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-HNCK-002",
+                "hnck_order": True,
+            }
+        )
+        manual = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-MANUAL-002",
+            }
+        )
+        with self.assertRaises(UserError):
+            hnck.write({"partner_id": other.id})
+        hnck.write({"catering_state": "confirmed"})
+        self.assertEqual(hnck.catering_state, "confirmed")
+        hnck.with_context(hnck_sync=True).write({"partner_id": other.id})
+        self.assertEqual(hnck.partner_id, other)
+        manual.write({"partner_id": other.id})
+        self.assertEqual(manual.partner_id, other)
+
+    def test_hnck_line_guards(self):
+        school = self._school()
+        product = self.env["product.product"].search([], limit=1)
+        hnck = (
+            self.env["sale.order"]
+            .with_context(hnck_sync=True)
+            .create(
+                {
+                    "partner_id": school.id,
+                    "catering_reference": "DH-HNCK-003",
+                    "hnck_order": True,
+                    "order_line": [
+                        (
+                            0,
+                            0,
+                            {"product_id": product.id, "product_uom_qty": 2},
+                        )
+                    ],
+                }
+            )
+        )
+        line = hnck.order_line
+        with self.assertRaises(UserError):
+            line.write({"product_uom_qty": 5})
+        with self.assertRaises(UserError):
+            line.unlink()
+        with self.assertRaises(UserError):
+            self.env["sale.order.line"].create(
+                {
+                    "order_id": hnck.id,
+                    "product_id": product.id,
+                    "product_uom_qty": 1,
+                }
+            )
+        line.with_context(hnck_sync=True).write({"product_uom_qty": 5})
+        self.assertEqual(line.product_uom_qty, 5)
+
+    def test_wizard_reports_skipped_manual(self):
+        school = self._school()
+        self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-MANUAL-004",
+            }
+        )
+        wizard = self.env["set_top_menu.order.fetch.wizard"].create({})
+        client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": [_order_payload(code="DH-MANUAL-004")],
+                "pagination": {"total": 1},
+            }
+            wizard.action_confirm_fetch()
+        self.assertIn("Bỏ qua (đơn nhập tay): 1", wizard.result_text)
 
     def test_fetch_rejects_failure(self):
         client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
@@ -392,6 +515,82 @@ class TestOrderFetch(TransactionCase):
             {"per_page": 20}
         )
         self.assertEqual(wizard.state, "done")
+
+    def test_reference_entered_on_create_kept(self):
+        school = self._school()
+        typed = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-TAY-001",
+            }
+        )
+        self.assertEqual(typed.catering_reference, "DH-TAY-001")
+        sequenced = self.env["sale.order"].create(
+            {"partner_id": school.id}
+        )
+        self.assertTrue(sequenced.catering_reference.startswith("ORD/"))
+
+    def test_reference_change_blocked_on_write(self):
+        school = self._school()
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-TAY-002",
+            }
+        )
+        with self.assertRaises(UserError):
+            order.write({"catering_reference": "DH-KHAC"})
+        order.write({"catering_reference": "DH-TAY-002"})
+        self.assertEqual(order.catering_reference, "DH-TAY-002")
+
+    def test_line_create_defaults_name_and_uom_from_product(self):
+        school = self._school()
+        template = self._food("TP-THIT-001")
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-LINE-001",
+            }
+        )
+        line = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": template.product_variant_id.id,
+                "product_uom_qty": 2,
+            }
+        )
+        self.assertIn("TP-THIT-001", line.name)
+        self.assertEqual(line.product_uom, template.uom_id)
+        named = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": template.product_variant_id.id,
+                "name": "Tên giữ nguyên",
+                "product_uom_qty": 1,
+            }
+        )
+        self.assertEqual(named.name, "Tên giữ nguyên")
+        self.assertEqual(named.product_uom, template.uom_id)
+
+    def test_line_create_defaults_variant_from_template(self):
+        school = self._school()
+        template = self._food("TP-THIT-001")
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-LINE-002",
+            }
+        )
+        line = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_template_id": template.id,
+                "product_uom_qty": 1,
+            }
+        )
+        self.assertEqual(line.product_id, template.product_variant_id)
+        self.assertIn("TP-THIT-001", line.name)
+        self.assertEqual(line.product_uom, template.uom_id)
 
     def test_wizard_defaults(self):
         fields = self.env["set_top_menu.order.fetch.wizard"]._fields

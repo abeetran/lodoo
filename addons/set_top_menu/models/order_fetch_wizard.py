@@ -62,7 +62,7 @@ class OrderFetchWizard(models.TransientModel):
                 _("Tạo mới: %(created)s") % counts,
                 _("Cập nhật: %(updated)s") % counts,
                 _("Bỏ qua (thiếu mã): %(skipped_no_code)s") % counts,
-                _("Bỏ qua (bếp đang làm): %(skipped_locked)s") % counts,
+                _("Bỏ qua (đơn nhập tay): %(skipped_manual)s") % counts,
                 _(
                     "Dòng sản phẩm: %(lines_ok)s hợp lệ, "
                     "%(lines_skipped)s bỏ qua."

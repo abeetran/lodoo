@@ -64,17 +64,6 @@ class TestHnckClientAuth(TransactionCase):
             ),
         )
 
-    def test_peek_cached_token_reports_validity(self):
-        icp = self.env["ir.config_parameter"].sudo()
-        client = HnckClient(self.env)
-        self.assertEqual(client.peek_cached_token(), (False, False))
-        _valid_token_params(icp)
-        self.assertEqual(client.peek_cached_token(), ("stale-token", True))
-        icp.set_param(
-            "crall_material.hnck_token_expires_at", str(time.time() - 10)
-        )
-        self.assertEqual(client.peek_cached_token(), ("stale-token", False))
-
     def test_signed_post_refreshes_token_once_on_401(self):
         icp = self.env["ir.config_parameter"].sudo()
         _valid_token_params(icp)

@@ -156,10 +156,6 @@
                         <field name="order_date_to"/>
                         <field name="page"/>
                     </group>
-                    <group string="Thông tin request sẽ gửi"
-                           invisible="state != 'draft'">
-                        <field name="preview_text" nolabel="1" readonly="1"/>
-                    </group>
                     <group invisible="state != 'done'">
                         <field name="result_text" nolabel="1" readonly="1"/>
                     </group>

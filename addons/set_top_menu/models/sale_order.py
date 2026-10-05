@@ -4,6 +4,18 @@ from odoo.tools.float_utils import float_compare
 
 from odoo.addons.crall_material.models.hnck_client import HnckClient
 
+# Map trạng thái đơn HNCK -> catering_state nội bộ (TRA_HANG cố ý
+# vắng mặt: giữ nguyên trạng thái hiện tại).
+HNCK_ORDER_STATE_MAP = {
+    "CHO_XAC_NHAN": "draft",
+    "TU_CHOI": "cancelled",
+    "DANG_CHUAN_BI": "in_production",
+    "DANG_GIAO": "dispatched",
+    "DA_GIAO": "delivered",
+    "GIAO_HANG_THANH_CONG": "delivered",
+    "HUY": "cancelled",
+}
+
 
 class SaleOrder(models.Model):
     _inherit = "sale.order"
@@ -14,9 +26,9 @@ class SaleOrder(models.Model):
     )
     catering_state = fields.Selection(
         [
-            ("draft", "Nháp"),
+            ("draft", "Chờ xác nhận"),
             ("confirmed", "Đã xác nhận"),
-            ("in_production", "Đang sản xuất"),
+            ("in_production", "Đang chuẩn bị"),
             ("ready", "Sẵn sàng"),
             ("dispatched", "Đã xuất giao"),
             ("delivered", "Đã giao"),
@@ -318,7 +330,6 @@ class SaleOrder(models.Model):
     def fetch_supplier_orders(
         self, page=1, per_page=20, status="DANG_GIAO",
         date_from=False, date_to=False, order_code=False, school_id=False,
-        x_nonce=False, x_timestamp=False,
     ):
         """Lấy đơn hàng từ HNCK rồi tạo/cập nhật đơn hàng hằng ngày."""
         params = self._order_fetch_params(
@@ -330,14 +341,7 @@ class SaleOrder(models.Model):
             order_code=order_code,
             school_id=school_id,
         )
-        sign_kwargs = {}
-        if x_nonce:
-            sign_kwargs["x_nonce"] = x_nonce
-        if x_timestamp:
-            sign_kwargs["x_timestamp"] = x_timestamp
-        result = HnckClient(self.env).fetch_supplier_orders(
-            params, **sign_kwargs
-        )
+        result = HnckClient(self.env).fetch_supplier_orders(params)
         if not isinstance(result, dict):
             raise UserError(_("API đơn hàng không trả về dữ liệu hợp lệ."))
         if result.get("success") is False:
@@ -424,11 +428,22 @@ class SaleOrder(models.Model):
             )
             counts["lines_ok"] += 1
         provided_date = self._crall_order_date(payload)
+        api_status = self._order_value(
+            payload, "status", "order_status", "trang_thai"
+        )
+        api_status = (
+            str(api_status).strip().upper()
+            if api_status not in (None, "")
+            else ""
+        )
         order_vals = {
             "partner_id": partner.id,
             "commitment_date": fields.Datetime.now(),
             "order_line": ([(5, 0, 0)] if order else []) + line_commands,
         }
+        mapped_state = HNCK_ORDER_STATE_MAP.get(api_status)
+        if mapped_state:
+            order_vals["catering_state"] = mapped_state
         if provided_date or not order:
             order_vals["date_order"] = provided_date or fields.Date.today()
         if order:

@@ -1,11 +1,8 @@
-import time
 from datetime import date
 from unittest.mock import patch
 
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
-
-from odoo.addons.crall_material.models.hnck_client import HnckClient
 
 
 def _order_payload(**overrides):
@@ -206,6 +203,75 @@ class TestOrderFetch(TransactionCase):
             with self.assertRaises(UserError):
                 self.env["sale.order"].fetch_supplier_orders()
 
+    def test_state_labels_renamed(self):
+        selection = dict(
+            self.env["sale.order"]._fields["catering_state"].selection
+        )
+        self.assertEqual(selection["draft"], "Chờ xác nhận")
+        self.assertEqual(selection["in_production"], "Đang chuẩn bị")
+
+    def test_fetch_maps_api_status_on_create(self):
+        self._school()
+        cases = [
+            ("CHO_XAC_NHAN", "draft"),
+            ("TU_CHOI", "cancelled"),
+            ("DANG_CHUAN_BI", "in_production"),
+            ("DANG_GIAO", "dispatched"),
+            ("DA_GIAO", "delivered"),
+            ("GIAO_HANG_THANH_CONG", "delivered"),
+            ("HUY", "cancelled"),
+        ]
+        payloads = [
+            _order_payload(code="DH-MAP-%02d" % index, status=status)
+            for index, (status, _expected) in enumerate(cases)
+        ]
+        client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": payloads,
+                "pagination": {"total": len(payloads)},
+            }
+            self.env["sale.order"].fetch_supplier_orders()
+        for index, (_status, expected) in enumerate(cases):
+            order = self.env["sale.order"].search(
+                [("catering_reference", "=", "DH-MAP-%02d" % index)],
+                limit=1,
+            )
+            self.assertEqual(order.catering_state, expected)
+
+    def test_fetch_tra_hang_and_unknown_leave_state(self):
+        self._school()
+        client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": [
+                    _order_payload(code="DH-TRA-001", status="TRA_HANG"),
+                    _order_payload(code="DH-UNK-001", status="XYZ"),
+                    _order_payload(code="DH-NOSTATUS-001"),
+                ],
+                "pagination": {"total": 3},
+            }
+            self.env["sale.order"].fetch_supplier_orders()
+        for code in ("DH-TRA-001", "DH-UNK-001", "DH-NOSTATUS-001"):
+            order = self.env["sale.order"].search(
+                [("catering_reference", "=", code)], limit=1
+            )
+            self.assertEqual(order.catering_state, "draft")
+        kept = self.env["sale.order"].search(
+            [("catering_reference", "=", "DH-TRA-001")], limit=1
+        )
+        kept.write({"catering_state": "confirmed"})
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": [_order_payload(code="DH-TRA-001", status="TRA_HANG")],
+                "pagination": {"total": 1},
+            }
+            self.env["sale.order"].fetch_supplier_orders()
+        self.assertEqual(kept.catering_state, "confirmed")
+
     def test_wizard_confirm_passes_params(self):
         self._food("TP-THIT-001")
         self._school()
@@ -232,9 +298,7 @@ class TestOrderFetch(TransactionCase):
                 "status": "DA_GIAO",
                 "order_date_from": "2026-09-01",
                 "order_date_to": "2026-09-30",
-            },
-            x_nonce=wizard.x_nonce,
-            x_timestamp=wizard.x_timestamp,
+            }
         )
         self.assertEqual(wizard.state, "done")
         self.assertIn("Tạo mới: 1", wizard.result_text)
@@ -267,9 +331,7 @@ class TestOrderFetch(TransactionCase):
                 "status": "DANG_GIAO",
                 "code": "DH2026070001",
                 "school_id": "5",
-            },
-            x_nonce=wizard.x_nonce,
-            x_timestamp=wizard.x_timestamp,
+            }
         )
         self.assertEqual(wizard.state, "done")
 
@@ -296,11 +358,6 @@ class TestOrderFetch(TransactionCase):
         )
         self.assertNotIn("code", params)
         self.assertNotIn("school_id", params)
-        sign_kwargs = (
-            mock_client.return_value.fetch_supplier_orders.call_args[1]
-        )
-        self.assertEqual(sign_kwargs["x_nonce"], wizard.x_nonce)
-        self.assertEqual(sign_kwargs["x_timestamp"], wizard.x_timestamp)
 
     def test_wizard_all_status_omits_status_param(self):
         self._food("TP-THIT-001")
@@ -316,9 +373,7 @@ class TestOrderFetch(TransactionCase):
             }
             wizard.action_confirm_fetch()
         mock_client.return_value.fetch_supplier_orders.assert_called_once_with(
-            {"page": 1, "per_page": 20},
-            x_nonce=wizard.x_nonce,
-            x_timestamp=wizard.x_timestamp,
+            {"page": 1, "per_page": 20}
         )
         self.assertEqual(wizard.state, "done")
 
@@ -334,87 +389,9 @@ class TestOrderFetch(TransactionCase):
             }
             wizard.action_confirm_fetch()
         mock_client.return_value.fetch_supplier_orders.assert_called_once_with(
-            {"per_page": 20},
-            x_nonce=wizard.x_nonce,
-            x_timestamp=wizard.x_timestamp,
+            {"per_page": 20}
         )
         self.assertEqual(wizard.state, "done")
-
-    def _token_params(self, token="preview-token-abcdef"):
-        icp = self.env["ir.config_parameter"].sudo()
-        icp.set_param(
-            "crall_material.hnck_api_base", "https://example.com/api/"
-        )
-        icp.set_param("crall_material.hnck_access_token", token)
-        icp.set_param(
-            "crall_material.hnck_token_expires_at",
-            str(time.time() + 3600),
-        )
-
-    def test_preview_shows_request_details(self):
-        self._token_params()
-        school = self._school()
-        wizard = self.env["set_top_menu.order.fetch.wizard"].create(
-            {
-                "order_code": "DH1",
-                "school_id": school.id,
-                "page": 2,
-                "status": "DA_GIAO",
-                "order_date_from": date(2026, 9, 1),
-                "order_date_to": date(2026, 9, 30),
-            }
-        )
-        preview = wizard.preview_text
-        self.assertIn("Method: GET", preview)
-        self.assertIn(
-            "https://example.com/api/supplier/orders"
-            "?per_page=20&page=2&status=DA_GIAO&code=DH1&school_id=5"
-            "&order_date_from=2026-09-01&order_date_to=2026-09-30",
-            preview,
-        )
-        self.assertIn("Authorization: Bearer previe...cdef", preview)
-        self.assertNotIn("preview-token-abcdef", preview)
-        self.assertIn("Accept: application/json", preview)
-
-    def test_preview_without_token_notes_refresh(self):
-        self.env["ir.config_parameter"].sudo().set_param(
-            "crall_material.hnck_api_base", "https://example.com/api/"
-        )
-        wizard = self.env["set_top_menu.order.fetch.wizard"].create(
-            {"page": 1, "status": "ALL"}
-        )
-        preview = wizard.preview_text
-        self.assertIn("Method: GET", preview)
-        self.assertIn(
-            "https://example.com/api/supplier/orders?per_page=20&page=1",
-            preview,
-        )
-        self.assertIn("sẽ lấy token mới khi xác nhận", preview)
-
-    def test_preview_shows_signature_headers(self):
-        self._token_params()
-        self.env["ir.config_parameter"].sudo().set_param(
-            "crall_material.hnck_hmac_secret", "s3cret"
-        )
-        wizard = self.env["set_top_menu.order.fetch.wizard"].create(
-            {
-                "page": 1,
-                "status": "ALL",
-                "x_nonce": "fixed-nonce-001",
-                "x_timestamp": "1790044905",
-            }
-        )
-        expected = HnckClient(self.env).signature(
-            "GET",
-            "/api/supplier/orders",
-            "1790044905",
-            "fixed-nonce-001",
-            b"",
-        )
-        preview = wizard.preview_text
-        self.assertIn("X-Timestamp: 1790044905", preview)
-        self.assertIn("X-Nonce: fixed-nonce-001", preview)
-        self.assertIn("X-Signature: %s" % expected, preview)
 
     def test_wizard_defaults(self):
         fields = self.env["set_top_menu.order.fetch.wizard"]._fields
@@ -422,6 +399,9 @@ class TestOrderFetch(TransactionCase):
         self.assertFalse(wizard.page)
         self.assertEqual(wizard.status, "ALL")
         self.assertNotIn("per_page", fields)
+        self.assertNotIn("preview_text", fields)
+        self.assertNotIn("x_nonce", fields)
+        self.assertNotIn("x_timestamp", fields)
         self.assertEqual(len(fields["status"].selection), 9)
         self.assertEqual(fields["status"].selection[0][0], "ALL")
 

@@ -95,24 +95,6 @@ class HnckClient:
             return token
         return self.refresh_token()
 
-    def peek_cached_token(self):
-        """Đọc token trong cache mà không gọi API refresh.
-
-        Trả về ``(token, còn_hạn)`` để popup xem trước request.
-        """
-        parameters = self.env["ir.config_parameter"].sudo()
-        token = parameters.get_param("crall_material.hnck_access_token")
-        try:
-            expires_at = float(
-                parameters.get_param("crall_material.hnck_token_expires_at")
-                or 0
-            )
-        except (TypeError, ValueError):
-            expires_at = 0
-        return token, bool(
-            token and expires_at - TOKEN_SAFETY_MARGIN > time.time()
-        )
-
     def refresh_token(self):
         url = self.base_url() + TOKEN_PATH
         payload = {

@@ -7,15 +7,17 @@
         <field name="arch" type="xml">
             <form string="Đơn hàng hằng ngày">
                 <header>
+                    <button name="action_back_to_order_list" type="object" string="Quay lại"
+                            icon="fa-arrow-left"/>
                     <button name="action_confirm" type="object" string="Xác nhận"
                             class="btn-primary"
-                            invisible="catering_state not in ('draft', 'confirmed')"/>
+                            invisible="hnck_order or catering_state not in ('draft', 'confirmed')"/>
                     <button string="Hủy bỏ" special="cancel"
                             invisible="state not in ('draft', 'sent')"/>
                     <button name="action_dispatch" type="object" string="Xuất giao"
-                            class="btn-primary" invisible="catering_state != 'ready'"/>
+                            class="btn-primary" invisible="hnck_order or catering_state != 'ready'"/>
                     <button name="action_deliver" type="object" string="Đã giao"
-                            class="btn-primary" invisible="catering_state != 'dispatched'"/>
+                            class="btn-primary" invisible="hnck_order or catering_state != 'dispatched'"/>
                     <button name="action_open_traceability_qr" type="object"
                             string="QR truy xuất" icon="fa-qrcode"
                             invisible="not hnck_order"/>

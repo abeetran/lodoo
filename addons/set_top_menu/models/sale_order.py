@@ -343,6 +343,11 @@ class SaleOrder(models.Model):
             "target": "new",
         }
 
+    def action_back_to_order_list(self):
+        """Nút Quay lại trên form: mở lại màn hình danh sách đơn hàng."""
+        self.ensure_one()
+        return self.env.ref("set_top_menu.action_daily_orders").read()[0]
+
     @api.model
     def _order_fetch_params(
         self, page=1, per_page=20, status="DANG_GIAO",

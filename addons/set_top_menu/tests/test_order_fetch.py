@@ -647,7 +647,34 @@ class TestOrderFetch(TransactionCase):
         action_view = self.env.ref("set_top_menu.action_daily_orders_tree_view")
         self.assertEqual(action_view.view_id, view)
 
+    def test_daily_form_locks_hnck_orders(self):
+        view = self.env.ref("set_top_menu.view_daily_order_form")
+        arch = view.arch_db
+        self.assertIn(
+            'readonly="hnck_order or catering_state', arch
+        )
+        for invisible in (
+            "hnck_order or catering_state not in ('draft', 'confirmed')",
+            "hnck_order or catering_state != 'ready'",
+            "hnck_order or catering_state != 'dispatched'",
+        ):
+            self.assertIn('invisible="%s"' % invisible, arch)
+
     def test_open_fetch_wizard(self):
         result = self.env["sale.order"].action_open_fetch_wizard()
         self.assertEqual(result["res_model"], "set_top_menu.order.fetch.wizard")
         self.assertEqual(result["target"], "new")
+
+    def test_back_to_order_list(self):
+        school = self._school()
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-BACK-001",
+            }
+        )
+        result = order.action_back_to_order_list()
+        self.assertEqual(result["type"], "ir.actions.act_window")
+        self.assertEqual(result["res_model"], "sale.order")
+        self.assertTrue(result["view_mode"].startswith("tree"))
+        self.assertEqual(result["target"], "current")

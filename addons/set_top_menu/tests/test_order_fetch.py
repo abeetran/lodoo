@@ -291,6 +291,21 @@ class TestOrderFetch(TransactionCase):
         line.with_context(hnck_sync=True).write({"product_uom_qty": 5})
         self.assertEqual(line.product_uom_qty, 5)
 
+    def test_kitchen_guard_bypassed_only_in_sync_context(self):
+        school = self._school()
+        other = self.env["res.partner"].create({"name": "Trường khác nữa"})
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH-GUARD-001",
+            }
+        )
+        order.write({"catering_state": "in_production"})
+        with self.assertRaises(UserError):
+            order.write({"partner_id": other.id})
+        order.with_context(hnck_sync=True).write({"partner_id": other.id})
+        self.assertEqual(order.partner_id, other)
+
     def test_wizard_reports_skipped_manual(self):
         school = self._school()
         self.env["sale.order"].create(
@@ -542,6 +557,10 @@ class TestOrderFetch(TransactionCase):
             order.write({"catering_reference": "DH-KHAC"})
         order.write({"catering_reference": "DH-TAY-002"})
         self.assertEqual(order.catering_reference, "DH-TAY-002")
+        order.with_context(hnck_sync=True).write(
+            {"catering_reference": "DH-SYNC"}
+        )
+        self.assertEqual(order.catering_reference, "DH-SYNC")
 
     def test_line_create_defaults_name_and_uom_from_product(self):
         school = self._school()
@@ -591,6 +610,24 @@ class TestOrderFetch(TransactionCase):
         self.assertEqual(line.product_id, template.product_variant_id)
         self.assertIn("TP-THIT-001", line.name)
         self.assertEqual(line.product_uom, template.uom_id)
+
+    def test_traceability_qr_opens_new_tab(self):
+        school = self._school()
+        order = self.env["sale.order"].create(
+            {
+                "partner_id": school.id,
+                "catering_reference": "DH2026070001",
+                "hnck_order": True,
+            }
+        )
+        action = order.action_open_traceability_qr()
+        self.assertEqual(action["type"], "ir.actions.act_url")
+        self.assertEqual(action["target"], "new")
+        self.assertEqual(
+            action["url"],
+            "https://tracuu.hanoicheck.com.vn/NCC-2026-000432"
+            "/truy-xuat/DH2026070001",
+        )
 
     def test_wizard_defaults(self):
         fields = self.env["set_top_menu.order.fetch.wizard"]._fields

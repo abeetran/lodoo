@@ -16,6 +16,9 @@
                             class="btn-primary" invisible="catering_state != 'ready'"/>
                     <button name="action_deliver" type="object" string="Đã giao"
                             class="btn-primary" invisible="catering_state != 'dispatched'"/>
+                    <button name="action_open_traceability_qr" type="object"
+                            string="QR truy xuất" icon="fa-qrcode"
+                            invisible="not hnck_order"/>
                     <field name="catering_state" widget="statusbar"
                            statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"
                            readonly="hnck_order"/>

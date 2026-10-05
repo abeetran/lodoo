@@ -1,8 +1,15 @@
+from urllib.parse import quote
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 
 from odoo.addons.crall_material.models.hnck_client import HnckClient
+
+# URL truy xuất nguồn gốc đơn HNCK (%s = mã đơn hàng nội bộ).
+HNCK_TRACE_URL = (
+    "https://tracuu.hanoicheck.com.vn/NCC-2026-000432/truy-xuat/%s"
+)
 
 # Map trạng thái đơn HNCK -> catering_state nội bộ (TRA_HANG cố ý
 # vắng mặt: giữ nguyên trạng thái hiện tại).
@@ -170,6 +177,15 @@ class SaleOrder(models.Model):
                     }
                 }
 
+    def action_open_traceability_qr(self):
+        """Nút QR truy xuất (chỉ đơn HNCK): mở trang truy xuất ở tab mới."""
+        self.ensure_one()
+        return {
+            "type": "ir.actions.act_url",
+            "url": HNCK_TRACE_URL % quote(self.catering_reference or ""),
+            "target": "new",
+        }
+
     def action_confirm(self):
         self._check_kitchen_editable()
         self._check_selected_contract_validity()
@@ -191,6 +207,8 @@ class SaleOrder(models.Model):
 
     @api.constrains("partner_id", "contract_id")
     def _check_selected_contract_validity(self):
+        if self.env.context.get("hnck_sync"):
+            return
         for order in self.filtered("contract_id"):
             today = fields.Date.context_today(order)
             contract = order.contract_id
@@ -212,6 +230,8 @@ class SaleOrder(models.Model):
         )
 
     def _check_kitchen_editable(self):
+        if self.env.context.get("hnck_sync"):
+            return
         if self.filtered(lambda order: order._is_kitchen_locked()):
             raise UserError(
                 "Không thể chỉnh sửa đơn hàng vì bếp đã bắt đầu thực hiện đơn này."
@@ -543,7 +563,9 @@ class SaleOrder(models.Model):
     def write(self, vals):
         # Kitchen state synchronization must remain possible after production starts,
         # while all user-editable business data is protected at model level.
-        if "catering_reference" in vals:
+        if "catering_reference" in vals and not self.env.context.get(
+            "hnck_sync"
+        ):
             for order in self:
                 if vals["catering_reference"] != order.catering_reference:
                     raise UserError(
@@ -666,7 +688,7 @@ class SaleOrderLine(models.Model):
                 order = self.env["sale.order"].browse(vals["order_id"])
                 order._check_kitchen_editable()
                 order._check_hnck_editable()
-                if order.contract_id:
+                if order.contract_id and not self.env.context.get("hnck_sync"):
                     contract_task = self.env["set_top_menu.client.contract.task"].browse(
                         vals.get("contract_task_id")
                     )
@@ -726,8 +748,10 @@ class SaleOrderLine(models.Model):
             "name",
             "catering_note",
         }
-        if contract_locked_fields.intersection(vals) and self.filtered(
-            lambda line: line.order_id.contract_id
+        if (
+            contract_locked_fields.intersection(vals)
+            and not self.env.context.get("hnck_sync")
+            and self.filtered(lambda line: line.order_id.contract_id)
         ):
             raise UserError(
                 "Không thể thay đổi chi tiết của đơn hàng theo hợp đồng."

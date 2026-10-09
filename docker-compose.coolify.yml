@@ -12,18 +12,6 @@ services:
       - './odoo-web-data:/var/lib/odoo'
     restart: unless-stopped
 
-  ai-chat:
-    build:
-      context: ./ai-chat
-    container_name: ai_chat_ui
-    working_dir: /app
-    command: 'sh -c "npm install && npm run dev"'
-    ports:
-      - '3039:3000'
-    networks:
-      - coolify
-    restart: unless-stopped
-
 networks:
   coolify:
     external: true

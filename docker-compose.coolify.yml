@@ -1,0 +1,14 @@
+version: '3.5'
+services:
+  odoo:
+    build:
+      context: ./addons
+    container_name: odoo_antesco
+    networks:
+      - coolify
+    volumes:
+      - './config/odoo.conf:/etc/odoo/odoo.conf'
+      - './odoo-web-data:/var/lib/odoo'
+networks:
+  coolify:
+    external: true

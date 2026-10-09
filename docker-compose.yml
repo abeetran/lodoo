@@ -100,7 +100,7 @@ services:
     # image: odoo:17
     build:
       context: ./addons
-    container_name: odoo_tik
+    container_name: odoo_antesco
     # env_file:
     #   - .env
     # depends_on:

@@ -11,6 +11,13 @@
                             icon="fa-arrow-left"/>
                     <button name="action_confirm" type="object" string="Xác nhận"
                             class="btn-primary"
+                            invisible="hnck_order or catering_state != 'draft'"/>
+                    <button name="action_start_preparation" type="object" string="Chuẩn bị"
+                            class="btn-primary"
+                            invisible="hnck_order or catering_state != 'confirmed'"/>
+                    <button name="action_cancel_preparation" type="object" string="Huỷ chuẩn bị"
+                            invisible="hnck_order or catering_state != 'in_production'"/>
+                    <button name="action_cancel_order" type="object" string="Huỷ đơn"
                             invisible="hnck_order or catering_state not in ('draft', 'confirmed')"/>
                     <button string="Hủy bỏ" special="cancel"
                             invisible="state not in ('draft', 'sent')"/>
@@ -50,15 +57,19 @@
                                             ('date_start', '&lt;=', context_today()),
                                             ('date_end', '&gt;=', context_today())]"
                                    options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="catering_tax_id" string="Thuế"
+                                   domain="[('type_tax_use', '=', 'sale'), ('company_id', '=', company_id)]"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
                             <field name="partner_shipping_id" string="Địa chỉ giao hàng"
                                    widget="res_partner_many2one"
                                    domain="[('active', '=', True), '|', ('id', '=', partner_id), '&amp;', ('parent_id', '=', partner_id), ('type', '=', 'delivery')]"
                                    context="{'default_parent_id': partner_id, 'default_type': 'delivery', 'show_address': 1, 'show_vat': False}"
                                    options="{'no_create': True, 'no_create_edit': True}"/>
+                            <field name="transporter_id" string="Người vận chuyển" readonly="1"/>
                         </group>
                         <group string="TỔNG HỢP">
                             <field name="total_meals" string="Tổng số suất ăn" readonly="1"/>
-                            <field name="amount_untaxed" string="Tổng tiền" readonly="1"/>
+                            <field name="amount_total" string="Tổng tiền" readonly="1"/>
                             <field name="company_id" string="Công ty"/>
                             <field name="hnck_order" readonly="1"/>
                         </group>
@@ -69,43 +80,54 @@
                     <field name="fiscal_position_id" invisible="1"/>
                     <notebook>
                         <page string="Chi tiết đơn hàng" name="meal_lines">
-                            <field name="order_line" nolabel="1">
+                            <field name="order_line" nolabel="1"
+                                   readonly="(hnck_order or catering_state not in ('draft', 'confirmed')) and not (hnck_order and catering_state == 'draft')">
                                 <tree editable="bottom" string="Chi tiết đơn hàng">
                                     <control>
                                         <create string="Thêm mặt hàng"
-                                                invisible="parent.contract_id"/>
+                                                invisible="parent.contract_id or parent.hnck_order"/>
                                     </control>
                                     <field name="sequence" widget="handle"/>
                                     <field name="display_type" column_invisible="True"/>
                                     <field name="product_id" column_invisible="True" force_save="1"/>
-                                    <field name="product_template_id" string="Mặt hàng"
-                                           readonly="parent.contract_id"/>
+                                    <field name="product_template_id" string="Món ăn / Thực phẩm"
+                                           readonly="parent.contract_id or parent.hnck_order"/>
+                                    <field name="catering_line_type" string="Loại" readonly="1"
+                                           widget="badge"
+                                           decoration-success="catering_line_type == 'dish'"
+                                           decoration-info="catering_line_type == 'food'"/>
+                                    <field name="product_stock_qty" string="Tồn kho"
+                                           readonly="1" optional="show"/>
                                     <field name="product_uom_category_id" column_invisible="True"/>
-                                    <field name="product_uom" column_invisible="True" force_save="1"/>
                                     <field name="currency_id" column_invisible="True"/>
                                     <field name="company_id" column_invisible="True"/>
                                     <field name="state" column_invisible="True"/>
                                     <field name="contract_task_id" column_invisible="True"
                                            force_save="1"/>
                                     <field name="meal_type_id" string="Loại bữa ăn"
-                                           readonly="parent.contract_id"
+                                           readonly="parent.contract_id or parent.hnck_order"
                                            options="{'no_create': True, 'no_create_edit': True}"/>
-                                    <field name="menu_item_id" string="Món ăn"
-                                           domain="[('active', '=', True)]"
-                                           readonly="1"
-                                           options="{'no_create': True, 'no_create_edit': True}"/>
-                                    <field name="product_uom_qty" string="Số lượng"/>
+                                    <field name="menu_item_id" column_invisible="True"
+                                           force_save="1"/>
+                                    <field name="product_uom_qty" string="Số lượng"
+                                           readonly="parent.hnck_order"/>
+                                    <field name="product_uom" string="Đơn vị tính"
+                                           readonly="parent.contract_id or parent.hnck_order"/>
                                     <field name="price_unit" string="Đơn giá"
                                            readonly="parent.contract_id"/>
                                     <field name="price_subtotal" string="Thành tiền" readonly="1"/>
                                     <field name="name" column_invisible="True" force_save="1"/>
                                     <field name="catering_note" string="Ghi chú"
                                            readonly="parent.contract_id"/>
+                                    <button name="action_buy_product" type="object" string="Mua hàng"
+                                            icon="fa-shopping-cart"
+                                            invisible="menu_item_id or not product_id or product_stock_qty >= product_uom_qty"/>
                                 </tree>
                             </field>
                             <group class="oe_subtotal_footer oe_right">
-                                <field name="total_meals" string="Tổng số lượng" readonly="1"/>
-                                <field name="amount_untaxed" string="Tổng tiền" readonly="1"/>
+                                <field name="total_meals" string="Tổng số lượng" readonly="1" invisible="1"/>
+                                <field name="amount_tax" string="Tiền thuế" readonly="1"/>
+                                <field name="amount_total" string="Tổng tiền" readonly="1"/>
                             </group>
                             <div class="clearfix"/>
                         </page>
@@ -172,6 +194,25 @@
                     <button name="action_confirm_fetch" type="object"
                             string="Xác nhận" class="btn-primary"
                             invisible="state != 'draft'"/>
+                    <button string="Đóng" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_order_shortage_wizard_form" model="ir.ui.view">
+        <field name="name">set_top_menu.order.shortage.wizard.form</field>
+        <field name="model">set_top_menu.order.shortage.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Yêu cầu mua hàng">
+                <sheet>
+                    <p>Tồn kho không đủ để chuẩn bị đơn hàng. Bấm Xác nhận để mở phiếu mua hàng mới với số lượng còn thiếu.</p>
+                    <field name="order_id" invisible="1"/>
+                    <field name="message" nolabel="1" readonly="1"/>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_purchase" type="object"
+                            string="Xác nhận" class="btn-primary"/>
                     <button string="Đóng" special="cancel"/>
                 </footer>
             </form>

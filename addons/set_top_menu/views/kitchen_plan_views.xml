@@ -64,6 +64,9 @@
                             <field name="progress" widget="progressbar" readonly="1"/>
                         </group>
                     </group>
+                    <field name="order_ids" string="Chứng từ gốc" widget="many2many_tags"
+                           readonly="state != 'draft'"
+                           options="{'no_create': True, 'no_create_edit': True}"/>
                     <notebook>
                         <page string="Chi tiết sản xuất" name="production_lines">
                             <field name="line_ids" nolabel="1" readonly="state == 'done'">
@@ -75,15 +78,19 @@
                                     <field name="food_category" widget="badge" readonly="1"
                                            decoration-success="food_category in ('vegetarian', 'vegan')"/>
                                     <field name="quantity" readonly="parent.state != 'draft'"/>
-                                    <field name="uom_id" readonly="1"/>
+                                    <field name="uom_id" readonly="parent.state != 'draft'"/>
                                     <field name="prepared_quantity"/>
                                     <field name="state" widget="badge"
                                            decoration-muted="state == 'pending'"
                                            decoration-warning="state == 'progress'"
                                            decoration-success="state == 'done'"/>
+                                    <field name="material_shortage" column_invisible="1"/>
                                     <button name="action_start" type="object" string="Bắt đầu"
                                             icon="fa-play"
                                             invisible="state != 'pending' or parent.state not in ('confirmed', 'progress')"/>
+                                    <button name="action_buy_materials" type="object" string="Mua NVL"
+                                            icon="fa-shopping-cart"
+                                            invisible="state == 'done' or not material_shortage"/>
                                     <button name="action_done" type="object" string="Hoàn tất"
                                             icon="fa-check"
                                             invisible="state == 'done' or parent.state not in ('confirmed', 'progress')"/>

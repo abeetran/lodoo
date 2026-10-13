@@ -654,6 +654,9 @@ class TestOrderFetch(TransactionCase):
             'readonly="hnck_order or catering_state', arch
         )
         for invisible in (
+            "hnck_order or catering_state != 'draft'",
+            "hnck_order or catering_state != 'confirmed'",
+            "hnck_order or catering_state != 'in_production'",
             "hnck_order or catering_state not in ('draft', 'confirmed')",
             "hnck_order or catering_state != 'ready'",
             "hnck_order or catering_state != 'dispatched'",

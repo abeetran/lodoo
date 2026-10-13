@@ -11,6 +11,14 @@ HNCK_TRACE_URL = (
     "https://tracuu.hanoicheck.com.vn/NCC-2026-000432/truy-xuat/%s"
 )
 
+# Dòng đơn HNCK chưa xác nhận (draft) được sửa trực tiếp 2 trường này.
+HNCK_DRAFT_EDITABLE_LINE_FIELDS = frozenset({"price_unit", "catering_note"})
+
+# Trạng thái HNCK đang/đã giao: lưu người vận chuyển để thống kê.
+HNCK_DELIVERING_STATUSES = frozenset(
+    {"DANG_GIAO", "DA_GIAO", "GIAO_HANG_THANH_CONG"}
+)
+
 # Map trạng thái đơn HNCK -> catering_state nội bộ (TRA_HANG cố ý
 # vắng mặt: giữ nguyên trạng thái hiện tại).
 HNCK_ORDER_STATE_MAP = {
@@ -55,12 +63,31 @@ class SaleOrder(models.Model):
         index=True,
         help="Đơn lấy về từ HNCK qua nút Lấy ĐH; chỉ được cập nhật qua API.",
     )
+    transporter_id = fields.Many2one(
+        "set_top_menu.delivery.staff",
+        string="Người vận chuyển",
+        readonly=True,
+        copy=False,
+        index=True,
+    )
+    stock_deducted = fields.Boolean(
+        string="Đã trừ kho",
+        default=False,
+        readonly=True,
+        copy=False,
+    )
     contract_id = fields.Many2one(
         "set_top_menu.client.contract",
         string="Hợp đồng",
         domain="[('client_id', '=', partner_id), ('status', '=', 'active'), "
         "('date_start', '<=', context_today()), "
         "('date_end', '>=', context_today())]",
+        ondelete="restrict",
+    )
+    catering_tax_id = fields.Many2one(
+        "account.tax",
+        string="Thuế",
+        domain="[('type_tax_use', '=', 'sale')]",
         ondelete="restrict",
     )
     total_meals = fields.Float(string="Tổng số suất ăn", compute="_compute_total_meals", store=True)
@@ -153,7 +180,7 @@ class SaleOrder(models.Model):
                             "meal_type_id": menu_item.meal_type_ids[:1].id,
                             "product_id": menu_item.product_id.id,
                             "product_uom": (
-                                task.product_uom_id.id or menu_item.product_id.uom_id.id
+                                task.product_uom_id.id or menu_item._order_line_uom().id
                             ),
                             "product_uom_qty": task.quantity,
                             "price_unit": task.price_unit,
@@ -176,6 +203,21 @@ class SaleOrder(models.Model):
                         % ", ".join(missing_products),
                     }
                 }
+
+    @api.onchange("catering_tax_id")
+    def _onchange_catering_tax_id(self):
+        self._sync_line_taxes()
+
+    def _sync_line_taxes(self):
+        """Đồng bộ thuế các dòng theo thuế đơn (trống thì xóa)."""
+        for order in self:
+            target = set(order.catering_tax_id.ids)
+            lines = order.order_line.filtered(
+                lambda line: not line.display_type
+                and set(line.tax_id.ids) != target
+            )
+            if lines:
+                lines.write({"tax_id": [(6, 0, list(target))]})
 
     def action_open_traceability_qr(self):
         """Nút QR truy xuất (chỉ đơn HNCK): mở trang truy xuất ở tab mới."""
@@ -248,6 +290,7 @@ class SaleOrder(models.Model):
 
     def _ensure_menu_line_accountable_fields(self):
         """Complete hidden Sale fields before Odoo validates accountable lines."""
+        self._sync_line_taxes()
         for line in self.order_line.filtered(
             lambda order_line: not order_line.display_type and order_line.menu_item_id
         ):
@@ -257,33 +300,32 @@ class SaleOrder(models.Model):
             if not line.product_id:
                 values["product_id"] = menu_item.product_id.id
             if not line.product_uom:
-                values["product_uom"] = menu_item.product_id.uom_id.id
+                values["product_uom"] = menu_item._order_line_uom().id
             if not line.name:
                 values["name"] = menu_item.name
-            if line.tax_id:
-                values["tax_id"] = [Command.clear()]
             if values:
                 line.write(values)
 
     def _create_kitchen_plans(self):
         Plan = self.env["set_top_menu.kitchen.plan"]
+        lunch = self.env.ref("set_top_menu.meal_type_lunch")
         for order in self:
             menu_lines = order.order_line.filtered(
                 lambda line: not line.display_type and line.menu_item_id
             )
             if not menu_lines or order.kitchen_plan_ids:
                 continue
-            missing_meal = menu_lines.filtered(lambda line: not line.meal_type_id)
-            if missing_meal:
-                raise UserError("Vui lòng chọn Loại bữa ăn cho tất cả các món trước khi xác nhận.")
+            lines_by_meal = {}
+            for line in menu_lines:
+                meal = line.meal_type_id or lunch
+                lines_by_meal.setdefault(meal, []).append(line)
 
             production_date = (
                 order.commitment_date.date()
                 if order.commitment_date
                 else fields.Date.context_today(order)
             )
-            for meal_type in menu_lines.mapped("meal_type_id"):
-                lines = menu_lines.filtered(lambda line: line.meal_type_id == meal_type)
+            for meal_type, lines in lines_by_meal.items():
                 Plan.create(
                     {
                         "production_date": production_date,
@@ -302,6 +344,159 @@ class SaleOrder(models.Model):
                         ],
                     }
                 )
+
+    def action_start_preparation(self):
+        invalid = self.filtered(lambda order: order.catering_state != "confirmed")
+        if invalid:
+            raise UserError(
+                "Chỉ có thể chuyển chuẩn bị đơn hàng đang ở trạng thái Đã xác nhận."
+            )
+        short = self.filtered(
+            lambda order: not order.hnck_order and order._has_stock_shortage()
+        )
+        if short:
+            if len(self) > 1:
+                raise UserError(
+                    "Các đơn hàng sau thiếu tồn kho, vui lòng xử lý từng đơn: %s."
+                    % ", ".join(short.mapped("catering_reference"))
+                )
+            return short._open_shortage_wizard()
+        self.filtered(lambda order: not order.hnck_order)._create_kitchen_plans()
+        self.filtered(lambda order: not order.hnck_order)._deduct_order_stock()
+        self.write({"catering_state": "in_production"})
+
+    def _order_product_stock(self):
+        """Tồn kho theo sản phẩm cho các dòng thực phẩm (trừ món ăn, dịch vụ)."""
+        self.ensure_one()
+        company = self.company_id
+        totals = {}
+        for line in self.order_line.filtered(
+            lambda order_line: not order_line.display_type
+            and order_line.product_id
+            and not order_line.menu_item_id
+            and order_line.product_id.type != "service"
+        ):
+            product = line.product_id
+            # Bỏ qua kiểm tra cùng loại đơn vị: khác loại thì dùng nguyên số.
+            required = (line.product_uom or product.uom_id)._compute_quantity(
+                line.product_uom_qty, product.uom_id, raise_if_failure=False
+            )
+            totals[product] = totals.get(product, 0.0) + required
+        stock = {}
+        for product, required in totals.items():
+            available = product.with_company(company).qty_available
+            stock[product] = {
+                "required": required,
+                "available": available,
+                "shortage": required - available,
+            }
+        return stock
+
+    def _has_stock_shortage(self):
+        self.ensure_one()
+        for product, vals in self._order_product_stock().items():
+            rounding = product.uom_id.rounding or 0.01
+            if (
+                float_compare(vals["shortage"], 0.0, precision_rounding=rounding)
+                > 0
+            ):
+                return True
+        return False
+
+    def _order_stock_location(self):
+        self.ensure_one()
+        warehouse = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.company_id.id)], limit=1
+        )
+        if warehouse:
+            return warehouse.lot_stock_id
+        return self.env.ref("stock.stock_location_stock")
+
+    def _apply_order_stock(self, factor):
+        for order in self:
+            location = order._order_stock_location()
+            for product, vals in order._order_product_stock().items():
+                if vals["required"]:
+                    self.env["stock.quant"]._update_available_quantity(
+                        product.with_company(order.company_id),
+                        location,
+                        factor * vals["required"],
+                    )
+
+    def _deduct_order_stock(self):
+        todo = self.filtered(lambda order: not order.stock_deducted)
+        todo._apply_order_stock(-1)
+        todo.write({"stock_deducted": True})
+
+    def _return_order_stock(self):
+        todo = self.filtered(lambda order: order.stock_deducted)
+        todo._apply_order_stock(1)
+        todo.write({"stock_deducted": False})
+
+    def _open_shortage_wizard(self):
+        self.ensure_one()
+        lines = [
+            "Đơn hàng %s còn thiếu tồn kho:"
+            % (self.catering_reference or self.name)
+        ]
+        for product, vals in self._order_product_stock().items():
+            rounding = product.uom_id.rounding or 0.01
+            if (
+                float_compare(vals["shortage"], 0.0, precision_rounding=rounding)
+                <= 0
+            ):
+                continue
+            lines.append(
+                "- %s: cần %g, tồn %g, thiếu %g %s"
+                % (
+                    product.display_name,
+                    vals["required"],
+                    vals["available"],
+                    vals["shortage"],
+                    product.uom_id.name,
+                )
+            )
+        wizard = self.env["set_top_menu.order.shortage.wizard"].create(
+            {"order_id": self.id, "message": "\n".join(lines)}
+        )
+        form_view = self.env.ref("set_top_menu.view_order_shortage_wizard_form")
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Yêu cầu mua hàng",
+            "res_model": "set_top_menu.order.shortage.wizard",
+            "view_mode": "form",
+            "views": [(form_view.id, "form")],
+            "res_id": wizard.id,
+            "target": "new",
+        }
+
+    def action_cancel_preparation(self):
+        invalid = self.filtered(
+            lambda order: order.catering_state != "in_production"
+        )
+        if invalid:
+            raise UserError(
+                "Chỉ có thể huỷ chuẩn bị đơn hàng đang ở trạng thái Đang chuẩn bị."
+            )
+        linked = self.filtered("kitchen_plan_ids")
+        if linked:
+            raise UserError(
+                "Không thể huỷ chuẩn bị vì đơn hàng đã có lệnh sản xuất: %s."
+                % ", ".join(linked.mapped("kitchen_plan_ids.name"))
+            )
+        self.write({"catering_state": "confirmed"})
+        self.filtered(lambda order: not order.hnck_order)._return_order_stock()
+
+    def action_cancel_order(self):
+        invalid = self.filtered(
+            lambda order: order.catering_state not in ("draft", "confirmed")
+        )
+        if invalid:
+            raise UserError(
+                "Chỉ có thể huỷ đơn hàng đang ở trạng thái "
+                "Chờ xác nhận hoặc Đã xác nhận."
+            )
+        self.write({"catering_state": "cancelled"})
 
     def action_dispatch(self):
         invalid = self.filtered(lambda order: order.catering_state != "ready")
@@ -405,6 +600,7 @@ class SaleOrder(models.Model):
             "lines_ok": 0,
             "lines_skipped": 0,
             "partners_created": 0,
+            "staff_created": 0,
         }
         for payload in payloads:
             if isinstance(payload, dict):
@@ -486,6 +682,10 @@ class SaleOrder(models.Model):
         mapped_state = HNCK_ORDER_STATE_MAP.get(api_status)
         if mapped_state:
             order_vals["catering_state"] = mapped_state
+        if api_status in HNCK_DELIVERING_STATUSES:
+            transporter = self._crall_order_transporter(payload, counts)
+            if transporter:
+                order_vals["transporter_id"] = transporter.id
         if provided_date or not order:
             order_vals["date_order"] = provided_date or fields.Date.today()
         if order:
@@ -520,6 +720,49 @@ class SaleOrder(models.Model):
         counts["partners_created"] += 1
         return Partner.create(
             {"name": name, "is_company": True, "customer_rank": 1}
+        )
+
+    @api.model
+    def _crall_order_transporter(self, payload, counts):
+        info = self._order_value(
+            payload,
+            "transporter",
+            "shipper",
+            "driver",
+            "delivery_staff",
+            "delivery_man",
+            "nguoi_van_chuyen",
+            "nguoi_giao_hang",
+        )
+        if isinstance(info, str):
+            info = {"name": info}
+        if not isinstance(info, dict):
+            return self.env["set_top_menu.delivery.staff"].browse()
+        name = self._order_value(
+            info, "name", "full_name", "display_name", "title", "ten", "ho_ten"
+        )
+        name = str(name).strip() if name not in (None, "") else ""
+        code = self._order_value(
+            info, "code", "staff_code", "driver_code", "ma", "ma_nhan_vien"
+        )
+        code = str(code).strip() if code not in (None, "") else ""
+        phone = self._order_value(
+            info, "phone", "phone_number", "mobile", "sdt", "dien_thoai"
+        )
+        phone = str(phone).strip() if phone not in (None, "") else ""
+        if not name and not code:
+            return self.env["set_top_menu.delivery.staff"].browse()
+        Staff = self.env["set_top_menu.delivery.staff"]
+        staff = Staff.browse()
+        if code:
+            staff = Staff.search([("code", "=", code)], limit=1)
+        if not staff and name:
+            staff = Staff.search([("name", "=", name)], limit=1)
+        if staff:
+            return staff
+        counts["staff_created"] += 1
+        return Staff.create(
+            {"name": name or code, "code": code or False, "phone": phone or False}
         )
 
     @api.model
@@ -579,7 +822,10 @@ class SaleOrder(models.Model):
         if set(vals) - {"catering_state"}:
             self._check_kitchen_editable()
             self._check_hnck_editable()
-        return super().write(vals)
+        result = super().write(vals)
+        if "catering_tax_id" in vals:
+            self._sync_line_taxes()
+        return result
 
 
 class SaleOrderLine(models.Model):
@@ -601,6 +847,90 @@ class SaleOrderLine(models.Model):
         ondelete="restrict",
     )
     catering_note = fields.Char(string="Ghi chú")
+    product_stock_qty = fields.Float(
+        string="Tồn kho",
+        related="product_id.qty_available",
+        readonly=True,
+    )
+    catering_line_type = fields.Selection(
+        [("dish", "Món ăn"), ("food", "Thực phẩm")],
+        string="Loại",
+        compute="_compute_catering_line_type",
+    )
+
+    @api.depends("menu_item_id", "product_id")
+    def _compute_catering_line_type(self):
+        for line in self:
+            if line.menu_item_id:
+                line.catering_line_type = "dish"
+            elif line.product_id and not line.display_type:
+                line.catering_line_type = "food"
+            else:
+                line.catering_line_type = False
+    # Đổi số lượng không được tính lại đơn giá. Odoo cộng dồn @api.depends
+    # của method gốc và method override nên phải trỏ compute sang method mới
+    # thì mới gỡ được phụ thuộc product_uom_qty (các thuộc tính khác của
+    # field được kế thừa nguyên từ sale.order.line).
+    price_unit = fields.Float(compute="_compute_catering_price_unit")
+    # Dropdown ĐVT dòng đơn xổ đủ danh sách như khi tạo món (gỡ lọc cùng
+    # nhóm của Odoo lõi).
+    product_uom = fields.Many2one(domain="[]")
+    # Cột chọn Món ăn / Thực phẩm: trừ Thực phẩm chuẩn; món ăn lấy hết
+    # (không kiểm tra cờ bán được), material còn lại phải tick bán được.
+    product_template_id = fields.Many2one(
+        domain="[\"&\", \"|\", "
+        "(\"crall_food_source\", \"!=\", \"standard\"), "
+        "(\"crall_food_source\", \"=\", False), \"|\", "
+        "(\"is_menu_item_product\", \"=\", True), "
+        "(\"sale_ok\", \"=\", True)]"
+    )
+
+    @api.depends("product_id")
+    def _compute_product_uom(self):
+        """ĐVT dòng đơn: món ăn theo Đơn vị khẩu phần, còn lại theo gốc."""
+        dishes = self.filtered(
+            lambda line: not line.display_type
+            and line.menu_item_id
+            and line.product_id
+        )
+        for line in dishes:
+            line.product_uom = line.menu_item_id._order_line_uom()
+        super(SaleOrderLine, self - dishes)._compute_product_uom()
+
+    @api.depends("product_id", "product_uom")
+    def _compute_catering_price_unit(self):
+        """Đơn giá dòng đơn: giá hợp đồng > giá món > giá bảng giá.
+
+        Chỉ tính lại khi đổi sản phẩm/ĐVT. Khác loại ĐVT thì dùng nguyên
+        giá bán, không quy đổi để tránh lỗi cùng loại đơn vị.
+        """
+        for line in self.filtered(
+            lambda record: not record.display_type and record.contract_task_id
+        ):
+            line.price_unit = line.contract_task_id.price_unit
+        for line in self.filtered(
+            lambda record: not record.display_type
+            and not record.contract_task_id
+            and record.menu_item_id
+        ):
+            line.price_unit = line.menu_item_id.sale_price
+        rest = self.filtered(
+            lambda record: not record.contract_task_id and not record.menu_item_id
+        )
+        for line in rest:
+            if (
+                line.product_id
+                and line.product_uom
+                and line.product_uom.category_id
+                != line.product_id.uom_id.category_id
+            ):
+                line.price_unit = line.product_id.list_price
+            else:
+                super(SaleOrderLine, line)._compute_price_unit()
+
+    def _compute_price_unit(self):
+        """Alias giữ tương thích các luồng gọi trực tiếp method gốc."""
+        return self._compute_catering_price_unit()
 
     @api.onchange("product_uom_qty", "contract_task_id")
     def _onchange_contract_quantity_keep_price(self):
@@ -627,7 +957,7 @@ class SaleOrderLine(models.Model):
                 menu_item = line.menu_item_id
                 menu_item._ensure_sale_product()
                 line.product_id = menu_item.product_id
-                line.product_uom = menu_item.product_id.uom_id
+                line.product_uom = menu_item._order_line_uom()
                 line.price_unit = (
                     line.contract_task_id.price_unit
                     if line.contract_task_id
@@ -658,6 +988,14 @@ class SaleOrderLine(models.Model):
                 if len(line.menu_item_id.meal_type_ids) == 1
                 else False
             )
+            if line.menu_item_id and not line.contract_task_id:
+                line.price_unit = line.menu_item_id.sale_price
+            if not line.contract_task_id:
+                line.product_uom = (
+                    line.menu_item_id._order_line_uom()
+                    if line.menu_item_id
+                    else line.product_id.uom_id
+                )
 
     @api.onchange("product_template_id")
     def _onchange_product_template_id_set_menu_item(self):
@@ -665,6 +1003,7 @@ class SaleOrderLine(models.Model):
             if not line.product_template_id:
                 line.menu_item_id = False
                 line.meal_type_id = False
+                line.product_id = False
                 continue
 
             domain = [
@@ -685,6 +1024,63 @@ class SaleOrderLine(models.Model):
                 if len(line.menu_item_id.meal_type_ids) == 1
                 else False
             )
+            if line.contract_task_id:
+                continue
+            if line.menu_item_id:
+                line.menu_item_id._ensure_sale_product()
+                line.product_id = line.menu_item_id.product_id
+                line.product_uom = line.menu_item_id._order_line_uom()
+                line.price_unit = line.menu_item_id.sale_price
+            else:
+                line.product_id = line.product_template_id.product_variant_id
+                line.product_uom = line.product_template_id.uom_id
+                line.price_unit = line.product_template_id.list_price
+
+    def action_buy_product(self):
+        """Mở phiếu mua mới cho đúng phần còn thiếu của dòng đơn."""
+        self.ensure_one()
+        company = self.order_id.company_id
+        product = self.product_id.with_company(company)
+        if not product:
+            raise UserError("Dòng đơn hàng chưa có sản phẩm.")
+        rounding = product.uom_id.rounding or 0.01
+        line_uom = self.product_uom or product.uom_id
+        required = line_uom._compute_quantity(
+            self.product_uom_qty, product.uom_id, raise_if_failure=False
+        )
+        shortage = required - product.qty_available
+        if float_compare(shortage, 0.0, precision_rounding=rounding) <= 0:
+            raise UserError(
+                "Tồn kho đã đủ cho dòng đơn hàng này, không cần mua thêm."
+            )
+        po_uom = product.uom_po_id
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Mua hàng",
+            "res_model": "purchase.order",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_company_id": company.id,
+                "default_origin": self.order_id.catering_reference or False,
+                "default_order_line": [
+                    [
+                        0,
+                        0,
+                        {
+                            "product_id": product.id,
+                            "name": product.display_name,
+                            "product_qty": product.uom_id._compute_quantity(
+                                shortage, po_uom
+                            ),
+                            "product_uom": po_uom.id,
+                            "price_unit": product.standard_price,
+                            "date_planned": fields.Datetime.now(),
+                        },
+                    ]
+                ],
+            },
+        }
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -707,7 +1103,7 @@ class SaleOrderLine(models.Model):
                 if not vals.get("product_id"):
                     vals["product_id"] = menu_item.product_id.id
                 if not vals.get("product_uom"):
-                    vals["product_uom"] = menu_item.product_id.uom_id.id
+                    vals["product_uom"] = menu_item._order_line_uom().id
                 if not vals.get("name"):
                     vals["name"] = menu_item.name
                 vals.setdefault("price_unit", menu_item.sale_price)
@@ -731,16 +1127,37 @@ class SaleOrderLine(models.Model):
                         )
                     if not vals.get("product_uom"):
                         vals["product_uom"] = product.uom_id.id
+            if (
+                not vals.get("menu_item_id")
+                and "price_unit" not in vals
+                and vals.get("product_id")
+            ):
+                product = self.env["product.product"].browse(vals["product_id"])
+                if product.exists():
+                    vals["price_unit"] = product.list_price
             if vals.get("contract_task_id"):
                 contract_task = self.env["set_top_menu.client.contract.task"].browse(
                     vals["contract_task_id"]
                 )
                 vals["price_unit"] = contract_task.price_unit
-        return super().create(vals_list)
+        records = super().create(vals_list)
+        records.mapped("order_id")._sync_line_taxes()
+        return records
+
+    def _check_hnck_line_editable(self, vals):
+        """Đơn HNCK chưa xác nhận được sửa đơn giá và ghi chú dòng."""
+        if self.env.context.get("hnck_sync"):
+            return
+        editable = self.filtered(
+            lambda line: line.order_id.hnck_order
+            and line.order_id.catering_state == "draft"
+            and set(vals) <= HNCK_DRAFT_EDITABLE_LINE_FIELDS
+        )
+        (self - editable).mapped("order_id")._check_hnck_editable()
 
     def write(self, vals):
         self.mapped("order_id")._check_kitchen_editable()
-        self.mapped("order_id")._check_hnck_editable()
+        self._check_hnck_line_editable(vals)
         contract_locked_fields = {
             "product_id",
             "product_template_id",
@@ -749,7 +1166,6 @@ class SaleOrderLine(models.Model):
             "product_uom",
             "price_unit",
             "discount",
-            "tax_id",
             "name",
             "catering_note",
         }
@@ -776,10 +1192,9 @@ class SaleOrderLine(models.Model):
             if not vals.get("product_id"):
                 vals["product_id"] = menu_item.product_id.id
             if not vals.get("product_uom"):
-                vals["product_uom"] = menu_item.product_id.uom_id.id
+                vals["product_uom"] = menu_item._order_line_uom().id
             if not vals.get("name"):
                 vals["name"] = menu_item.name
-            vals["tax_id"] = [Command.clear()]
         return super().write(vals)
 
     def unlink(self):

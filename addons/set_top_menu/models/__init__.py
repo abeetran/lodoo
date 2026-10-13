@@ -1,4 +1,5 @@
 from . import client_contract
+from . import delivery_staff
 from . import product_template
 from . import res_users
 from . import menu_item
@@ -8,3 +9,5 @@ from . import sale_order
 from . import warehouse
 from . import menu
 from . import order_fetch_wizard
+from . import order_shortage_wizard
+from . import uom_uom

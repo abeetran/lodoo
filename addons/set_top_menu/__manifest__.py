@@ -1,6 +1,6 @@
 {
     "name": "Custom Addons Top Menu",
-    "version": "17.0.1.0.12",
+    "version": "17.0.1.0.17",
     "category": "Web",
     "summary": "Custom top navigation menu",
     "description": """
@@ -30,6 +30,7 @@
         "security/ir.model.access.csv",
         "data/kitchen_plan_sequence.xml",
         "data/menu_item_data.xml",
+        "data/uom_data.xml",
         "views/client_management_views.xml",
         "views/client_contract_views.xml",
         "views/menu_item_views.xml",

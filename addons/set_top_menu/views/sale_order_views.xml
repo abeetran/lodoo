@@ -38,6 +38,12 @@
                        statusbar_visible="draft,confirmed.in_production,ready,dispatched,delivered"
                        readonly="hnck_order"/>
                 <field name="hnck_order" invisible="1"/>
+                <button name="action_start_preparation" type="object" string="Chuẩn bị"
+                        class="btn-primary" invisible="catering_state != 'confirmed'"/>
+                <button name="action_cancel_preparation" type="object" string="Huỷ chuẩn bị"
+                        invisible="hnck_order or catering_state != 'in_production'"/>
+                <button name="action_cancel_order" type="object" string="Huỷ đơn"
+                        invisible="hnck_order or catering_state not in ('draft', 'confirmed')"/>
                 <button name="action_dispatch" type="object" string="Xuất giao"
                         class="btn-primary" invisible="catering_state != 'ready'"/>
                 <button name="action_deliver" type="object" string="Đã giao"
@@ -52,6 +58,7 @@
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="catering_reference" readonly="id"/>
                 <field name="contract_id"/>
+                <field name="catering_tax_id" string="Thuế"/>
                 <field name="total_meals" readonly="1"/>
             </xpath>
             <!-- Product và thuế vẫn tồn tại trong model nhưng không hiển thị cho người nhập món. -->
@@ -62,8 +69,24 @@
             <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="attributes">
                 <attribute name="column_invisible">False</attribute>
                 <attribute name="invisible">0</attribute>
-                <attribute name="string">Sản phẩm</attribute>
+                <attribute name="string">Món ăn / Thực phẩm</attribute>
                 <attribute name="readonly">parent.contract_id</attribute>
+                <!-- Gỡ lọc sale_ok của view gốc: domain theo field (danh sách material). -->
+                <attribute name="domain">[]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="after">
+                <field name="product_stock_qty" string="Tồn kho" readonly="1" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_template_id']" position="after">
+                <field name="catering_line_type" string="Loại" readonly="1"
+                       widget="badge"
+                       decoration-success="catering_line_type == 'dish'"
+                       decoration-info="catering_line_type == 'food'"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree" position="inside">
+                <button name="action_buy_product" type="object" string="Mua hàng"
+                        icon="fa-shopping-cart"
+                        invisible="menu_item_id or not product_id or product_stock_qty >= product_uom_qty"/>
             </xpath>
             <xpath expr="//field[@name='order_line']/tree/field[@name='tax_id']" position="attributes">
                 <attribute name="column_invisible">True</attribute>
@@ -93,10 +116,8 @@
                        options="{'no_create': True, 'no_create_edit': True}"
                        optional="show"/>
                 <field name="menu_item_id"
-                       context="{'default_active': True}"
-                       readonly="1"
-                       options="{'no_create': True, 'no_create_edit': True}"
-                       optional="show"/>
+                       column_invisible="True"
+                       force_save="1"/>
             </xpath>
         </field>
     </record>

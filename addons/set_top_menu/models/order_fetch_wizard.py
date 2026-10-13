@@ -69,6 +69,7 @@ class OrderFetchWizard(models.TransientModel):
                 )
                 % counts,
                 _("Khách hàng mới: %(partners_created)s.") % counts,
+                _("Nhân viên giao hàng mới: %(staff_created)s.") % counts,
             ]
         )
         self.write({"state": "done", "result_text": result_text})

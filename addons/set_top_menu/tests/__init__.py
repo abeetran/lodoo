@@ -9,4 +9,17 @@ from . import test_material_views
 from . import test_material_food_push
 from . import test_menu
 from . import test_order_fetch
+from . import test_order_preparation
+from . import test_hnck_draft_edit
+from . import test_order_cancel
+from . import test_kitchen_plan_orders
+from . import test_kitchen_plan_materials
+from . import test_order_zero_stock
+from . import test_order_cancel_preparation
+from . import test_order_transporter
+from . import test_order_line_buy
+from . import test_order_prepare_stock
+from . import test_order_tax
+from . import test_order_line_defaults
+from . import test_uom_data
 from . import test_security_access

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ml thuộc nhóm Thể tích của Odoo (1 lít = 1000 ml). -->
+    <record id="product_uom_milliliter" model="uom.uom">
+        <field name="name">ml</field>
+        <field name="category_id" ref="uom.product_uom_categ_vol"/>
+        <field name="factor_inv">1000</field>
+        <field name="uom_type">smaller</field>
+        <field name="rounding">0.001</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Thùng/bộ/đĩa không quy đổi lẫn nhau nên mỗi loại một nhóm riêng. -->
+    <record id="uom_categ_thung" model="uom.category">
+        <field name="name">Thùng</field>
+    </record>
+    <record id="product_uom_thung" model="uom.uom">
+        <field name="name">thùng</field>
+        <field name="category_id" ref="set_top_menu.uom_categ_thung"/>
+        <field name="factor" eval="1"/>
+        <field name="uom_type">reference</field>
+        <field name="rounding">0.01</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="uom_categ_bo" model="uom.category">
+        <field name="name">Bộ</field>
+    </record>
+    <record id="product_uom_bo" model="uom.uom">
+        <field name="name">bộ</field>
+        <field name="category_id" ref="set_top_menu.uom_categ_bo"/>
+        <field name="factor" eval="1"/>
+        <field name="uom_type">reference</field>
+        <field name="rounding">0.01</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="uom_categ_dia" model="uom.category">
+        <field name="name">Đĩa</field>
+    </record>
+    <record id="product_uom_dia" model="uom.uom">
+        <field name="name">đĩa</field>
+        <field name="category_id" ref="set_top_menu.uom_categ_dia"/>
+        <field name="factor" eval="1"/>
+        <field name="uom_type">reference</field>
+        <field name="rounding">0.01</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

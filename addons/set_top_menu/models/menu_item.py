@@ -215,7 +215,25 @@ class MenuItem(models.Model):
                 }
             )
             item.product_id = product
+        stale = self.filtered(
+            lambda record: record.active
+            and record.product_id
+            and (
+                not record.product_id.product_tmpl_id.sale_ok
+                or not record.product_id.active
+                or not record.product_id.product_tmpl_id.active
+            )
+        )
+        stale.mapped("product_id.product_tmpl_id").write(
+            {"sale_ok": True, "active": True}
+        )
+        stale.mapped("product_id").write({"active": True})
         return self.mapped("product_id")
+
+    def _order_line_uom(self):
+        """ĐVT mặc định của dòng đơn món ăn: Đơn vị khẩu phần."""
+        self.ensure_one()
+        return self.serving_uom_id or self.product_id.uom_id
 
     def write(self, vals):
         if "process_id" in vals:
@@ -226,8 +244,23 @@ class MenuItem(models.Model):
                         _("Không được thay đổi quy trình sản xuất khi sửa món ăn.")
                     )
         result = super().write(vals)
+        # Món đang hoạt động luôn có sản phẩm bán được lưu sẵn (kể cả Lưu
+        # suông) để cột chọn đơn hàng lấy ra đơn giản.
+        self.filtered("active")._ensure_sale_product()
         if "sale_price" in vals:
             self.mapped("product_id").write({"list_price": vals["sale_price"]})
+        if {"name", "item_code"} & set(vals):
+            for item in self.filtered("product_id"):
+                sync = {}
+                if "name" in vals and item.product_id.name != item.name:
+                    sync["name"] = item.name
+                if (
+                    "item_code" in vals
+                    and item.product_id.default_code != item.item_code
+                ):
+                    sync["default_code"] = item.item_code
+                if sync:
+                    item.product_id.write(sync)
         return result
 
     def action_push_supplier_dishes(self):

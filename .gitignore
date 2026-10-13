@@ -1,0 +1,7 @@
+.env
+postgres
+odoo-web-data
+config
+.DS_Store
+*/.DS_Store
+addons/*/__pycache__

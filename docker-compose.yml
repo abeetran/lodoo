@@ -84,81 +84,74 @@ services:
   # ✅ ODOO mapped theo mẫu bạn đưa
   # =============================
   db:
-    image: postgres:15
-    container_name: odoo_db
+    image: 'postgres:16-alpine'
+    container_name: antesco_db
+    ports:
+      - '5433:5432'
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: odoo
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+      POSTGRES_PASSWORD: '${POSTGRES_PASSWORD:-odoo}'
     volumes:
-      - ./postgres:/var/lib/postgresql/data
+      - './postgres:/var/lib/postgresql/data'
     networks:
       - antesco
-    restart: unless-stopped
-
+    # restart: unless-stopped
   odoo:
-    # image: odoo:17
     build:
       context: ./addons
-    container_name: odoo_antesco
-    # env_file:
-    #   - .env
-    # depends_on:
-    #   - mcp-server
-    # ports:
-    #   - "8068:8069"
-    # environment:
-    #   HOST: db
-    #   USER: odoo
-    #   PASSWORD: ${POSTGRES_PASSWORD:-odoo}
+    container_name: antesco_odoo
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - '8067:8069'
     networks:
       - antesco
     volumes:
-      - ./config/odoo.conf:/etc/odoo/odoo.conf
-      # - ./addons:/mnt/extra-addons
-      - ./odoo-web-data:/var/lib/odoo
-    restart: unless-stopped
+      - './config/odoo.conf:/etc/odoo/odoo.conf'
+      - './odoo-web-data:/var/lib/odoo'
 
     # =============================
   # ✅ MCP SERVER (AI BACKEND)
   # =============================
-  mcp-server:
-    # image: python:3.11-slim
-    build:
-      context: ./mcp
-    container_name: mcp_server
-    working_dir: /app
-    # volumes:
-    #   - ./mcp:/app
-    command: bash -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 3333"
-    # env_file:
-    #   - .env
-    ports:
-      - "3333:3333"
-    networks:
-      - antesco
-    restart: unless-stopped
+  # mcp-server:
+  #   # image: python:3.11-slim
+  #   build:
+  #     context: ./mcp
+  #   container_name: mcp_server
+  #   working_dir: /app
+  #   # volumes:
+  #   #   - ./mcp:/app
+  #   command: bash -c "pip install -r requirements.txt && uvicorn main:app --host 0.0.0.0 --port 3333"
+  #   # env_file:
+  #   #   - .env
+  #   ports:
+  #     - "3333:3333"
+  #   networks:
+  #     - antesco
+  #   restart: unless-stopped
 
   # =============================
   # ✅ AI CHAT UI (FRONTEND)
   # =============================
-  ai-chat:
-    # image: node:20-alpine
-    build:
-      context: ./ai-chat
-    container_name: ai_chat_ui
-    working_dir: /app
-    # volumes:
-    #   - ./ai-chat:/app
-    command: sh -c "npm install && npm run dev"
-    ports:
-      - "3000:3000"
-    # environment:
-    #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
-    networks:
-      - antesco
-    restart: unless-stopped
+  # ai-chat:
+  #   # image: node:20-alpine
+  #   build:
+  #     context: ./ai-chat
+  #   container_name: ai_chat_ui
+  #   working_dir: /app
+  #   # volumes:
+  #   #   - ./ai-chat:/app
+  #   command: sh -c "npm install && npm run dev"
+  #   ports:
+  #     - "3000:3000"
+  #   # environment:
+  #   #   - NEXT_PUBLIC_MCP_URL=http://localhost:3333
+  #   networks:
+  #     - antesco
+  #   restart: unless-stopped
 
 networks:
   antesco:
-    external: true
+    # external: true

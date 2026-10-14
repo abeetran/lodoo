@@ -1,3 +1,4 @@
+import xml.etree.ElementTree as ET
 from datetime import date
 from unittest.mock import patch
 
@@ -681,3 +682,14 @@ class TestOrderFetch(TransactionCase):
         self.assertEqual(result["res_model"], "sale.order")
         self.assertTrue(result["view_mode"].startswith("tree"))
         self.assertEqual(result["target"], "current")
+
+    def test_fetch_result_field_full_width(self):
+        arch = self.env.ref("set_top_menu.view_order_fetch_wizard_form").arch_db
+        sheet = ET.fromstring(arch).find("sheet")
+        direct = [
+            node
+            for node in sheet.findall("field")
+            if node.get("name") == "result_text"
+        ]
+        self.assertEqual(len(direct), 1)
+        self.assertEqual(direct[0].get("invisible"), "state != 'done'")

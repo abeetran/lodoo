@@ -18,3 +18,4 @@ access_warehouse_user,warehouse.user,model_set_top_menu_warehouse,base.group_use
 access_menu_user,menu.user,model_set_top_menu_menu,base.group_user,1,1,1,1
 access_order_fetch_wizard_user,order.fetch.wizard.user,model_set_top_menu_order_fetch_wizard,base.group_user,1,1,1,1
 access_order_shortage_wizard_user,order.shortage.wizard.user,model_set_top_menu_order_shortage_wizard,base.group_user,1,1,1,1
+access_order_cancel_wizard_user,order.cancel.wizard.user,model_set_top_menu_order_cancel_wizard,base.group_user,1,1,1,1

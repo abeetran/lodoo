@@ -12,6 +12,8 @@ class UomUom(models.Model):
         "set_top_menu.product_uom_thung",
         "set_top_menu.product_uom_bo",
         "set_top_menu.product_uom_dia",
+        "set_top_menu.product_uom_thung_5kg",
+        "set_top_menu.product_uom_thung_10kg",
     )
 
     @api.model

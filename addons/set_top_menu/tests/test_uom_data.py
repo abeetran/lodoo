@@ -7,10 +7,14 @@ class TestUomData(TransactionCase):
         case = self.env.ref("set_top_menu.product_uom_thung")
         combo = self.env.ref("set_top_menu.product_uom_bo")
         plate = self.env.ref("set_top_menu.product_uom_dia")
+        case5 = self.env.ref("set_top_menu.product_uom_thung_5kg")
+        case10 = self.env.ref("set_top_menu.product_uom_thung_10kg")
         self.assertTrue(ml.active)
         self.assertTrue(case.active)
         self.assertTrue(combo.active)
         self.assertTrue(plate.active)
+        self.assertTrue(case5.active)
+        self.assertTrue(case10.active)
         litre = self.env.ref("uom.product_uom_litre")
         self.assertEqual(ml.category_id, litre.category_id)
         self.assertEqual(ml.uom_type, "smaller")
@@ -21,10 +25,12 @@ class TestUomData(TransactionCase):
             case.category_id.id,
             combo.category_id.id,
             plate.category_id.id,
+            case5.category_id.id,
+            case10.category_id.id,
             unit.category_id.id,
         }
-        self.assertEqual(len(categories), 4)
-        for each in (case, combo, plate):
+        self.assertEqual(len(categories), 6)
+        for each in (case, combo, plate, case5, case10):
             self.assertEqual(each.uom_type, "reference")
             self.assertEqual(each.factor, 1.0)
 
@@ -47,6 +53,8 @@ class TestUomData(TransactionCase):
                 "set_top_menu.product_uom_thung",
                 "set_top_menu.product_uom_bo",
                 "set_top_menu.product_uom_dia",
+                "set_top_menu.product_uom_thung_5kg",
+                "set_top_menu.product_uom_thung_10kg",
             )
         ]
         found = [
@@ -55,7 +63,7 @@ class TestUomData(TransactionCase):
                 "", limit=20
             )
         ]
-        self.assertEqual(found[:7], expected)
+        self.assertEqual(found[:9], expected)
         short = [
             record_id
             for record_id, _name in self.env["uom.uom"].name_search("", limit=5)

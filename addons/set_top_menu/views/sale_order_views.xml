@@ -35,30 +35,45 @@
                 <button string="Hủy bỏ" special="cancel"
                         invisible="state not in ('draft', 'sent')"/>
                 <field name="catering_state" widget="statusbar"
-                       statusbar_visible="draft,confirmed.in_production,ready,dispatched,delivered"
+                       statusbar_visible="draft,confirmed,in_production,ready,dispatched,delivered"
                        readonly="hnck_order"/>
                 <field name="hnck_order" invisible="1"/>
                 <button name="action_start_preparation" type="object" string="Chuẩn bị"
-                        class="btn-primary" invisible="catering_state != 'confirmed'"/>
+                        class="btn-primary" confirm="Chuyển đơn sang trạng thái Đang chuẩn bị?"
+                        invisible="catering_state != 'confirmed'"/>
                 <button name="action_cancel_preparation" type="object" string="Huỷ chuẩn bị"
+                        confirm="Huỷ trạng thái chuẩn bị và chuyển đơn về Đã xác nhận?"
                         invisible="hnck_order or catering_state != 'in_production'"/>
                 <button name="action_cancel_order" type="object" string="Huỷ đơn"
-                        invisible="hnck_order or catering_state not in ('draft', 'confirmed')"/>
-                <button name="action_dispatch" type="object" string="Xuất giao"
-                        class="btn-primary" invisible="catering_state != 'ready'"/>
-                <button name="action_deliver" type="object" string="Đã giao"
-                        class="btn-primary" invisible="catering_state != 'dispatched'"/>
+                        invisible="not id or hnck_order or catering_state not in ('draft', 'confirmed')"/>
+                <field name="hnck_price_editable" invisible="1"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_confirm']" position="attributes">
+                <attribute name="confirm">Xác nhận đơn hàng này?</attribute>
             </xpath>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button name="action_view_kitchen_plans" type="object" class="oe_stat_button"
                         icon="fa-cutlery" invisible="kitchen_plan_count == 0">
                     <field name="kitchen_plan_count" widget="statinfo" string="Kế hoạch bếp"/>
                 </button>
+                <button name="action_update_hnck_prices" type="object"
+                        string="Cập nhật giá mới" icon="fa-refresh"
+                        class="oe_stat_button"
+                        confirm="Cập nhật giá mới nhất cho các dòng đơn HNCK này?"
+                        invisible="not hnck_order"/>
+                <button name="action_enable_hnck_price_edit" type="object"
+                        string="Chỉnh sửa giá" icon="fa-pencil"
+                        class="oe_stat_button"
+                        invisible="not hnck_order or hnck_price_editable"/>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="catering_reference" readonly="id"/>
                 <field name="contract_id"/>
                 <field name="catering_tax_id" string="Thuế"/>
+                <field name="currency_id" string="Tiền tệ"
+                       domain="[('name', 'in', ['USD', 'VND'])]"
+                       readonly="catering_state != 'draft'"
+                       options="{'no_create': True, 'no_create_edit': True}"/>
                 <field name="total_meals" readonly="1"/>
             </xpath>
             <!-- Product và thuế vẫn tồn tại trong model nhưng không hiển thị cho người nhập món. -->

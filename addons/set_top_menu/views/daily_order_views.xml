@@ -10,21 +10,18 @@
                     <button name="action_back_to_order_list" type="object" string="Quay lại"
                             icon="fa-arrow-left"/>
                     <button name="action_confirm" type="object" string="Xác nhận"
-                            class="btn-primary"
+                            class="btn-primary" confirm="Xác nhận đơn hàng này?"
                             invisible="hnck_order or catering_state != 'draft'"/>
                     <button name="action_start_preparation" type="object" string="Chuẩn bị"
-                            class="btn-primary"
+                            class="btn-primary" confirm="Chuyển đơn sang trạng thái Đang chuẩn bị?"
                             invisible="hnck_order or catering_state != 'confirmed'"/>
                     <button name="action_cancel_preparation" type="object" string="Huỷ chuẩn bị"
+                            confirm="Huỷ trạng thái chuẩn bị và chuyển đơn về Đã xác nhận?"
                             invisible="hnck_order or catering_state != 'in_production'"/>
                     <button name="action_cancel_order" type="object" string="Huỷ đơn"
-                            invisible="hnck_order or catering_state not in ('draft', 'confirmed')"/>
+                            invisible="not id or hnck_order or catering_state not in ('draft', 'confirmed')"/>
                     <button string="Hủy bỏ" special="cancel"
                             invisible="state not in ('draft', 'sent')"/>
-                    <button name="action_dispatch" type="object" string="Xuất giao"
-                            class="btn-primary" invisible="hnck_order or catering_state != 'ready'"/>
-                    <button name="action_deliver" type="object" string="Đã giao"
-                            class="btn-primary" invisible="hnck_order or catering_state != 'dispatched'"/>
                     <button name="action_open_traceability_qr" type="object"
                             string="QR truy xuất" icon="fa-qrcode"
                             invisible="not hnck_order"/>
@@ -33,13 +30,23 @@
                            readonly="hnck_order"/>
                     <field name="state" invisible="1"/>
                     <field name="hnck_order" invisible="1"/>
+                    <field name="hnck_price_editable" invisible="1"/>
                 </header>
-                <sheet readonly="hnck_order or catering_state not in ('draft', 'confirmed')">
+                <sheet readonly="(hnck_order or catering_state not in ('draft', 'confirmed')) and not hnck_price_editable">
                     <div class="oe_button_box" name="button_box">
                         <button name="action_view_kitchen_plans" type="object" class="oe_stat_button"
                                 icon="fa-cutlery" invisible="kitchen_plan_count == 0">
                             <field name="kitchen_plan_count" widget="statinfo" string="Kế hoạch bếp"/>
                         </button>
+                        <button name="action_update_hnck_prices" type="object"
+                                string="Cập nhật giá mới" icon="fa-refresh"
+                                class="oe_stat_button"
+                                confirm="Cập nhật giá mới nhất cho các dòng đơn HNCK này?"
+                                invisible="not hnck_order"/>
+                        <button name="action_enable_hnck_price_edit" type="object"
+                                string="Chỉnh sửa giá" icon="fa-pencil"
+                                class="oe_stat_button"
+                                invisible="not hnck_order or hnck_price_editable"/>
                     </div>
                     <div class="oe_title">
                         <label for="catering_reference" string="Mã đơn hàng"/>
@@ -47,20 +54,25 @@
                     </div>
                     <group>
                         <group string="CHI TIẾT ĐƠN HÀNG">
-                            <field name="date_order" string="Ngày đặt hàng"/>
+                            <field name="date_order" string="Ngày đặt hàng"
+                                   readonly="hnck_order and hnck_price_editable"/>
                             <field name="partner_id" string="Khách hàng"
+                                   readonly="hnck_order and hnck_price_editable"
                                    widget="res_partner_many2one"
                                    context="{'res_partner_search_mode': 'customer', 'show_address': 0, 'show_vat': False}"/>
                             <field name="contract_id" string="Hợp đồng"
+                                   readonly="hnck_order and hnck_price_editable"
                                    domain="[('client_id', '=', partner_id),
                                             ('status', '=', 'active'),
                                             ('date_start', '&lt;=', context_today()),
                                             ('date_end', '&gt;=', context_today())]"
                                    options="{'no_create': True, 'no_create_edit': True}"/>
                             <field name="catering_tax_id" string="Thuế"
+                                   readonly="hnck_order and hnck_price_editable"
                                    domain="[('type_tax_use', '=', 'sale'), ('company_id', '=', company_id)]"
                                    options="{'no_create': True, 'no_create_edit': True}"/>
                             <field name="partner_shipping_id" string="Địa chỉ giao hàng"
+                                   readonly="hnck_order and hnck_price_editable"
                                    widget="res_partner_many2one"
                                    domain="[('active', '=', True), '|', ('id', '=', partner_id), '&amp;', ('parent_id', '=', partner_id), ('type', '=', 'delivery')]"
                                    context="{'default_parent_id': partner_id, 'default_type': 'delivery', 'show_address': 1, 'show_vat': False}"
@@ -69,23 +81,28 @@
                         </group>
                         <group string="TỔNG HỢP">
                             <field name="total_meals" string="Tổng số suất ăn" readonly="1"/>
+                            <field name="currency_id" string="Tiền tệ"
+                                   domain="[('name', 'in', ['USD', 'VND'])]"
+                                   readonly="catering_state != 'draft' or (hnck_order and hnck_price_editable)"
+                                   options="{'no_create': True, 'no_create_edit': True}"/>
                             <field name="amount_total" string="Tổng tiền" readonly="1"/>
-                            <field name="company_id" string="Công ty"/>
+                            <field name="company_id" string="Công ty"
+                                   readonly="hnck_order and hnck_price_editable"/>
                             <field name="hnck_order" readonly="1"/>
                         </group>
                     </group>
-                    <field name="currency_id" invisible="1"/>
                     <field name="pricelist_id" invisible="1"/>
                     <field name="partner_invoice_id" invisible="1"/>
                     <field name="fiscal_position_id" invisible="1"/>
                     <notebook>
                         <page string="Chi tiết đơn hàng" name="meal_lines">
                             <field name="order_line" nolabel="1"
-                                   readonly="(hnck_order or catering_state not in ('draft', 'confirmed')) and not (hnck_order and catering_state == 'draft')">
+                                   readonly="(hnck_order or catering_state not in ('draft', 'confirmed')) and not (hnck_order and catering_state == 'draft') and not hnck_price_editable">
                                 <tree editable="bottom" string="Chi tiết đơn hàng">
                                     <control>
                                         <create string="Thêm mặt hàng"
                                                 invisible="parent.contract_id or parent.hnck_order"/>
+                                        <delete invisible="parent.hnck_order"/>
                                     </control>
                                     <field name="sequence" widget="handle"/>
                                     <field name="display_type" column_invisible="True"/>
@@ -118,7 +135,7 @@
                                     <field name="price_subtotal" string="Thành tiền" readonly="1"/>
                                     <field name="name" column_invisible="True" force_save="1"/>
                                     <field name="catering_note" string="Ghi chú"
-                                           readonly="parent.contract_id"/>
+                                           readonly="parent.contract_id or (parent.hnck_order and parent.hnck_price_editable)"/>
                                     <button name="action_buy_product" type="object" string="Mua hàng"
                                             icon="fa-shopping-cart"
                                             invisible="menu_item_id or not product_id or product_stock_qty >= product_uom_qty"/>
@@ -132,10 +149,16 @@
                             <div class="clearfix"/>
                         </page>
                         <page string="Ghi chú" name="notes">
-                            <field name="note" nolabel="1" placeholder="Nhập ghi chú cho đơn hàng..."/>
+                            <field name="note" nolabel="1" placeholder="Nhập ghi chú cho đơn hàng..."
+                                   readonly="hnck_order and hnck_price_editable"/>
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
             </form>
         </field>
     </record>
@@ -186,9 +209,8 @@
                         <field name="order_date_to"/>
                         <field name="page"/>
                     </group>
-                    <group invisible="state != 'done'">
-                        <field name="result_text" nolabel="1" readonly="1"/>
-                    </group>
+                    <field name="result_text" nolabel="1" readonly="1"
+                           invisible="state != 'done'"/>
                 </sheet>
                 <footer>
                     <button name="action_confirm_fetch" type="object"
@@ -230,5 +252,23 @@
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_daily_order_form"/>
         <field name="act_window_id" ref="action_daily_orders"/>
+    </record>
+
+    <record id="action_sale_order_bulk_purchase" model="ir.actions.server">
+        <field name="name">Mua hàng</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_bulk_purchase()</field>
+    </record>
+
+    <record id="action_sale_order_update_prices" model="ir.actions.server">
+        <field name="name">Cập nhật giá</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_update_prices()</field>
     </record>
 </odoo>

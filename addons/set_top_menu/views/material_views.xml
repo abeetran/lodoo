@@ -50,6 +50,16 @@
                        invisible="crall_food_source == 'standard'"
                        placeholder="Việt Nam"/>
             </field>
+            <!-- Nút gốc giới hạn theo nhóm UoM: ẩn đi với thực phẩm và thay
+                 bằng nút không cần nhóm quyền để ai cũng thấy khi tạo/sửa. -->
+            <xpath expr="//field[@name='uom_id']" position="attributes">
+                <attribute name="invisible">crall_food_source != 'standard'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='uom_id']" position="after">
+                <field name="uom_id" string="Đơn vị tính"
+                       invisible="crall_food_source == 'standard'"
+                       options="{'no_create': True}"/>
+            </xpath>
         </field>
     </record>
 </odoo>

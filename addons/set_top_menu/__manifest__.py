@@ -1,6 +1,6 @@
 {
     "name": "Custom Addons Top Menu",
-    "version": "17.0.1.0.17",
+    "version": "17.0.1.0.39",
     "category": "Web",
     "summary": "Custom top navigation menu",
     "description": """
@@ -15,6 +15,7 @@
     "depends": [
         "web",
         "base",
+        "mail",
         "auth_signup",
         "sale",
         "sale_management",
@@ -31,6 +32,7 @@
         "data/kitchen_plan_sequence.xml",
         "data/menu_item_data.xml",
         "data/uom_data.xml",
+        "data/currency_data.xml",
         "views/client_management_views.xml",
         "views/client_contract_views.xml",
         "views/menu_item_views.xml",
@@ -41,8 +43,11 @@
         "views/production_process_views.xml",
         "views/sale_order_views.xml",
         "views/daily_order_views.xml",
+        "views/order_cancel_wizard_views.xml",
         "views/warehouse_views.xml",
         "views/web_login_views.xml",
+        "views/purchase_order_views.xml",
+        "views/stock_picking_views.xml",
     ],
 
     "assets": {

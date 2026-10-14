@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_delivering" model="ir.ui.view">
+        <field name="name">stock.picking.form.delivering</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Thứ tự quan trọng: Odoo áp xpath tuần tự, sửa thuộc tính
+                 trước rồi mới chèn nút để không lệch vị trí [1]/[2]. -->
+            <xpath expr="//header/button[@name='button_validate'][1]" position="attributes">
+                <attribute name="invisible">state in ('draft', 'confirmed', 'done', 'cancel') or (state == 'assigned' and picking_type_code in ('outgoing', 'internal'))</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='button_validate'][2]" position="attributes">
+                <attribute name="invisible">state in ('waiting', 'assigned', 'delivering', 'done', 'cancel')</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='button_validate'][1]" position="before">
+                <button name="button_validate" string="Giao hàng" type="object"
+                        class="oe_highlight" groups="stock.group_stock_user"
+                        invisible="state != 'assigned' or picking_type_code not in ('outgoing', 'internal')"/>
+            </xpath>
+            <xpath expr="//header/field[@name='state'][@widget='statusbar'][2]" position="attributes">
+                <attribute name="statusbar_visible">draft,confirmed,assigned,delivering,done</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_cancel']" position="attributes">
+                <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting', 'delivering')</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_picking_internal_search_delivering" model="ir.ui.view">
+        <field name="name">stock.picking.search.delivering</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='available']" position="attributes">
+                <attribute name="domain">[('state', 'in', ('assigned', 'delivering'))]</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='late']" position="attributes">
+                <attribute name="domain">[('state', 'in', ('assigned', 'waiting', 'confirmed', 'delivering')), '|', '|', ('has_deadline_issue', '=', True), ('date_deadline', '&lt;', current_date), ('scheduled_date', '&lt;', current_date)]</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='planning_issues']" position="attributes">
+                <attribute name="domain">['|', ('delay_alert_date', '!=', False), '&amp;', ('scheduled_date','&lt;', time.strftime('%Y-%m-%d %H:%M:%S')), ('state', 'in', ('assigned', 'waiting', 'confirmed', 'delivering'))]</attribute>
+            </xpath>
+            <xpath expr="//filter[@name='backorder']" position="attributes">
+                <attribute name="domain">[('backorder_id', '!=', False), ('state', 'in', ('assigned', 'waiting', 'confirmed', 'delivering'))]</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

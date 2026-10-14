@@ -113,6 +113,7 @@ class KitchenProductionPlan(models.Model):
         for plan in self:
             if not plan.line_ids:
                 raise UserError("Vui lòng thêm ít nhất một món vào kế hoạch sản xuất.")
+            plan.line_ids._check_material_available()
             plan.state = "progress"
             plan.order_ids.filtered(lambda order: order.catering_state == "confirmed").write(
                 {"catering_state": "in_production"}
@@ -276,6 +277,46 @@ class KitchenProductionPlanLine(models.Model):
             )
         return requirements
 
+    def _missing_materials(self):
+        """NVL còn thiếu của dòng: [(sản phẩm, cần, tồn)]."""
+        self.ensure_one()
+        company = self.plan_id.company_id or self.env.company
+        missing = []
+        for ingredient, required in self._ingredient_requirements().items():
+            product = ingredient.product_id.with_company(company)
+            rounding = product.uom_id.rounding or 0.01
+            available = product.qty_available
+            if (
+                float_compare(
+                    required, available, precision_rounding=rounding
+                )
+                > 0
+            ):
+                missing.append((product, required, available))
+        return missing
+
+    def _check_material_available(self):
+        for line in self:
+            missing = line._missing_materials()
+            if not missing:
+                continue
+            details = "\n".join(
+                "- %s: cần %g, tồn %g, thiếu %g %s"
+                % (
+                    product.display_name,
+                    required,
+                    available,
+                    required - available,
+                    product.uom_id.name,
+                )
+                for product, required, available in missing
+            )
+            raise UserError(
+                "Nguyên vật liệu chưa đủ để bắt đầu món %s:\n%s\n"
+                "Vui lòng nhấn Mua NVL để mua phần còn thiếu."
+                % (line.menu_item_id.display_name, details)
+            )
+
     def action_buy_materials(self):
         """Mở phiếu mua mới, chỉ mua phần NVL còn thiếu."""
         self.ensure_one()
@@ -348,6 +389,7 @@ class KitchenProductionPlanLine(models.Model):
             )
 
     def action_start(self):
+        self._check_material_available()
         self.write({"state": "progress"})
         self.mapped("plan_id").filtered(lambda plan: plan.state == "confirmed").write(
             {"state": "progress"}

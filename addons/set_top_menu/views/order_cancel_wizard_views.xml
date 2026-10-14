@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_cancel_wizard_form" model="ir.ui.view">
+        <field name="name">set.top.menu.order.cancel.wizard.form</field>
+        <field name="model">set_top_menu.order.cancel.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Lý do huỷ đơn">
+                <sheet>
+                    <group>
+                        <field name="order_id" readonly="1"/>
+                    </group>
+                    <field name="reason" nolabel="1"
+                           placeholder="Nhập lý do huỷ đơn (bắt buộc)..."/>
+                    <p class="text-muted">
+                        Xác nhận huỷ đơn hàng này? Lý do sẽ được lưu lại
+                        tại cột hoạt động.
+                    </p>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_cancel" type="object"
+                            string="Xác nhận huỷ đơn" class="btn-primary"/>
+                    <button name="action_discard_cancel" type="object"
+                            string="Huỷ bỏ"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

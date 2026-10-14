@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Bật sẵn VND để đơn hàng chuyển đổi USD/VND (tỉ giá nhập tay). -->
+    <record id="base.VND" model="res.currency">
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

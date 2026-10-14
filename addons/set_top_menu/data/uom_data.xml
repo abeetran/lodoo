@@ -46,4 +46,30 @@
         <field name="rounding">0.01</field>
         <field name="active" eval="True"/>
     </record>
+
+    <!-- Thùng theo quy cách bán: mỗi quy cách một nhóm riêng để dòng đơn
+         ghi "5 thùng 10kg" khác hẳn "50kg", không quy đổi. -->
+    <record id="uom_categ_thung_5kg" model="uom.category">
+        <field name="name">Thùng 5kg</field>
+    </record>
+    <record id="product_uom_thung_5kg" model="uom.uom">
+        <field name="name">thùng 5kg</field>
+        <field name="category_id" ref="set_top_menu.uom_categ_thung_5kg"/>
+        <field name="factor" eval="1"/>
+        <field name="uom_type">reference</field>
+        <field name="rounding">0.01</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="uom_categ_thung_10kg" model="uom.category">
+        <field name="name">Thùng 10kg</field>
+    </record>
+    <record id="product_uom_thung_10kg" model="uom.uom">
+        <field name="name">thùng 10kg</field>
+        <field name="category_id" ref="set_top_menu.uom_categ_thung_10kg"/>
+        <field name="factor" eval="1"/>
+        <field name="uom_type">reference</field>
+        <field name="rounding">0.01</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>

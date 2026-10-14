@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_purchase_order_form_uom_visible" model="ir.ui.view">
+        <field name="name">purchase.order.form.uom.visible</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Thứ tự quan trọng: thay node thứ 2 trước rồi mới xoá node thứ 1. -->
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom'][2]" position="replace">
+                <field name="product_uom" string="Đơn vị tính"
+                       readonly="state in ('purchase', 'done', 'cancel')"
+                       required="not display_type"
+                       options="{'no_open': True}"
+                       force_save="1" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/tree/field[@name='product_uom'][1]" position="replace"/>
+            <xpath expr="//field[@name='order_line']/form//field[@name='product_uom']" position="replace">
+                <field name="product_uom" required="not display_type"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']/kanban//field[@name='product_uom']" position="replace">
+                <field name="product_uom"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

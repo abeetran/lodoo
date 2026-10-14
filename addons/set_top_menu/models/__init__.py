@@ -10,4 +10,8 @@ from . import warehouse
 from . import menu
 from . import order_fetch_wizard
 from . import order_shortage_wizard
+from . import order_cancel_wizard
 from . import uom_uom
+from . import stock_picking
+from . import purchase_order
+from . import stock_move

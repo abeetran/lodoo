@@ -68,7 +68,7 @@ class TestHnckDraftEdit(TransactionCase):
         self.assertIn(
             'readonly="(hnck_order or catering_state not in '
             "('draft', 'confirmed')) and not (hnck_order and "
-            'catering_state == \'draft\')"',
+            'catering_state == \'draft\') and not hnck_price_editable"',
             arch,
         )
         self.assertIn(

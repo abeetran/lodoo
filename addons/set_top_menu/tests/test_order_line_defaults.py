@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 from ast import literal_eval
+from datetime import date
 
+from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase
 
 
@@ -312,6 +314,92 @@ class TestOrderLineDefaults(TransactionCase):
         self.assertTrue(dish.product_id.active)
         self.assertTrue(dish.product_id.product_tmpl_id.sale_ok)
         self.assertTrue(dish.product_id.product_tmpl_id.active)
+
+    def test_food_price_ignores_fx_rate(self):
+        usd = self.env.ref("base.USD")
+        vnd = self.env.ref("base.VND")
+        self.assertTrue(vnd.active)
+        order = self._order("DH-DEF-015")
+        other = vnd if order.currency_id != vnd else usd
+        self.env["res.currency.rate"].create(
+            {
+                "name": date.today(),
+                "rate": 25000.0,
+                "currency_id": other.id,
+                "company_id": order.company_id.id,
+            }
+        )
+        order.write({"currency_id": other.id})
+        template = self._template("Thực phẩm ngoại tệ", 100.0)
+        line = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": template.product_variant_id.id,
+                "product_uom_qty": 1.0,
+            }
+        )
+        self.assertEqual(line.price_unit, 100.0)
+        self.assertEqual(line.currency_id, other)
+
+    def test_currency_write_guarded_after_draft(self):
+        usd = self.env.ref("base.USD")
+        vnd = self.env.ref("base.VND")
+        order = self._order("DH-DEF-016")
+        other = vnd if order.currency_id != vnd else usd
+        order.write({"currency_id": other.id})
+        self.assertEqual(order.currency_id, other)
+        order.write({"catering_state": "confirmed"})
+        with self.assertRaises(UserError):
+            order.write({"currency_id": order.company_id.currency_id.id})
+
+    def test_currency_field_daily_form(self):
+        view = self.env.ref("set_top_menu.view_daily_order_form")
+        form = ET.fromstring(view.arch_db)
+        nodes = form.findall(".//field[@name='currency_id']")
+        self.assertEqual(len(nodes), 1)
+        self.assertEqual(nodes[0].get("string"), "Tiền tệ")
+        self.assertIn("USD", nodes[0].get("domain"))
+        self.assertIn("VND", nodes[0].get("domain"))
+        self.assertIn("draft", nodes[0].get("readonly"))
+        self.assertIsNone(nodes[0].get("invisible"))
+
+    def test_currency_field_standard_form(self):
+        form = self.env.ref("sale.view_order_form")
+        nodes = ET.fromstring(form.arch).findall(".//field[@name='currency_id']")
+        ours = [
+            node
+            for node in nodes
+            if node.get("string") == "Tiền tệ"
+        ]
+        self.assertEqual(len(ours), 1)
+        self.assertIn("VND", ours[0].get("domain"))
+
+    def test_uom_change_keeps_manual_price(self):
+        template = self._template("Thực phẩm bán set", 30000.0)
+        kilo = self.env.ref("uom.product_uom_kgm")
+        order = self._order("DH-DEF-017")
+        line = self.env["sale.order.line"].new({"order_id": order.id})
+        line.product_template_id = template
+        line._onchange_product_template_id_set_menu_item()
+        line.price_unit = 77777.0
+        line.product_uom = kilo
+        self.assertEqual(line.product_uom, kilo)
+        self.assertEqual(line.price_unit, 77777.0)
+
+    def test_cross_category_uom_saves_freely(self):
+        template = self._template("Thực phẩm bán bộ", 20000.0)
+        kilo = self.env.ref("uom.product_uom_kgm")
+        order = self._order("DH-DEF-018")
+        line = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": template.product_variant_id.id,
+                "product_uom": kilo.id,
+                "product_uom_qty": 2.0,
+            }
+        )
+        self.assertEqual(line.product_uom, kilo)
+        self.assertEqual(line.price_unit, 20000.0)
 
     def test_line_uom_dropdown_unfiltered(self):
         field = self.env["sale.order.line"]._fields["product_uom"]

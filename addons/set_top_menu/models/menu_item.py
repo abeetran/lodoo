@@ -56,6 +56,7 @@ def serialize_supplier_dish(
 
 class MenuItem(models.Model):
     _name = "set_top_menu.menu.item"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Món ăn"
     _order = "name"
 

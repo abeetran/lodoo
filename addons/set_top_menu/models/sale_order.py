@@ -1,5 +1,7 @@
 from urllib.parse import quote
 
+from markupsafe import escape
+
 from odoo import Command, _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
@@ -13,6 +15,26 @@ HNCK_TRACE_URL = (
 
 # Dòng đơn HNCK chưa xác nhận (draft) được sửa trực tiếp 2 trường này.
 HNCK_DRAFT_EDITABLE_LINE_FIELDS = frozenset({"price_unit", "catering_note"})
+
+# Trường client tự gửi kèm khi lưu dòng (force_save) nhưng phải giữ nguyên.
+HNCK_LINE_COMPANION_FIELDS = frozenset(
+    {
+        "product_id",
+        "product_template_id",
+        "menu_item_id",
+        "meal_type_id",
+        "product_uom",
+        "product_uom_qty",
+        "discount",
+        "name",
+        "catering_note",
+        "display_type",
+        "sequence",
+        "company_id",
+        "currency_id",
+        "contract_task_id",
+    }
+)
 
 # Trạng thái HNCK đang/đã giao: lưu người vận chuyển để thống kê.
 HNCK_DELIVERING_STATUSES = frozenset(
@@ -62,6 +84,13 @@ class SaleOrder(models.Model):
         copy=False,
         index=True,
         help="Đơn lấy về từ HNCK qua nút Lấy ĐH; chỉ được cập nhật qua API.",
+    )
+    hnck_price_editable = fields.Boolean(
+        string="Cho sửa giá HNCK",
+        default=False,
+        readonly=True,
+        copy=False,
+        help="Bật qua nút Chỉnh sửa giá để cho phép sửa đơn giá lưới chi tiết đơn HNCK.",
     )
     transporter_id = fields.Many2one(
         "set_top_menu.delivery.staff",
@@ -237,14 +266,9 @@ class SaleOrder(models.Model):
         if orders_to_confirm:
             result = super(SaleOrder, orders_to_confirm).action_confirm()
 
-        # A confirmed order may be edited and confirmed again. Rebuild only plans
-        # which have not entered production so Kitchen always receives fresh data.
-        plans_to_replace = self.mapped("kitchen_plan_ids").filtered(
-            lambda plan: plan.state in ("draft", "confirmed")
-        )
-        plans_to_replace.unlink()
+        # Xác nhận chỉ chuyển trạng thái, không tạo lệnh sản xuất (kế hoạch
+        # được tạo khi Chuẩn bị hoặc từ màn hình kế hoạch sản xuất).
         self.write({"catering_state": "confirmed"})
-        self._create_kitchen_plans()
         return result
 
     @api.constrains("partner_id", "contract_id")
@@ -287,6 +311,25 @@ class SaleOrder(models.Model):
                 "Đơn hàng HNCK chỉ được cập nhật qua nút Lấy ĐH, "
                 "không được chỉnh sửa trực tiếp trên hệ thống."
             )
+
+    def _hnck_grid_save_allowed(self, fields):
+        """Form save chỉ đổi lưới dòng trên đơn HNCK draft/đã mở giá.
+
+        Từng dòng vẫn bị khóa dòng kiểm tra; thêm/xóa dòng vẫn bị chặn
+        ở create/unlink.
+        """
+        return (
+            fields <= {"order_line"}
+            and bool(self)
+            and all(
+                order.hnck_order
+                and (
+                    order.catering_state == "draft"
+                    or order.hnck_price_editable
+                )
+                for order in self
+            )
+        )
 
     def _ensure_menu_line_accountable_fields(self):
         """Complete hidden Sale fields before Odoo validates accountable lines."""
@@ -366,7 +409,7 @@ class SaleOrder(models.Model):
         self.write({"catering_state": "in_production"})
 
     def _order_product_stock(self):
-        """Tồn kho theo sản phẩm cho các dòng thực phẩm (trừ món ăn, dịch vụ)."""
+        """Tồn kho theo sản phẩm: chỉ dòng tồn kho (trừ món, dịch vụ, tiêu hao)."""
         self.ensure_one()
         company = self.company_id
         totals = {}
@@ -374,7 +417,7 @@ class SaleOrder(models.Model):
             lambda order_line: not order_line.display_type
             and order_line.product_id
             and not order_line.menu_item_id
-            and order_line.product_id.type != "service"
+            and order_line.product_id.type == "product"
         ):
             product = line.product_id
             # Bỏ qua kiểm tra cùng loại đơn vị: khác loại thì dùng nguyên số.
@@ -487,7 +530,7 @@ class SaleOrder(models.Model):
         self.write({"catering_state": "confirmed"})
         self.filtered(lambda order: not order.hnck_order)._return_order_stock()
 
-    def action_cancel_order(self):
+    def _check_cancel_allowed(self):
         invalid = self.filtered(
             lambda order: order.catering_state not in ("draft", "confirmed")
         )
@@ -496,7 +539,23 @@ class SaleOrder(models.Model):
                 "Chỉ có thể huỷ đơn hàng đang ở trạng thái "
                 "Chờ xác nhận hoặc Đã xác nhận."
             )
-        self.write({"catering_state": "cancelled"})
+
+    def action_cancel_order(self):
+        """Nút Huỷ đơn: mở popup xác nhận + nhập lý do bắt buộc."""
+        self._check_cancel_allowed()
+        self.ensure_one()
+        form_view = self.env.ref(
+            "set_top_menu.view_order_cancel_wizard_form"
+        )
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Lý do huỷ đơn"),
+            "res_model": "set_top_menu.order.cancel.wizard",
+            "view_mode": "form",
+            "views": [(form_view.id, "form")],
+            "target": "new",
+            "context": {"default_order_id": self.id},
+        }
 
     def action_dispatch(self):
         invalid = self.filtered(lambda order: order.catering_state != "ready")
@@ -819,13 +878,219 @@ class SaleOrder(models.Model):
                     raise UserError(
                         "Không được thay đổi mã đơn hàng sau khi đã tạo."
                     )
-        if set(vals) - {"catering_state"}:
+        if "currency_id" in vals and not self.env.context.get("hnck_sync"):
+            for order in self:
+                if (
+                    vals["currency_id"] != order.currency_id.id
+                    and order.catering_state != "draft"
+                ):
+                    raise UserError(
+                        "Chỉ được đổi tiền tệ khi đơn hàng còn ở trạng thái "
+                        "Chờ xác nhận."
+                    )
+        remaining = set(vals) - {"catering_state", "hnck_price_editable"}
+        if remaining and not self._hnck_grid_save_allowed(remaining):
             self._check_kitchen_editable()
             self._check_hnck_editable()
+        old_states = (
+            {order.id: order.catering_state for order in self}
+            if "catering_state" in vals
+            else {}
+        )
         result = super().write(vals)
         if "catering_tax_id" in vals:
             self._sync_line_taxes()
+        if old_states:
+            self._log_catering_state_changes(old_states)
         return result
+
+    def _log_catering_state_changes(self, old_states):
+        """Ghi mọi đổi trạng thái phục vụ vào cột hoạt động (ghi chú nội bộ)."""
+        labels = dict(self._fields["catering_state"].selection)
+        reason = (self.env.context.get("cancel_reason") or "").strip()
+        for order in self:
+            old = old_states.get(order.id)
+            new = order.catering_state
+            if old is None or old == new:
+                continue
+            body = "Trạng thái: %s → %s." % (
+                labels.get(old, old),
+                labels.get(new, new),
+            )
+            if new == "cancelled" and reason:
+                body += "<br/>Lý do huỷ đơn: %s." % escape(reason).replace(
+                    "\n", "<br/>"
+                )
+            order.message_post(body=body, subtype_xmlid="mail.mt_note")
+
+    @property
+    def _rec_names_search(self):
+        return super()._rec_names_search + ["catering_reference"]
+
+    def action_update_prices(self):
+        """Cập nhật đơn giá theo giá gốc cho các đơn Chờ xác nhận."""
+        targets = self.filtered(
+            lambda order: not order.hnck_order
+            and order.catering_state == "draft"
+        )
+        if not targets:
+            raise UserError(
+                _(
+                    "Không có đơn Chờ xác nhận nào để cập nhật giá "
+                    "(chỉ cập nhật đơn hệ thống ở trạng thái Chờ xác nhận)."
+                )
+            )
+        targets.mapped("order_line")._compute_catering_price_unit()
+        skipped = len(self) - len(targets)
+        message = _("Đã cập nhật giá cho %s đơn hàng.") % len(targets)
+        if skipped:
+            message += " " + _(
+                "Bỏ qua %s đơn không ở trạng thái Chờ xác nhận."
+            ) % skipped
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Cập nhật giá"),
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_update_hnck_prices(self):
+        """Cập nhật giá mới nhất cho dòng đơn HNCK.
+
+        Đơn Chờ xác nhận: compute lại toàn bộ dòng; các trạng thái khác
+        chỉ compute dòng có đơn giá bằng 1 (placeholder).
+        """
+        self.ensure_one()
+        if not self.hnck_order:
+            raise UserError("Chỉ đơn HNCK mới được cập nhật giá mới.")
+        lines = self.order_line.filtered(lambda line: not line.display_type)
+        if self.catering_state == "draft":
+            targets = lines
+        else:
+            targets = lines.filtered(lambda line: line.price_unit == 1)
+        if not targets:
+            raise UserError(
+                "Không có dòng nào cần cập nhật giá (chỉ cập nhật ở Chờ xác "
+                "nhận hoặc dòng có đơn giá bằng 1)."
+            )
+        targets._compute_catering_price_unit()
+        message = "Đã cập nhật giá mới cho %s dòng." % len(targets)
+        self.message_post(body=message)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": "Cập nhật giá mới",
+                "message": message,
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+    def action_enable_hnck_price_edit(self):
+        """Bật sửa đơn giá lưới chi tiết cho đơn HNCK."""
+        self.ensure_one()
+        if not self.hnck_order:
+            raise UserError("Chỉ đơn HNCK mới được chỉnh sửa giá.")
+        self.write({"hnck_price_editable": True})
+        return True
+
+    def action_bulk_purchase(self):
+        """Mở phiếu mua mới gom hàng mua trực tiếp và NVL món ăn."""
+        orders = self.filtered(lambda order: order.catering_state != "cancelled")
+        if not orders:
+            raise UserError(
+                "Không có đơn hàng nào để mua (chưa chọn đơn hoặc đơn đã huỷ)."
+            )
+        if len(orders.mapped("company_id")) > 1:
+            raise UserError("Vui lòng chỉ chọn các đơn hàng cùng một khách hàng.")
+        company = orders[0].company_id
+        totals = {}
+        contributors = self.env["sale.order"]
+        for order in orders:
+            added = False
+            lines = order.order_line.filtered(
+                lambda line: not line.display_type
+                and line.product_id
+                and line.product_uom_qty > 0
+            )
+            for line in lines:
+                if line.menu_item_id:
+                    added |= self._bulk_purchase_dish(line, company, totals)
+                else:
+                    added |= self._bulk_purchase_direct(line, company, totals)
+            if added:
+                contributors |= order
+        if not totals:
+            raise UserError(
+                "Các đơn hàng đã chọn không có sản phẩm nào cần mua."
+            )
+        commands = [
+            [
+                0,
+                0,
+                {
+                    "product_id": product.id,
+                    "name": product.display_name,
+                    "product_qty": quantity,
+                    "product_uom": (product.uom_po_id or product.uom_id).id,
+                    "price_unit": product.standard_price,
+                    "date_planned": fields.Datetime.now(),
+                },
+            ]
+            for product, quantity in totals.items()
+        ]
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Mua hàng",
+            "res_model": "purchase.order",
+            "view_mode": "form",
+            "target": "current",
+            "context": {
+                "default_company_id": company.id,
+                "default_origin": ", ".join(
+                    contributors.mapped("catering_reference")
+                ),
+                "default_order_line": commands,
+            },
+        }
+
+    @api.model
+    def _bulk_purchase_direct(self, line, company, totals):
+        product = line.product_id.with_company(company)
+        if product.type == "service":
+            return False
+        line_uom = line.product_uom or product.uom_id
+        po_uom = product.uom_po_id or product.uom_id
+        quantity = line_uom._compute_quantity(
+            line.product_uom_qty, po_uom, raise_if_failure=False
+        )
+        totals[product] = totals.get(product, 0.0) + quantity
+        return True
+
+    @api.model
+    def _bulk_purchase_dish(self, line, company, totals):
+        added = False
+        for ingredient in line.menu_item_id.ingredient_ids:
+            product = ingredient.product_id.with_company(company)
+            if not product or product.type == "service":
+                continue
+            required = ingredient.uom_id._compute_quantity(
+                ingredient.quantity * line.product_uom_qty,
+                product.uom_id,
+                raise_if_failure=False,
+            )
+            po_uom = product.uom_po_id or product.uom_id
+            quantity = product.uom_id._compute_quantity(
+                required, po_uom, raise_if_failure=False
+            )
+            totals[product] = totals.get(product, 0.0) + quantity
+            added = True
+        return added
 
 
 class SaleOrderLine(models.Model):
@@ -897,40 +1162,49 @@ class SaleOrderLine(models.Model):
             line.product_uom = line.menu_item_id._order_line_uom()
         super(SaleOrderLine, self - dishes)._compute_product_uom()
 
-    @api.depends("product_id", "product_uom")
+    @api.depends("product_id")
     def _compute_catering_price_unit(self):
-        """Đơn giá dòng đơn: giá hợp đồng > giá món > giá bảng giá.
+        """Đơn giá tuyệt đối, không quy đổi tiền tệ: hợp đồng > món > giá bán.
 
-        Chỉ tính lại khi đổi sản phẩm/ĐVT. Khác loại ĐVT thì dùng nguyên
-        giá bán, không quy đổi để tránh lỗi cùng loại đơn vị.
+        Chỉ tính lại khi đổi sản phẩm. ĐVT dòng đơn là đơn vị bán nên đổi
+        ĐVT không tính lại giá; giá lấy nguyên con số đã nhập, kể cả khi
+        có tỉ giá hay khác loại ĐVT (bỏ qua bảng giá Odoo).
         """
-        for line in self.filtered(
-            lambda record: not record.display_type and record.contract_task_id
-        ):
-            line.price_unit = line.contract_task_id.price_unit
-        for line in self.filtered(
-            lambda record: not record.display_type
-            and not record.contract_task_id
-            and record.menu_item_id
-        ):
-            line.price_unit = line.menu_item_id.sale_price
-        rest = self.filtered(
-            lambda record: not record.contract_task_id and not record.menu_item_id
-        )
-        for line in rest:
+        for line in self:
             if (
-                line.product_id
-                and line.product_uom
-                and line.product_uom.category_id
-                != line.product_id.uom_id.category_id
+                line.qty_invoiced > 0
+                or (
+                    line.product_id.expense_policy == "cost"
+                    and line.is_expense
+                )
+                or line._is_discount_line()
             ):
-                line.price_unit = line.product_id.list_price
+                continue
+            if line.display_type or not line.product_id:
+                line.price_unit = 0.0
+            elif line.contract_task_id:
+                line.price_unit = line.contract_task_id.price_unit
+            elif line.menu_item_id:
+                line.price_unit = line.menu_item_id.sale_price
             else:
-                super(SaleOrderLine, line)._compute_price_unit()
+                line.price_unit = line.product_id.list_price
 
     def _compute_price_unit(self):
         """Alias giữ tương thích các luồng gọi trực tiếp method gốc."""
         return self._compute_catering_price_unit()
+
+    @api.depends("product_id", "order_id.catering_tax_id")
+    def _compute_tax_id(self):
+        """Thuế dòng theo thuế đơn: chưa chọn thuế đơn thì dòng không thuế.
+
+        Ghi đè logic gốc (lấy thuế mặc định của sản phẩm) để hàng Tiền thuế
+        chỉ tính khi trường Thuế của đơn được chọn.
+        """
+        for line in self:
+            if line.display_type:
+                line.tax_id = False
+            else:
+                line.tax_id = line.order_id.catering_tax_id
 
     @api.onchange("product_uom_qty", "contract_task_id")
     def _onchange_contract_quantity_keep_price(self):
@@ -1150,10 +1424,58 @@ class SaleOrderLine(models.Model):
             return
         editable = self.filtered(
             lambda line: line.order_id.hnck_order
-            and line.order_id.catering_state == "draft"
-            and set(vals) <= HNCK_DRAFT_EDITABLE_LINE_FIELDS
+            and (
+                (
+                    line.order_id.catering_state == "draft"
+                    and line._hnck_only_allowed_changed(
+                        vals, HNCK_DRAFT_EDITABLE_LINE_FIELDS
+                    )
+                )
+                or (
+                    line.order_id.hnck_price_editable
+                    and line._hnck_only_allowed_changed(vals, {"price_unit"})
+                )
+            )
         )
         (self - editable).mapped("order_id")._check_hnck_editable()
+
+    def _hnck_only_allowed_changed(self, vals, allowed):
+        """Chỉ các trường cho phép được đổi giá trị.
+
+        Client gửi kèm các trường force_save khi lưu dòng; các trường này
+        phải giữ nguyên giá trị cũ.
+        """
+        self.ensure_one()
+        for fname, new_value in vals.items():
+            if fname in allowed:
+                continue
+            if fname not in HNCK_LINE_COMPANION_FIELDS:
+                return False
+            field = self._fields.get(fname)
+            old_value = self[fname]
+            if field is not None and field.type == "many2one":
+                old_value = old_value.id or False
+                new_value = new_value or False
+            elif field is not None and field.type == "float":
+                old_value = float(old_value or 0.0)
+                new_value = float(new_value or 0.0)
+            elif field is not None and field.type == "integer":
+                old_value = int(old_value or 0)
+                new_value = int(new_value or 0)
+            elif field is not None and field.type == "boolean":
+                old_value = bool(old_value)
+                new_value = bool(new_value)
+            elif field is not None and field.type in (
+                "char",
+                "text",
+                "html",
+                "selection",
+            ):
+                old_value = old_value or ""
+                new_value = new_value or ""
+            if old_value != new_value:
+                return False
+        return True
 
     def write(self, vals):
         self.mapped("order_id")._check_kitchen_editable()
@@ -1201,3 +1523,154 @@ class SaleOrderLine(models.Model):
         self.mapped("order_id")._check_kitchen_editable()
         self.mapped("order_id")._check_hnck_editable()
         return super().unlink()
+
+    # ĐVT bán độc lập ĐVT kho: 3 ghi đè dưới dung sai lệch nhóm ĐVT,
+    # cùng nhóm giữ nguyên hành vi lõi sale_stock 17.0.
+
+    @api.depends(
+        "move_ids.state",
+        "move_ids.scrapped",
+        "move_ids.quantity",
+        "move_ids.product_uom",
+    )
+    def _compute_qty_delivered(self):
+        """Dòng lệch nhóm ĐVT kho quy đổi dung sai, còn lại chạy lõi."""
+        special = self.filtered(
+            lambda line: line.qty_delivered_method == "stock_move"
+            and line.product_uom.category_id
+            != line.product_id.uom_id.category_id
+        )
+        rest = self - special
+        if rest:
+            super(SaleOrderLine, rest)._compute_qty_delivered()
+        for line in special:
+            qty = 0.0
+            outgoing_moves, incoming_moves = (
+                line._get_outgoing_incoming_moves()
+            )
+            for move in outgoing_moves:
+                if move.state != "done":
+                    continue
+                qty += move.product_uom._compute_quantity(
+                    move.quantity,
+                    line.product_uom,
+                    rounding_method="HALF-UP",
+                    raise_if_failure=False,
+                )
+            for move in incoming_moves:
+                if move.state != "done":
+                    continue
+                qty -= move.product_uom._compute_quantity(
+                    move.quantity,
+                    line.product_uom,
+                    rounding_method="HALF-UP",
+                    raise_if_failure=False,
+                )
+            line.qty_delivered = qty
+
+    def _get_qty_procurement(self, previous_product_uom_qty=False):
+        """Quy đổi dung sai khi ĐVT bán lệch nhóm ĐVT kho."""
+        self.ensure_one()
+        qty = 0.0
+        outgoing_moves, incoming_moves = self._get_outgoing_incoming_moves()
+        for move in outgoing_moves:
+            qty_to_compute = (
+                move.quantity if move.state == "done" else move.product_uom_qty
+            )
+            qty += move.product_uom._compute_quantity(
+                qty_to_compute,
+                self.product_uom,
+                rounding_method="HALF-UP",
+                raise_if_failure=False,
+            )
+        for move in incoming_moves:
+            qty_to_compute = (
+                move.quantity if move.state == "done" else move.product_uom_qty
+            )
+            qty -= move.product_uom._compute_quantity(
+                qty_to_compute,
+                self.product_uom,
+                rounding_method="HALF-UP",
+                raise_if_failure=False,
+            )
+        return qty
+
+    def _action_launch_stock_rule(self, previous_product_uom_qty=False):
+        """Lệch nhóm ĐVT: giữ nguyên số, phiếu kho chạy theo ĐVT kho."""
+        if self._context.get("skip_procurement"):
+            return True
+        precision = self.env["decimal.precision"].precision_get(
+            "Product Unit of Measure"
+        )
+        procurements = []
+        for line in self:
+            line = line.with_company(line.company_id)
+            if (
+                line.state != "sale"
+                or line.order_id.locked
+                or not line.product_id.type in ("consu", "product")
+            ):
+                continue
+            qty = line._get_qty_procurement(previous_product_uom_qty)
+            if (
+                float_compare(
+                    qty, line.product_uom_qty, precision_digits=precision
+                )
+                == 0
+            ):
+                continue
+            group_id = line._get_procurement_group()
+            if not group_id:
+                group_id = self.env["procurement.group"].create(
+                    line._prepare_procurement_group_vals()
+                )
+                line.order_id.procurement_group_id = group_id
+            else:
+                updated_vals = {}
+                if group_id.partner_id != line.order_id.partner_shipping_id:
+                    updated_vals.update(
+                        {"partner_id": line.order_id.partner_shipping_id.id}
+                    )
+                if group_id.move_type != line.order_id.picking_policy:
+                    updated_vals.update(
+                        {"move_type": line.order_id.picking_policy}
+                    )
+                if updated_vals:
+                    group_id.write(updated_vals)
+            values = line._prepare_procurement_values(group_id=group_id)
+            product_qty = line.product_uom_qty - qty
+            line_uom = line.product_uom
+            quant_uom = line.product_id.uom_id
+            if line_uom.category_id == quant_uom.category_id:
+                product_qty, procurement_uom = line_uom._adjust_uom_quantities(
+                    product_qty, quant_uom
+                )
+            else:
+                procurement_uom = quant_uom
+            procurements.append(
+                line._create_procurement(product_qty, procurement_uom, values)
+            )
+        if procurements:
+            self.env["procurement.group"].run(procurements)
+        orders = self.mapped("order_id")
+        for order in orders:
+            pickings_to_confirm = order.picking_ids.filtered(
+                lambda p: p.state not in ["cancel", "done"]
+            )
+            if pickings_to_confirm:
+                pickings_to_confirm.action_confirm()
+        return True
+
+    def _create_procurement(self, product_qty, procurement_uom, values):
+        """Chứng từ gốc của phiếu kho lấy mã đơn hàng."""
+        self.ensure_one()
+        return self.env["procurement.group"].Procurement(
+            self.product_id,
+            product_qty,
+            procurement_uom,
+            self.order_id.partner_shipping_id.property_stock_customer,
+            self.product_id.display_name,
+            self.order_id.catering_reference or self.order_id.name,
+            self.order_id.company_id,
+            values,
+        )

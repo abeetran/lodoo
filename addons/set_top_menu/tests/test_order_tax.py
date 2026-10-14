@@ -125,6 +125,47 @@ class TestOrderTax(TransactionCase):
         self.assertEqual(order.order_line.tax_id, tax)
         self.assertEqual(order.amount_tax, 10.0)
 
+    def test_no_order_tax_no_line_tax_despite_product_tax(self):
+        product_tax = self._tax("VAT SP", 5.0)
+        template = self.env["product.template"].create({"name": "SP có thuế"})
+        template.taxes_id = product_tax
+        order = self._order("DH-TAX-006")
+        line = self.env["sale.order.line"].new({"order_id": order.id})
+        line.product_id = template.product_variant_id
+        self.assertFalse(line.tax_id)
+        saved = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": template.product_variant_id.id,
+                "product_uom_qty": 1.0,
+                "price_unit": 100.0,
+            }
+        )
+        self.assertFalse(saved.tax_id)
+        self.assertEqual(order.amount_tax, 0.0)
+        self.assertEqual(order.amount_total, 100.0)
+
+    def test_product_tax_never_overrides_order_tax(self):
+        product_tax = self._tax("VAT SP", 5.0)
+        order_tax = self._tax("VAT đơn", 10.0)
+        template = self.env["product.template"].create({"name": "SP lệch thuế"})
+        template.taxes_id = product_tax
+        order = self._order("DH-TAX-007")
+        order.write({"catering_tax_id": order_tax.id})
+        line = self.env["sale.order.line"].new({"order_id": order.id})
+        line.product_id = template.product_variant_id
+        self.assertEqual(line.tax_id, order_tax)
+        saved = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": template.product_variant_id.id,
+                "product_uom_qty": 1.0,
+                "price_unit": 100.0,
+            }
+        )
+        self.assertEqual(saved.tax_id, order_tax)
+        self.assertEqual(order.amount_tax, 10.0)
+
     def test_menu_lines_get_order_tax(self):
         tax = self._tax()
         dish = self._dish("MON-TAX-001")

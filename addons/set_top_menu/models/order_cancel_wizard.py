@@ -20,14 +20,17 @@ class OrderCancelWizard(models.TransientModel):
         return reason
 
     def action_confirm_cancel(self):
-        """Xác nhận huỷ đơn: bắt buộc lý do, ghi vào hoạt động."""
+        """Xác nhận huỷ đơn: bắt buộc lý do, ghi vào hoạt động.
+
+        Đi qua ``action_cancel`` để trạng thái lõi Odoo cũng về
+        ``cancel`` (lõi chặn xóa đơn còn ở ``sale``), lý do theo
+        context để log hoạt động giữ nguyên.
+        """
         self.ensure_one()
         reason = self._require_reason()
         order = self.order_id
         order._check_cancel_allowed()
-        order.with_context(cancel_reason=reason).write(
-            {"catering_state": "cancelled"}
-        )
+        order.with_context(cancel_reason=reason).action_cancel()
         return {"type": "ir.actions.act_window_close"}
 
     def action_discard_cancel(self):

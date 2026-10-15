@@ -57,6 +57,16 @@ class TestOrderCancel(TransactionCase):
         self.assertIn("Đã xác nhận", bodies)
         self.assertIn("Đã hủy", bodies)
 
+    def test_cancelled_confirmed_order_can_be_deleted(self):
+        order = self._order("DH-CANCEL-008")
+        order.write({"catering_state": "confirmed", "state": "sale"})
+        self._cancel_wizard(order, "Khách huỷ sau xác nhận").action_confirm_cancel()
+        self.assertEqual(order.catering_state, "cancelled")
+        self.assertEqual(order.state, "cancel")
+        self.assertIn("Khách huỷ sau xác nhận", self._bodies(order))
+        order.unlink()
+        self.assertFalse(order.exists())
+
     def test_cancel_requires_reason(self):
         order = self._order("DH-CANCEL-004")
         wizard = self.env["set_top_menu.order.cancel.wizard"].create(

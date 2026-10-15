@@ -476,6 +476,32 @@ class SaleOrder(models.Model):
         todo._apply_order_stock(1)
         todo.write({"stock_deducted": False})
 
+    def _preparation_stock_returnable(self):
+        """Các đơn đã trừ kho lúc Chuẩn bị mà hàng chưa xuất kho.
+
+        Chỉ hoàn tồn khi chưa có dòng kho nào ở trạng thái Hoàn tất
+        (cả phiếu tự sinh lẫn phiếu chọn tay), tránh cộng kho cho hàng
+        đã giao đi thật.
+        """
+        done_manual_ids = set(
+            self.env["stock.picking"]
+            .search(
+                [
+                    ("sale_order_id", "in", self.ids),
+                    ("move_ids.state", "=", "done"),
+                ]
+            )
+            .mapped("sale_order_id")
+            .ids
+        )
+        return self.filtered(
+            lambda order: order.stock_deducted
+            and order.id not in done_manual_ids
+            and not order.picking_ids.mapped("move_ids").filtered(
+                lambda move: move.state == "done"
+            )
+        )
+
     def _open_shortage_wizard(self):
         self.ensure_one()
         lines = [
@@ -578,7 +604,19 @@ class SaleOrder(models.Model):
     def action_cancel(self):
         result = super().action_cancel()
         self.write({"catering_state": "cancelled"})
+        self._preparation_stock_returnable()._return_order_stock()
         return result
+
+    def unlink(self):
+        # Hoàn tồn trước khi xóa vì sau khi xóa không thể ghi cờ nữa.
+        # Nếu xóa thất bại thì trừ lại để giữ nguyên trạng thái kho.
+        returned = self._preparation_stock_returnable()
+        returned._return_order_stock()
+        try:
+            return super().unlink()
+        except Exception:
+            returned._deduct_order_stock()
+            raise
 
     def action_draft(self):
         result = super().action_draft()

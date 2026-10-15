@@ -24,6 +24,16 @@
             <xpath expr="//header/button[@name='action_cancel']" position="attributes">
                 <attribute name="invisible">state not in ('assigned', 'confirmed', 'draft', 'waiting', 'delivering')</attribute>
             </xpath>
+            <xpath expr="//field[@name='origin']" position="attributes">
+                <attribute name="readonly">sale_order_id</attribute>
+            </xpath>
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="sale_order_id"
+                       domain="[('catering_state', '=', 'in_production'), '|', ('partner_id', '=', partner_id), ('partner_shipping_id', '=', partner_id)]"
+                       invisible="picking_type_code not in ('outgoing', 'internal')"
+                       readonly="state in ('done', 'cancel')"
+                       options="{'no_create': True}"/>
+            </xpath>
         </field>
     </record>
 

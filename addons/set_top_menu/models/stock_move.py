@@ -1,8 +1,12 @@
-from odoo import models
+from odoo import fields, models
 
 
 class StockMove(models.Model):
     _inherit = "stock.move"
+
+    catering_generated = fields.Boolean(
+        string="Dòng tự sinh từ đơn hàng", default=False, copy=False
+    )
 
     def _replenish_managed_food(self):
         for move in self:

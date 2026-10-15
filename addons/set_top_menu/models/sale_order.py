@@ -961,8 +961,9 @@ class SaleOrder(models.Model):
     def action_update_hnck_prices(self):
         """Cập nhật giá mới nhất cho dòng đơn HNCK.
 
-        Đơn Chờ xác nhận: compute lại toàn bộ dòng; các trạng thái khác
-        chỉ compute dòng có đơn giá bằng 1 (placeholder).
+        Đơn Chờ xác nhận: compute lại toàn bộ dòng (bỏ qua điều kiện
+        đơn giá bằng 1). Các trạng thái khác: chỉ compute dòng có đơn
+        giá bằng 1 (placeholder).
         """
         self.ensure_one()
         if not self.hnck_order:
@@ -973,11 +974,14 @@ class SaleOrder(models.Model):
         else:
             targets = lines.filtered(lambda line: line.price_unit == 1)
         if not targets:
+            if self.catering_state == "draft":
+                raise UserError(
+                    "Đơn hàng chưa có dòng nào để cập nhật giá mới."
+                )
             raise UserError(
-                "Không có dòng nào cần cập nhật giá (chỉ cập nhật ở Chờ xác "
-                "nhận hoặc dòng có đơn giá bằng 1)."
+                "Không có dòng nào có đơn giá bằng 1 để cập nhật giá mới."
             )
-        targets._compute_catering_price_unit()
+        targets.with_context(hnck_sync=True)._compute_catering_price_unit()
         message = "Đã cập nhật giá mới cho %s dòng." % len(targets)
         self.message_post(body=message)
         return {
@@ -992,10 +996,26 @@ class SaleOrder(models.Model):
         }
 
     def action_enable_hnck_price_edit(self):
-        """Bật sửa đơn giá lưới chi tiết cho đơn HNCK."""
+        """Bật sửa đơn giá lưới chi tiết cho đơn HNCK.
+
+        Điều kiện: lưới chi tiết đang có ít nhất một dòng có đơn giá
+        bằng 1. Sau khi bật, cho phép sửa đơn giá của tất cả sản phẩm
+        trên lưới. Nút không ẩn sau khi nhấn nên gọi lại là idempotent.
+        """
         self.ensure_one()
         if not self.hnck_order:
             raise UserError("Chỉ đơn HNCK mới được chỉnh sửa giá.")
+        if self.hnck_price_editable:
+            return True
+        has_placeholder = any(
+            not line.display_type and line.price_unit == 1
+            for line in self.order_line
+        )
+        if not has_placeholder:
+            raise UserError(
+                "Chỉ được chỉnh sửa giá khi lưới chi tiết đang có "
+                "đơn giá bằng 1."
+            )
         self.write({"hnck_price_editable": True})
         return True
 

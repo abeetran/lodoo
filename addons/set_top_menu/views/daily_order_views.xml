@@ -46,7 +46,7 @@
                         <button name="action_enable_hnck_price_edit" type="object"
                                 string="Chỉnh sửa giá" icon="fa-pencil"
                                 class="oe_stat_button"
-                                invisible="not hnck_order or hnck_price_editable"/>
+                                invisible="not hnck_order"/>
                     </div>
                     <div class="oe_title">
                         <label for="catering_reference" string="Mã đơn hàng"/>

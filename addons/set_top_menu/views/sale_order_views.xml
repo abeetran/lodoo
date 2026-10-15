@@ -64,7 +64,7 @@
                 <button name="action_enable_hnck_price_edit" type="object"
                         string="Chỉnh sửa giá" icon="fa-pencil"
                         class="oe_stat_button"
-                        invisible="not hnck_order or hnck_price_editable"/>
+                        invisible="not hnck_order"/>
             </xpath>
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="catering_reference" readonly="id"/>

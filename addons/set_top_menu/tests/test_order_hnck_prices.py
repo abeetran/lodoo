@@ -76,6 +76,28 @@ class TestOrderHnckPrices(TransactionCase):
         self.assertEqual(result["params"]["type"], "success")
         self.assertEqual(len(order.message_ids), before + 1)
 
+    def test_refresh_draft_without_lines_errors(self):
+        order = self._hnck_order("DH-HNCK-001b")
+        with self.assertRaises(UserError):
+            order.action_update_hnck_prices()
+
+    def test_refresh_delivered_updates_price_one_lines(self):
+        food = self._product("Thực phẩm HNCK 1c", 100.0)
+        order = self._order("DH-HNCK-001c")
+        food_line = self.env["sale.order.line"].create(
+            {
+                "order_id": order.id,
+                "product_id": food.id,
+                "product_uom_qty": 2.0,
+            }
+        )
+        food_line.price_unit = 1.0
+        order.write({"hnck_order": True, "catering_state": "delivered"})
+        food.product_tmpl_id.list_price = 150.0
+        result = order.action_update_hnck_prices()
+        self.assertEqual(food_line.price_unit, 150.0)
+        self.assertEqual(result["params"]["type"], "success")
+
     def test_refresh_non_draft_only_price_one_lines(self):
         food = self._product("Thực phẩm HNCK 2", 100.0)
         dish = self._dish("MON-HNCK-002", 50.0)
@@ -140,6 +162,7 @@ class TestOrderHnckPrices(TransactionCase):
         with self.assertRaises(UserError):
             line.write({"price_unit": 120.0})
         self.assertFalse(order.hnck_price_editable)
+        line.with_context(hnck_sync=True).write({"price_unit": 1.0})
         order.action_enable_hnck_price_edit()
         self.assertTrue(order.hnck_price_editable)
         line.write({"price_unit": 120.0})
@@ -150,6 +173,39 @@ class TestOrderHnckPrices(TransactionCase):
             line.write({"catering_note": "ghi chú"})
         with self.assertRaises(UserError):
             order.write({"note": "ghi chú đơn"})
+
+    def test_unlock_requires_placeholder_price(self):
+        food = self._product("Thực phẩm HNCK 4b", 100.0)
+        order = self._hnck_order("DH-HNCK-004b", state="confirmed")
+        self.env["sale.order.line"].with_context(hnck_sync=True).create(
+            {
+                "order_id": order.id,
+                "product_id": food.id,
+                "product_uom_qty": 2.0,
+            }
+        )
+        with self.assertRaises(UserError):
+            order.action_enable_hnck_price_edit()
+        self.assertFalse(order.hnck_price_editable)
+
+    def test_unlock_is_idempotent_after_edit(self):
+        food = self._product("Thực phẩm HNCK 4c", 100.0)
+        order = self._hnck_order("DH-HNCK-004c", state="confirmed")
+        line = self.env["sale.order.line"].with_context(
+            hnck_sync=True
+        ).create(
+            {
+                "order_id": order.id,
+                "product_id": food.id,
+                "product_uom_qty": 2.0,
+            }
+        )
+        line.with_context(hnck_sync=True).write({"price_unit": 1.0})
+        order.action_enable_hnck_price_edit()
+        line.write({"price_unit": 120.0})
+        self.assertEqual(line.price_unit, 120.0)
+        self.assertTrue(order.action_enable_hnck_price_edit())
+        self.assertTrue(order.hnck_price_editable)
 
     def test_unlock_keeps_draft_note_editable(self):
         food = self._product("Thực phẩm HNCK 5", 100.0)
@@ -163,6 +219,7 @@ class TestOrderHnckPrices(TransactionCase):
                 "product_uom_qty": 2.0,
             }
         )
+        line.with_context(hnck_sync=True).write({"price_unit": 1.0})
         order.action_enable_hnck_price_edit()
         line.write({"catering_note": "ghi chú draft"})
         self.assertEqual(line.catering_note, "ghi chú draft")
@@ -179,6 +236,7 @@ class TestOrderHnckPrices(TransactionCase):
                 "product_uom_qty": 2.0,
             }
         )
+        line.with_context(hnck_sync=True).write({"price_unit": 1.0})
         order.action_enable_hnck_price_edit()
         return order, line
 
@@ -300,7 +358,7 @@ class TestOrderHnckPrices(TransactionCase):
             (update, True, False, True),
             (update, False, False, False),
             (edit, True, False, True),
-            (edit, True, True, False),
+            (edit, True, True, True),
             (edit, False, False, False),
         ):
             visible = not eval(
@@ -401,6 +459,4 @@ class TestOrderHnckPrices(TransactionCase):
                 )
             )
         self.assertEqual(update.get("invisible"), "not hnck_order")
-        self.assertEqual(
-            edit.get("invisible"), "not hnck_order or hnck_price_editable"
-        )
+        self.assertEqual(edit.get("invisible"), "not hnck_order")

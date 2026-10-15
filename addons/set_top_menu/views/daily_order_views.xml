@@ -20,6 +20,9 @@
                             invisible="hnck_order or catering_state != 'in_production'"/>
                     <button name="action_cancel_order" type="object" string="Huỷ đơn"
                             invisible="not id or hnck_order or catering_state not in ('draft', 'confirmed')"/>
+                    <button name="action_mark_returned" type="object" string="Trả hàng"
+                            confirm="Đánh dấu đơn hàng này đã bị trả lại?"
+                            invisible="hnck_order or catering_state != 'delivered'"/>
                     <button string="Hủy bỏ" special="cancel"
                             invisible="state not in ('draft', 'sent')"/>
                     <button name="action_open_traceability_qr" type="object"
@@ -189,7 +192,7 @@
                        decoration-success="catering_state == 'delivered'"
                        decoration-info="catering_state in ('confirmed', 'ready')"
                        decoration-warning="catering_state in ('in_production', 'dispatched')"
-                       decoration-muted="catering_state in ('draft', 'cancelled')"/>
+                       decoration-muted="catering_state in ('draft', 'cancelled', 'returned')"/>
             </tree>
         </field>
     </record>

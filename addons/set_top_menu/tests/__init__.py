@@ -35,3 +35,7 @@ from . import test_stock_receipt_replenish
 from . import test_order_bulk_purchase
 from . import test_order_update_prices
 from . import test_order_hnck_prices
+from . import test_order_return
+from . import test_dashboard_amounts
+from . import test_dashboard_tiles
+from . import test_dashboard_statistics

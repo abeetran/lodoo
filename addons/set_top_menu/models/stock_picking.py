@@ -15,6 +15,13 @@ class StockPicking(models.Model):
         help="Chọn một đơn hàng Đang chuẩn bị theo Liên hệ để sinh "
         "dòng giao, ghi Chứng từ gốc và cập nhật trạng thái khi giao hàng.",
     )
+    catering_sale_amount = fields.Float(
+        string="Tổng tiền đơn liên kết (VND)",
+        compute="_compute_catering_sale_amount",
+        store=True,
+        help="Tổng tiền VND của các đơn liên kết phiếu (mỗi đơn tính "
+        "một lần) để cộng dồn lên ô dashboard.",
+    )
     state = fields.Selection(
         selection_add=[("delivering", "Đang giao hàng")],
         ondelete={"delivering": "set assigned"},
@@ -56,6 +63,19 @@ class StockPicking(models.Model):
         for picking in self:
             picking.origin = (
                 picking.sale_order_id.catering_reference or False
+            )
+
+    @api.depends(
+        "sale_id.catering_amount_vnd",
+        "sale_order_id.catering_amount_vnd",
+    )
+    def _compute_catering_sale_amount(self):
+        for picking in self:
+            picking.catering_sale_amount = sum(
+                (picking.sale_id | picking.sale_order_id).mapped(
+                    "catering_amount_vnd"
+                ),
+                0.0,
             )
 
     def _sync_sale_order_moves(self):
@@ -251,7 +271,8 @@ class StockPicking(models.Model):
             to_deliver.mapped("sale_id")
             | to_deliver.mapped("sale_order_id")
         ).filtered(
-            lambda order: order.catering_state not in ("cancelled", "delivered")
+            lambda order: order.catering_state
+            not in ("cancelled", "delivered", "returned")
         ).write({"catering_state": "dispatched"})
         for picking in was_delivering.filtered(
             lambda item: item.state == "done"
@@ -259,6 +280,7 @@ class StockPicking(models.Model):
             (
                 picking.sale_id | picking.sale_order_id
             ).filtered(
-                lambda order: order.catering_state != "cancelled"
+                lambda order: order.catering_state
+                not in ("cancelled", "returned")
             ).write({"catering_state": "delivered"})
         return result

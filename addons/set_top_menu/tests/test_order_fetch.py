@@ -359,6 +359,7 @@ class TestOrderFetch(TransactionCase):
             ("DA_GIAO", "delivered"),
             ("GIAO_HANG_THANH_CONG", "delivered"),
             ("HUY", "cancelled"),
+            ("TRA_HANG", "returned"),
         ]
         payloads = [
             _order_payload(code="DH-MAP-%02d" % index, status=status)
@@ -379,7 +380,7 @@ class TestOrderFetch(TransactionCase):
             )
             self.assertEqual(order.catering_state, expected)
 
-    def test_fetch_tra_hang_and_unknown_leave_state(self):
+    def test_fetch_tra_hang_maps_returned(self):
         self._school()
         client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
         with patch(client_path) as mock_client:
@@ -387,21 +388,15 @@ class TestOrderFetch(TransactionCase):
                 "success": True,
                 "data": [
                     _order_payload(code="DH-TRA-001", status="TRA_HANG"),
-                    _order_payload(code="DH-UNK-001", status="XYZ"),
-                    _order_payload(code="DH-NOSTATUS-001"),
                 ],
-                "pagination": {"total": 3},
+                "pagination": {"total": 1},
             }
             self.env["sale.order"].fetch_supplier_orders()
-        for code in ("DH-TRA-001", "DH-UNK-001", "DH-NOSTATUS-001"):
-            order = self.env["sale.order"].search(
-                [("catering_reference", "=", code)], limit=1
-            )
-            self.assertEqual(order.catering_state, "draft")
-        kept = self.env["sale.order"].search(
+        order = self.env["sale.order"].search(
             [("catering_reference", "=", "DH-TRA-001")], limit=1
         )
-        kept.write({"catering_state": "confirmed"})
+        self.assertEqual(order.catering_state, "returned")
+        order.write({"catering_state": "delivered"})
         with patch(client_path) as mock_client:
             mock_client.return_value.fetch_supplier_orders.return_value = {
                 "success": True,
@@ -409,7 +404,26 @@ class TestOrderFetch(TransactionCase):
                 "pagination": {"total": 1},
             }
             self.env["sale.order"].fetch_supplier_orders()
-        self.assertEqual(kept.catering_state, "confirmed")
+        self.assertEqual(order.catering_state, "returned")
+
+    def test_fetch_unknown_status_leaves_state(self):
+        self._school()
+        client_path = "odoo.addons.set_top_menu.models.sale_order.HnckClient"
+        with patch(client_path) as mock_client:
+            mock_client.return_value.fetch_supplier_orders.return_value = {
+                "success": True,
+                "data": [
+                    _order_payload(code="DH-UNK-001", status="XYZ"),
+                    _order_payload(code="DH-NOSTATUS-001"),
+                ],
+                "pagination": {"total": 2},
+            }
+            self.env["sale.order"].fetch_supplier_orders()
+        for code in ("DH-UNK-001", "DH-NOSTATUS-001"):
+            order = self.env["sale.order"].search(
+                [("catering_reference", "=", code)], limit=1
+            )
+            self.assertEqual(order.catering_state, "draft")
 
     def test_wizard_confirm_passes_params(self):
         self._food("TP-THIT-001")

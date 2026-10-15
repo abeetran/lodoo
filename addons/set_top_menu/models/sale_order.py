@@ -1,3 +1,5 @@
+from calendar import monthrange
+from datetime import date, datetime, time
 from urllib.parse import quote
 
 from markupsafe import escape
@@ -41,8 +43,7 @@ HNCK_DELIVERING_STATUSES = frozenset(
     {"DANG_GIAO", "DA_GIAO", "GIAO_HANG_THANH_CONG"}
 )
 
-# Map trạng thái đơn HNCK -> catering_state nội bộ (TRA_HANG cố ý
-# vắng mặt: giữ nguyên trạng thái hiện tại).
+# Map trạng thái đơn HNCK -> catering_state nội bộ.
 HNCK_ORDER_STATE_MAP = {
     "CHO_XAC_NHAN": "draft",
     "TU_CHOI": "cancelled",
@@ -51,6 +52,7 @@ HNCK_ORDER_STATE_MAP = {
     "DA_GIAO": "delivered",
     "GIAO_HANG_THANH_CONG": "delivered",
     "HUY": "cancelled",
+    "TRA_HANG": "returned",
 }
 
 
@@ -70,6 +72,7 @@ class SaleOrder(models.Model):
             ("dispatched", "Đã xuất giao"),
             ("delivered", "Đã giao"),
             ("cancelled", "Đã hủy"),
+            ("returned", "Trả hàng"),
         ],
         string="Trạng thái phục vụ",
         default="draft",
@@ -129,6 +132,13 @@ class SaleOrder(models.Model):
         copy=False,
     )
     kitchen_plan_count = fields.Integer(compute="_compute_kitchen_plan_count")
+    catering_amount_vnd = fields.Float(
+        string="Tổng tiền (VND)",
+        compute="_compute_catering_amount_vnd",
+        store=True,
+        help="Tổng tiền đơn quy đổi về VND theo tỉ giá ngày đặt "
+        "để cộng dồn lên ô dashboard.",
+    )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -153,6 +163,17 @@ class SaleOrder(models.Model):
     def _compute_kitchen_plan_count(self):
         for order in self:
             order.kitchen_plan_count = len(order.kitchen_plan_ids)
+
+    @api.depends("amount_total", "currency_id", "company_id", "date_order")
+    def _compute_catering_amount_vnd(self):
+        vnd = self.env.ref("base.VND")
+        for order in self:
+            order.catering_amount_vnd = order.currency_id._convert(
+                order.amount_total,
+                vnd,
+                order.company_id,
+                order.date_order or fields.Date.today(),
+            )
 
     @api.onchange("partner_id")
     def _onchange_partner_delivery_address(self):
@@ -594,6 +615,391 @@ class SaleOrder(models.Model):
         if invalid:
             raise UserError("Chỉ có thể hoàn tất giao hàng sau khi đã xuất giao.")
         self.write({"catering_state": "delivered"})
+
+    def action_mark_returned(self):
+        invalid = self.filtered(lambda order: order.catering_state != "delivered")
+        if invalid:
+            raise UserError(
+                "Chỉ có thể đánh dấu trả hàng cho đơn đang ở trạng thái Đã giao."
+            )
+        self.write({"catering_state": "returned"})
+
+    @api.model
+    def get_catering_dashboard_tiles(
+        self,
+        date_from=False,
+        date_to=False,
+        product_id=False,
+        partner_id=False,
+        team_id=False,
+        user_id=False,
+        source=False,
+    ):
+        """Số liệu 4 ô dashboard bán hàng trong kỳ (mặc định tháng này).
+
+        Các điều kiện lọc đều tùy chọn: sản phẩm (đơn/phiếu chứa sản
+        phẩm), khách hàng, đội ngũ và nhân viên kinh doanh của đơn (phiếu
+        tính theo đơn liên kết), nguồn HNCK/nội bộ.
+        """
+        company = self.env.company
+        start_day, end_day, start, end = self._dashboard_period(
+            date_from, date_to
+        )
+        product_id = self._parse_dashboard_id(product_id)
+        partner_id = self._parse_dashboard_id(partner_id)
+        team_id = self._parse_dashboard_id(team_id)
+        user_id = self._parse_dashboard_id(user_id)
+        hnck = self._parse_dashboard_source(source)
+        order_domain = self._dashboard_order_domain(
+            company,
+            start,
+            end,
+            product_id,
+            partner_id,
+            team_id,
+            user_id,
+            hnck,
+        )
+        picking_domain = [
+            ("company_id", "=", company.id),
+            ("state", "=", "delivering"),
+            ("scheduled_date", ">=", start),
+            ("scheduled_date", "<=", end),
+        ]
+        if product_id:
+            picking_domain.append(("move_ids.product_id", "=", product_id))
+        if partner_id:
+            picking_domain += [
+                "|",
+                ("partner_id", "=", partner_id),
+                "|",
+                ("sale_id.partner_id", "=", partner_id),
+                ("sale_order_id.partner_id", "=", partner_id),
+            ]
+        if team_id:
+            picking_domain += [
+                "|",
+                ("sale_id.team_id", "=", team_id),
+                ("sale_order_id.team_id", "=", team_id),
+            ]
+        if user_id:
+            picking_domain += [
+                "|",
+                ("sale_id.user_id", "=", user_id),
+                ("sale_order_id.user_id", "=", user_id),
+            ]
+        if hnck is not None:
+            picking_domain += [
+                "|",
+                ("sale_id.hnck_order", "=", hnck),
+                ("sale_order_id.hnck_order", "=", hnck),
+            ]
+        delivered_orders = self.search(
+            order_domain + [("catering_state", "=", "delivered")]
+        )
+        delivering_pickings = self.env["stock.picking"].search(
+            picking_domain
+        )
+        vnd = self.env.ref("base.VND")
+        return {
+            "date_from": fields.Date.to_string(start_day),
+            "date_to": fields.Date.to_string(end_day),
+            "currency_symbol": vnd.symbol,
+            "currency_position": vnd.position,
+            "cancelled_count": self.search_count(
+                order_domain + [("catering_state", "=", "cancelled")]
+            ),
+            "returned_count": self.search_count(
+                order_domain + [("catering_state", "=", "returned")]
+            ),
+            "delivering_count": len(delivering_pickings),
+            "delivering_amount": sum(
+                delivering_pickings.mapped("catering_sale_amount"), 0.0
+            ),
+            "delivered_count": len(delivered_orders),
+            "delivered_amount": sum(
+                delivered_orders.mapped("catering_amount_vnd"), 0.0
+            ),
+        }
+
+    @api.model
+    def get_catering_dashboard_sales_chart(
+        self,
+        date_from=False,
+        date_to=False,
+        product_id=False,
+        partner_id=False,
+        team_id=False,
+        user_id=False,
+        source=False,
+    ):
+        """Doanh số theo tháng: tổng tiền VND đơn đã giao mỗi tháng.
+
+        Biểu đồ luôn hiển thị đủ 12 tháng của năm hiện tại (không theo
+        kỳ ngày chọn) nhưng vẫn áp dụng các bộ lọc còn lại.
+        """
+        company = self.env.company
+        year = fields.Date.context_today(self).year
+        start_day, end_day = date(year, 1, 1), date(year, 12, 31)
+        start = fields.Datetime.to_string(datetime.combine(start_day, time.min))
+        end = fields.Datetime.to_string(datetime.combine(end_day, time.max))
+        base_domain = self._dashboard_order_domain(
+            company,
+            start,
+            end,
+            self._parse_dashboard_id(product_id),
+            self._parse_dashboard_id(partner_id),
+            self._parse_dashboard_id(team_id),
+            self._parse_dashboard_id(user_id),
+            self._parse_dashboard_source(source),
+        )
+        months = []
+        cursor = date(start_day.year, start_day.month, 1)
+        last = date(end_day.year, end_day.month, 1)
+        while cursor <= last:
+            month_days = monthrange(cursor.year, cursor.month)[1]
+            first = max(date(cursor.year, cursor.month, 1), start_day)
+            final = min(
+                date(cursor.year, cursor.month, month_days), end_day
+            )
+            month_start = fields.Datetime.to_string(
+                datetime.combine(first, time.min)
+            )
+            month_end = fields.Datetime.to_string(
+                datetime.combine(final, time.max)
+            )
+            delivered = self.search(
+                base_domain
+                + [
+                    ("catering_state", "=", "delivered"),
+                    ("date_order", ">=", month_start),
+                    ("date_order", "<=", month_end),
+                ]
+            )
+            months.append(
+                {
+                    "key": "%d-%02d" % (cursor.year, cursor.month),
+                    "label": "%02d/%d" % (cursor.month, cursor.year),
+                    "total": sum(
+                        delivered.mapped("catering_amount_vnd"), 0.0
+                    ),
+                }
+            )
+            if cursor.month == 12:
+                cursor = date(cursor.year + 1, 1, 1)
+            else:
+                cursor = date(cursor.year, cursor.month + 1, 1)
+        return {"months": months}
+
+    @api.model
+    def get_catering_dashboard_statistics(self):
+        """Khung Thống kê năm hiện tại: doanh thu/mua hàng/lợi nhuận.
+
+        Độc lập với bộ lọc dashboard: doanh thu là tổng VND các đơn Đã
+        giao trong năm; mua hàng là tổng VND các đơn mua (trừ Nháp/Hủy)
+        trong năm; lợi nhuận = doanh thu - mua hàng, kèm chi tiết tháng.
+        """
+        company = self.env.company
+        vnd = self.env.ref("base.VND")
+        year = fields.Date.context_today(self).year
+        start = fields.Datetime.to_string(datetime(year, 1, 1))
+        end = fields.Datetime.to_string(
+            datetime(year, 12, 31, 23, 59, 59)
+        )
+        delivered = self.search(
+            [
+                ("company_id", "=", company.id),
+                ("catering_state", "=", "delivered"),
+                ("date_order", ">=", start),
+                ("date_order", "<=", end),
+            ]
+        )
+        purchases = self.env["purchase.order"].search(
+            [
+                ("company_id", "=", company.id),
+                ("state", "in", ("purchase", "done")),
+                ("date_order", ">=", start),
+                ("date_order", "<=", end),
+            ]
+        )
+
+        def _to_vnd(amount, currency, moment):
+            return currency._convert(
+                amount, vnd, company, moment or fields.Date.today()
+            )
+
+        revenue_total = sum(
+            delivered.mapped("catering_amount_vnd"), 0.0
+        )
+        purchase_total = sum(
+            (
+                _to_vnd(
+                    order.amount_total, order.currency_id, order.date_order
+                )
+                for order in purchases
+            ),
+            0.0,
+        )
+        months = []
+        for month in range(1, 13):
+            revenue = sum(
+                delivered.filtered(
+                    lambda order: order.date_order.month == month
+                ).mapped("catering_amount_vnd"),
+                0.0,
+            )
+            purchase = sum(
+                (
+                    _to_vnd(
+                        order.amount_total,
+                        order.currency_id,
+                        order.date_order,
+                    )
+                    for order in purchases.filtered(
+                        lambda order: order.date_order.month == month
+                    )
+                ),
+                0.0,
+            )
+            months.append(
+                {
+                    "key": "%d-%02d" % (year, month),
+                    "label": "%02d/%d" % (month, year),
+                    "revenue": revenue,
+                    "purchase": purchase,
+                    "profit": revenue - purchase,
+                }
+            )
+        return {
+            "year": year,
+            "revenue": revenue_total,
+            "purchase": purchase_total,
+            "profit": revenue_total - purchase_total,
+            "months": months,
+        }
+
+    @api.model
+    def _dashboard_period(self, date_from, date_to):
+        """Kỳ dashboard: ngày đầu/cuối và mốc datetime đầu/cuối kỳ."""
+        today = fields.Date.context_today(self)
+        start_day = self._parse_dashboard_day(date_from) or today.replace(day=1)
+        end_day = self._parse_dashboard_day(date_to) or today
+        if start_day > end_day:
+            start_day, end_day = end_day, start_day
+        return (
+            start_day,
+            end_day,
+            fields.Datetime.to_string(datetime.combine(start_day, time.min)),
+            fields.Datetime.to_string(datetime.combine(end_day, time.max)),
+        )
+
+    @api.model
+    def _dashboard_order_domain(
+        self,
+        company,
+        start,
+        end,
+        product_id,
+        partner_id,
+        team_id,
+        user_id,
+        hnck,
+    ):
+        """Domain đơn hàng theo kỳ và bộ lọc (chưa gồm trạng thái)."""
+        domain = [
+            ("company_id", "=", company.id),
+            ("date_order", ">=", start),
+            ("date_order", "<=", end),
+        ]
+        if product_id:
+            domain.append(("order_line.product_id", "=", product_id))
+        if partner_id:
+            domain.append(("partner_id", "=", partner_id))
+        if team_id:
+            domain.append(("team_id", "=", team_id))
+        if user_id:
+            domain.append(("user_id", "=", user_id))
+        if hnck is not None:
+            domain.append(("hnck_order", "=", hnck))
+        return domain
+
+    @staticmethod
+    def _parse_dashboard_day(value):
+        """Ngày hợp lệ hoặc False khi trống/sai định dạng."""
+        if not value:
+            return False
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, date):
+            return value
+        try:
+            return fields.Date.from_string(value)
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
+    def _parse_dashboard_id(value):
+        """Id bản ghi hợp lệ hoặc False khi trống/sai định dạng."""
+        try:
+            parsed = int(value)
+        except (TypeError, ValueError):
+            return False
+        return parsed or False
+
+    @staticmethod
+    def _parse_dashboard_source(value):
+        """Nguồn đơn: True (HNCK), False (nội bộ) hoặc None (tất cả)."""
+        if isinstance(value, str):
+            value = value.strip().lower()
+        if value is True or value == "hnck":
+            return True
+        if value == "internal":
+            return False
+        return None
+
+    @api.model
+    def get_catering_dashboard_filters(self):
+        """Danh sách chọn cho bộ lọc dashboard: SP, khách, team, NV."""
+        products = self.env["product.product"].search(
+            [("sale_ok", "=", True), ("type", "in", ("product", "consu"))],
+            order="name",
+        )
+        partners = self.env["res.partner"].search(
+            [("customer_rank", ">", 0)], order="name"
+        )
+        teams = self.env["crm.team"].search([], order="name")
+        users = self.env["res.users"].search(
+            [("share", "=", False), ("active", "=", True)], order="name"
+        )
+        return {
+            "products": [
+                {
+                    "id": product.id,
+                    "label": "%s%s (#%d)"
+                    % (
+                        product.display_name,
+                        " [%s]" % product.default_code
+                        if product.default_code
+                        else "",
+                        product.id,
+                    ),
+                }
+                for product in products
+            ],
+            "partners": [
+                {
+                    "id": partner.id,
+                    "label": "%s (#%d)" % (partner.display_name, partner.id),
+                }
+                for partner in partners
+            ],
+            "teams": [
+                {"id": team.id, "label": team.name} for team in teams
+            ],
+            "users": [
+                {"id": user.id, "label": user.name} for user in users
+            ],
+        }
 
     def action_view_kitchen_plans(self):
         self.ensure_one()

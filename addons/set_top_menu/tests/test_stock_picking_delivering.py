@@ -563,6 +563,45 @@ class TestStockPickingDelivering(TransactionCase):
             "chưa có dòng chi tiết", result["warning"]["message"]
         )
 
+    def test_delivering_flow_skips_returned_orders(self):
+        product = self._storable("SP bỏ qua trả", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách RET-010", "is_company": True}
+        )
+        order = self._catering_order("DH-RET-010", partner)
+        self._order_line(order, product, 4.0)
+        order.write({"catering_state": "delivered"})
+        order.action_mark_returned()
+        picking = self._empty_outgoing()
+        picking.write(
+            {"partner_id": partner.id, "sale_order_id": order.id}
+        )
+        picking.action_confirm()
+        picking.action_assign()
+        self.assertEqual(picking.state, "assigned")
+        picking.button_validate()
+        self.assertEqual(picking.state, "delivering")
+        self.assertEqual(order.catering_state, "returned")
+
+    def test_completed_delivery_skips_returned_orders(self):
+        product = self._storable("SP xong vẫn trả", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách RET-011", "is_company": True}
+        )
+        order = self._catering_order("DH-RET-011", partner, state="draft")
+        self._order_line(order, product, 4.0)
+        order.action_confirm()
+        auto = order.picking_ids
+        auto.user_id = self.env.ref("base.user_admin").id
+        auto.action_assign()
+        auto.button_validate()
+        self.assertEqual(order.catering_state, "dispatched")
+        order.write({"catering_state": "returned"})
+        auto.move_ids.quantity = 4.0
+        auto.button_validate()
+        self.assertEqual(auto.state, "done")
+        self.assertEqual(order.catering_state, "returned")
+
     def test_combined_form_buttons(self):
         view = self.env.ref("stock.view_picking_form")
         arch = self.env["stock.picking"].fields_view_get(

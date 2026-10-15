@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="set_top_menu.CateringDashboard">
+        <div class="o_catering_dashboard">
+            <div class="o_catering_dashboard_filter">
+                <label class="o_catering_dashboard_date">
+                    Từ ngày
+                    <input type="date" class="form-control" t-model="state.dateFrom"/>
+                </label>
+                <label class="o_catering_dashboard_date">
+                    Đến ngày
+                    <input type="date" class="form-control" t-model="state.dateTo"/>
+                </label>
+                <label class="o_catering_dashboard_field">
+                    Sản phẩm
+                    <input type="text" class="form-control" t-model="state.productInput"
+                           list="catering_dashboard_products" placeholder="Gõ để tìm sản phẩm"
+                           autocomplete="off"/>
+                    <datalist id="catering_dashboard_products">
+                        <t t-foreach="state.products" t-as="product" t-key="product.id">
+                            <option t-att-value="product.label"/>
+                        </t>
+                    </datalist>
+                </label>
+                <label class="o_catering_dashboard_field">
+                    Khách hàng
+                    <input type="text" class="form-control" t-model="state.partnerInput"
+                           list="catering_dashboard_partners" placeholder="Gõ để tìm khách hàng"
+                           autocomplete="off"/>
+                    <datalist id="catering_dashboard_partners">
+                        <t t-foreach="state.partners" t-as="partner" t-key="partner.id">
+                            <option t-att-value="partner.label"/>
+                        </t>
+                    </datalist>
+                </label>
+                <label class="o_catering_dashboard_field">
+                    Đội ngũ kinh doanh
+                    <select class="form-select" t-model="state.teamId">
+                        <option value="">Tất cả</option>
+                        <t t-foreach="state.teams" t-as="team" t-key="team.id">
+                            <option t-att-value="team.id" t-esc="team.label"/>
+                        </t>
+                    </select>
+                </label>
+                <label class="o_catering_dashboard_field">
+                    Nhân viên kinh doanh
+                    <select class="form-select" t-model="state.userId">
+                        <option value="">Tất cả</option>
+                        <t t-foreach="state.users" t-as="user" t-key="user.id">
+                            <option t-att-value="user.id" t-esc="user.label"/>
+                        </t>
+                    </select>
+                </label>
+                <label class="o_catering_dashboard_field">
+                    Nguồn
+                    <select class="form-select" t-model="state.source">
+                        <option value="">Tất cả</option>
+                        <option value="hnck">HNCK</option>
+                        <option value="internal">Nội bộ</option>
+                    </select>
+                </label>
+                <button type="button" class="btn btn-primary" t-on-click="loadTiles">
+                    Xem
+                </button>
+                <button type="button" class="btn btn-secondary" t-on-click="clearFilters">
+                    Xóa lọc
+                </button>
+            </div>
+            <div class="row o_catering_dashboard_tiles">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Đơn hàng hủy</div>
+                        <div class="o_catering_tile_count" t-esc="state.cancelledCount"/>
+                        <div class="o_catering_tile_unit">đơn hàng</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Đơn hàng trả</div>
+                        <div class="o_catering_tile_count" t-esc="state.returnedCount"/>
+                        <div class="o_catering_tile_unit">đơn hàng</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Đang giao</div>
+                        <div class="o_catering_tile_count" t-esc="state.deliveringCount"/>
+                        <div class="o_catering_tile_unit">đơn hàng</div>
+                        <div class="o_catering_tile_amount" t-esc="formatAmount(state.deliveringAmount)"/>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Đã giao</div>
+                        <div class="o_catering_tile_count" t-esc="state.deliveredCount"/>
+                        <div class="o_catering_tile_unit">đơn hàng</div>
+                        <div class="o_catering_tile_amount" t-esc="formatAmount(state.deliveredAmount)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="o_catering_chart">
+                <div class="o_catering_chart_title">Doanh số bán hàng</div>
+                <div class="o_catering_chart_subtitle">Tổng tiền đơn đã giao theo tháng (VND)</div>
+                <div class="o_catering_chart_body">
+                    <div class="o_catering_chart_yaxis">
+                        <div class="o_catering_chart_ticks">
+                            <t t-foreach="yTicks" t-as="tick" t-key="tick">
+                                <div class="o_catering_chart_tick" t-esc="formatCompact(tick)"/>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="o_catering_chart_plot">
+                        <t t-foreach="state.chartMonths" t-as="month" t-key="month.key">
+                            <div class="o_catering_chart_col">
+                                <div class="o_catering_chart_bar_count"
+                                     t-esc="formatCompact(month.total)"
+                                     t-att-title="formatAmount(month.total)"/>
+                                <div class="o_catering_chart_bar_slot">
+                                    <div class="o_catering_chart_bar"
+                                         t-att-style="'height: ' + barHeight(month.total) + 'px'"
+                                         t-att-title="formatAmount(month.total)"/>
+                                </div>
+                                <div class="o_catering_chart_month" t-esc="month.label"/>
+                            </div>
+                        </t>
+                        <p t-if="!state.chartMonths.length" class="text-muted">
+                            Không có dữ liệu trong kỳ.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="o_catering_section_title">
+                Thống kê năm <t t-esc="state.statsYear"/>
+            </div>
+            <div class="row">
+                <div class="col-12 col-md-4">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Doanh thu</div>
+                        <div class="o_catering_tile_amount" t-esc="formatAmount(state.revenueTotal)"/>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Mua hàng</div>
+                        <div class="o_catering_tile_amount" t-esc="formatAmount(state.purchaseTotal)"/>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="o_catering_tile">
+                        <div class="o_catering_tile_label">Lợi nhuận</div>
+                        <div class="o_catering_tile_amount" t-esc="formatAmount(state.profitTotal)"/>
+                    </div>
+                </div>
+            </div>
+            <div class="o_catering_chart">
+                <div class="o_catering_chart_title">Lợi nhuận theo tháng</div>
+                <div class="o_catering_chart_subtitle">Doanh thu trừ mua hàng (VND)</div>
+                <div class="o_catering_chart_body">
+                    <div class="o_catering_chart_yaxis">
+                        <div class="o_catering_chart_ticks">
+                            <t t-foreach="profitTicks" t-as="tick" t-key="tick">
+                                <div class="o_catering_chart_tick" t-esc="formatCompact(tick)"/>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="o_catering_chart_plot">
+                        <t t-foreach="state.profitMonths" t-as="month" t-key="month.key">
+                            <div class="o_catering_chart_col">
+                                <div class="o_catering_chart_bar_count"
+                                     t-esc="formatCompact(month.profit)"
+                                     t-att-title="formatAmount(month.profit)"/>
+                                <div class="o_catering_chart_bar_slot">
+                                    <div t-att-class="month.profit &lt; 0 ? 'o_catering_chart_bar o_catering_chart_bar_negative' : 'o_catering_chart_bar'"
+                                         t-att-style="'height: ' + profitBarHeight(month.profit) + 'px'"
+                                         t-att-title="'Thu: ' + formatAmount(month.revenue) + ' - Chi: ' + formatAmount(month.purchase)"/>
+                                </div>
+                                <div class="o_catering_chart_month" t-esc="month.label"/>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

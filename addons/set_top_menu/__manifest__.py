@@ -1,6 +1,6 @@
 {
     "name": "Custom Addons Top Menu",
-    "version": "17.0.1.0.39",
+    "version": "17.0.1.0.41",
     "category": "Web",
     "summary": "Custom top navigation menu",
     "description": """
@@ -48,16 +48,20 @@
         "views/web_login_views.xml",
         "views/purchase_order_views.xml",
         "views/stock_picking_views.xml",
+        "views/sale_dashboard_views.xml",
     ],
 
     "assets": {
         "web.assets_backend": [
             "set_top_menu/static/src/js/custom_navbar.js",
             "set_top_menu/static/src/js/dish_stage_list.js",
+            "set_top_menu/static/src/js/catering_dashboard.js",
             "set_top_menu/static/src/xml/custom_navbar.xml",
             "set_top_menu/static/src/xml/dish_stage_list.xml",
+            "set_top_menu/static/src/xml/catering_dashboard.xml",
             "set_top_menu/static/src/scss/custom_navbar.scss",
             "set_top_menu/static/src/scss/dish_stage_list.scss",
+            "set_top_menu/static/src/scss/catering_dashboard.scss",
         ],
     },
 

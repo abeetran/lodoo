@@ -15,9 +15,17 @@ patch(NavBar.prototype, {
         this.customNavItems = [
             {
                 id: "dashboard",
-                label: "Bảng điều khiển",
+                label: "Báo cáo",
                 icon: "fa-tachometer",
-                url: "/web#dashboard_id=8&cids=1&menu_id=173&action=294",
+                action: "set_top_menu.action_catering_dashboard",
+                // children: [
+                //     {
+                //         id: "dashboard-sale",
+                //         label: "Bán hàng",
+                //         icon: "fa-shopping-cart",
+                //         action: "set_top_menu.action_catering_dashboard",
+                //     },
+                // ],
             },
             {
                 id: "clients",

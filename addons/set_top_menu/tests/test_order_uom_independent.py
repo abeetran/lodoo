@@ -83,8 +83,12 @@ class TestOrderUomIndependent(TransactionCase):
         order = self._order("DH-UOM-002", product, 5.0, thung)
         order.action_confirm()
         picking = order.picking_ids
+        picking.user_id = self.env.ref("base.user_admin").id
+        picking.button_validate()
+        self.assertEqual(picking.state, "delivering")
         picking.move_ids.quantity = 5.0
         picking.button_validate()
+        self.assertEqual(picking.state, "done")
         line = order.order_line
         self.assertEqual(line.qty_delivered, 5.0)
         line._action_launch_stock_rule()

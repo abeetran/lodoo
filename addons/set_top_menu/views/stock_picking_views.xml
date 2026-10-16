@@ -29,10 +29,24 @@
             </xpath>
             <xpath expr="//field[@name='origin']" position="after">
                 <field name="sale_order_id"
-                       domain="[('catering_state', '=', 'in_production'), '|', ('partner_id', '=', partner_id), ('partner_shipping_id', '=', partner_id)]"
+                       domain="['&amp;', '|', ('catering_state', '=', 'in_production'), '&amp;', ('catering_state', '=', 'delivered'), ('catering_has_remaining', '=', True), '|', ('partner_id', '=', partner_id), ('partner_shipping_id', '=', partner_id)]"
                        invisible="picking_type_code not in ('outgoing', 'internal')"
                        readonly="state in ('done', 'cancel')"
                        options="{'no_create': True}"/>
+            </xpath>
+            <xpath expr="//field[@name='sale_order_id']" position="after">
+                <field name="purchase_order_id"
+                       domain="['&amp;', '&amp;', ('state', 'in', ('purchase', 'done')), ('catering_has_remaining', '=', True), ('partner_id', '=', partner_id)]"
+                       invisible="picking_type_code != 'incoming'"
+                       readonly="state in ('done', 'cancel')"
+                       options="{'no_create': True}"/>
+            </xpath>
+            <!-- Giữ 2 trường phân biệt dòng tự sinh qua vòng chọn-lưu của
+                 client: thiếu chúng, dòng đã sinh bị coi là dòng tay và
+                 lệnh lưu sẽ sinh thêm dòng trùng, trừ kho 2 lần. -->
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_id']" position="before">
+                <field name="catering_generated" column_invisible="True" force_save="1"/>
+                <field name="sale_line_id" column_invisible="True" force_save="1"/>
             </xpath>
         </field>
     </record>

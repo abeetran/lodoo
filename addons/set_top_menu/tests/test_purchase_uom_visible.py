@@ -20,7 +20,7 @@ class TestPurchaseUomVisible(TransactionCase):
         arch = (
             self.env["purchase.order"]
             .with_user(user)
-            .fields_view_get(view_id=view.id, view_type="form")["arch"]
+            .get_view(view_id=view.id, view_type="form")["arch"]
         )
         return ET.fromstring(arch)
 

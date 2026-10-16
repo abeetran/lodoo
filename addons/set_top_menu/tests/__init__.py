@@ -28,6 +28,8 @@ from . import test_security_access
 from . import test_order_uom_independent
 from . import test_kitchen_plan_start_shortage
 from . import test_purchase_uom_visible
+from . import test_purchase_price_stable
+from . import test_purchase_uom_independent
 from . import test_stock_picking_delivering
 from . import test_order_display_reference
 from . import test_order_ready_buttons

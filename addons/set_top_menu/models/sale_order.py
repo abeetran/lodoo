@@ -80,6 +80,13 @@ class SaleOrder(models.Model):
         copy=False,
         index=True,
     )
+    catering_has_remaining = fields.Boolean(
+        string="Còn hàng phải giao",
+        compute="_compute_catering_has_remaining",
+        store=True,
+        help="Còn ít nhất một dòng kho đặt nhiều hơn đã giao, dùng để "
+        "cho chọn đơn Đã giao trên lệnh chuyển hàng.",
+    )
     hnck_order = fields.Boolean(
         string="Đơn HNCK",
         default=False,
@@ -158,6 +165,36 @@ class SaleOrder(models.Model):
             order.total_meals = sum(
                 order.order_line.filtered("menu_item_id").mapped("product_uom_qty")
             )
+
+    @api.depends(
+        "order_line.display_type",
+        "order_line.product_id",
+        "order_line.product_uom_qty",
+        "order_line.qty_delivered",
+    )
+    def _compute_catering_has_remaining(self):
+        """Còn hàng phải giao theo cùng luật sinh dòng của lệnh chuyển."""
+        for order in self:
+            remaining = False
+            for line in order.order_line.filtered(
+                lambda item: not item.display_type
+                and item.product_id
+                and item.product_id.type in ("product", "consu")
+            ):
+                rounding = (
+                    line.product_uom or line.product_id.uom_id
+                ).rounding or 0.01
+                if (
+                    float_compare(
+                        line.product_uom_qty,
+                        line.qty_delivered,
+                        precision_rounding=rounding,
+                    )
+                    > 0
+                ):
+                    remaining = True
+                    break
+            order.catering_has_remaining = remaining
 
     @api.depends("kitchen_plan_ids")
     def _compute_kitchen_plan_count(self):
@@ -477,6 +514,11 @@ class SaleOrder(models.Model):
         return self.env.ref("stock.stock_location_stock")
 
     def _apply_order_stock(self, factor):
+        # Ghi kho trực tiếp (không qua phiếu) nên lõi không tự làm mới
+        # cache tồn kho: phải invalidate để các lần đọc sau trong cùng
+        # giao dịch (kiểm tra thiếu hàng, báo cáo, assert test) thấy số
+        # mới thay vì số cũ, tránh chuẩn bị vượt tồn gây âm kho.
+        products = self.env["product.product"]
         for order in self:
             location = order._order_stock_location()
             for product, vals in order._order_product_stock().items():
@@ -486,6 +528,11 @@ class SaleOrder(models.Model):
                         location,
                         factor * vals["required"],
                     )
+                    products |= product
+        if products:
+            products.invalidate_recordset(
+                ["qty_available", "virtual_available"]
+            )
 
     def _deduct_order_stock(self):
         todo = self.filtered(lambda order: not order.stock_deducted)
@@ -1008,7 +1055,14 @@ class SaleOrder(models.Model):
         return action
 
     def action_cancel(self):
-        result = super().action_cancel()
+        # Gọi _action_cancel (bỏ qua popup thư của lõi, vốn chỉ trả về
+        # action mà không hủy với đơn không nháp) để trạng thái lõi về
+        # cancel thật, xong mới đồng bộ trạng thái phục vụ và hoàn kho.
+        if any(order.locked for order in self):
+            raise UserError(
+                "Không thể huỷ đơn hàng đã khoá, vui lòng mở khoá trước."
+            )
+        result = super()._action_cancel()
         self.write({"catering_state": "cancelled"})
         self._preparation_stock_returnable()._return_order_stock()
         return result
@@ -1332,7 +1386,13 @@ class SaleOrder(models.Model):
                         "Chỉ được đổi tiền tệ khi đơn hàng còn ở trạng thái "
                         "Chờ xác nhận."
                     )
-        remaining = set(vals) - {"catering_state", "hnck_price_editable"}
+        # stock_deducted là cờ giữ kho do hệ thống tự lật khi hủy/giao
+        # phiếu (kể cả giao một phần) nên phải miễn chốt bếp như trạng thái.
+        remaining = set(vals) - {
+            "catering_state",
+            "hnck_price_editable",
+            "stock_deducted",
+        }
         if remaining and not self._hnck_grid_save_allowed(remaining):
             self._check_kitchen_editable()
             self._check_hnck_editable()

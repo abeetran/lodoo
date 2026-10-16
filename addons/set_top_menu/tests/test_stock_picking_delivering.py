@@ -10,17 +10,25 @@ class TestStockPickingDelivering(TransactionCase):
             {"name": name, "type": "product"}
         )
         product = template.product_variant_id
-        location = self.env.ref("stock.stock_location_stock")
-        self.env["stock.quant"]._update_available_quantity(
-            product, location, quantity
-        )
+        if quantity:
+            location = self.env.ref("stock.stock_location_stock")
+            self.env["stock.quant"]._update_available_quantity(
+                product, location, quantity
+            )
         return product
 
     def _picking(self, code, product, quantity, src_xmlid, dest_location):
         picking_type = self.env["stock.picking.type"].search(
             [("code", "=", code)], limit=1
         )
-        self.assertTrue(picking_type, "Thiếu loại lệnh %s" % code)
+        if not picking_type:
+            template = self.env["stock.picking.type"].search(
+                [("code", "=", "outgoing")], limit=1
+            )
+            self.assertTrue(template, "Thiếu loại lệnh outgoing")
+            picking_type = template.copy(
+                {"name": "Loại lệnh %s test" % code, "code": code}
+            )
         src = self.env.ref(src_xmlid)
         admin = self.env.ref("base.user_admin")
         return self.env["stock.picking"].create(
@@ -64,7 +72,7 @@ class TestStockPickingDelivering(TransactionCase):
         )
 
     def _catering_order(
-        self, reference, partner, shipping=None, state="in_production"
+        self, reference, partner, shipping=None, state="draft"
     ):
         order = self.env["sale.order"].create(
             {
@@ -104,6 +112,60 @@ class TestStockPickingDelivering(TransactionCase):
                 ).id,
             }
         )
+
+    def _empty_incoming(self):
+        picking_type = self.env["stock.picking.type"].search(
+            [("code", "=", "incoming")], limit=1
+        )
+        self.assertTrue(picking_type, "Thiếu loại lệnh incoming")
+        return self.env["stock.picking"].create(
+            {
+                "picking_type_id": picking_type.id,
+                "user_id": self.env.ref("base.user_admin").id,
+                "location_id": self.env.ref(
+                    "stock.stock_location_suppliers"
+                ).id,
+                "location_dest_id": self.env.ref(
+                    "stock.stock_location_stock"
+                ).id,
+            }
+        )
+
+    def _process_backorder(self, picking):
+        result = picking.button_validate()
+        self.assertEqual(
+            result.get("res_model"), "stock.backorder.confirmation"
+        )
+        wizard = self.env["stock.backorder.confirmation"].with_context(
+            button_validate_picking_ids=picking.ids
+        ).create(
+            {
+                "pick_ids": [(6, 0, picking.ids)],
+                "backorder_confirmation_line_ids": [
+                    (
+                        0,
+                        0,
+                        {"picking_id": picking.id, "to_backorder": True},
+                    )
+                ],
+            }
+        )
+        wizard.process()
+
+    def _purchase_order(self, partner, product, quantity):
+        po = self.env["purchase.order"].create(
+            {"partner_id": partner.id}
+        )
+        self.env["purchase.order.line"].create(
+            {
+                "order_id": po.id,
+                "product_id": product.id,
+                "product_qty": quantity,
+                "product_uom": product.uom_po_id.id,
+                "price_unit": 10.0,
+            }
+        )
+        return po
 
     def test_outgoing_validate_moves_to_delivering(self):
         product = self._storable("SP giao hàng", 10.0)
@@ -237,12 +299,16 @@ class TestStockPickingDelivering(TransactionCase):
         other = self.env["res.partner"].create(
             {"name": "Khách DOM-002", "is_company": True}
         )
-        by_customer = self._catering_order("DH-DOM-001", partner)
-        by_shipping = self._catering_order("DH-DOM-002", other, shipping=partner)
+        by_customer = self._catering_order(
+            "DH-DOM-001", partner, state="in_production"
+        )
+        by_shipping = self._catering_order(
+            "DH-DOM-002", other, shipping=partner, state="in_production"
+        )
         self._catering_order("DH-DOM-003", partner, state="confirmed")
-        self._catering_order("DH-DOM-004", other)
+        self._catering_order("DH-DOM-004", other, state="in_production")
         view = self.env.ref("stock.view_picking_form")
-        arch = self.env["stock.picking"].fields_view_get(
+        arch = self.env["stock.picking"].get_view(
             view_id=view.id, view_type="form"
         )["arch"]
         root = ET.fromstring(arch)
@@ -265,6 +331,182 @@ class TestStockPickingDelivering(TransactionCase):
         self.assertCountEqual(found.ids, (by_customer | by_shipping).ids)
         origin = root.find(".//field[@name='origin']")
         self.assertEqual(origin.get("readonly"), "sale_order_id")
+
+    def test_delivered_with_remaining_selectable_for_transfer(self):
+        product = self._storable("SP giao thiếu", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách SHORT-001", "is_company": True}
+        )
+        short = self._catering_order("DH-SHORT-001", partner, state="draft")
+        self._order_line(short, product, 4.0)
+        short.action_confirm()
+        auto = short.picking_ids
+        auto.user_id = self.env.ref("base.user_admin").id
+        auto.action_assign()
+        auto.button_validate()
+        auto.move_ids.quantity = 1.0
+        self._process_backorder(auto)
+        self.assertEqual(short.order_line.qty_delivered, 1.0)
+        short.write({"catering_state": "delivered"})
+        self.assertTrue(short.catering_has_remaining)
+        full = self._catering_order("DH-SHORT-002", partner, state="draft")
+        self._order_line(full, product, 1.0)
+        full.action_confirm()
+        done = full.picking_ids
+        done.user_id = self.env.ref("base.user_admin").id
+        done.action_assign()
+        done.button_validate()
+        done.move_ids.quantity = 1.0
+        done.button_validate()
+        self.assertEqual(done.state, "done")
+        self.assertEqual(full.catering_state, "delivered")
+        self.assertFalse(full.catering_has_remaining)
+        view = self.env.ref("stock.view_picking_form")
+        arch = self.env["stock.picking"].get_view(
+            view_id=view.id, view_type="form"
+        )["arch"]
+        node = ET.fromstring(arch).find(".//field[@name='sale_order_id']")
+        domain = eval(
+            node.get("domain"),
+            {"__builtins__": {}},
+            {"partner_id": partner.id},
+        )
+        other = self.env["res.partner"].create(
+            {"name": "Khách SHORT-002", "is_company": True}
+        )
+        foreign = self._catering_order("DH-SHORT-003", other, state="draft")
+        self._order_line(foreign, product, 2.0)
+        foreign.action_confirm()
+        foreign.write({"catering_state": "delivered"})
+        self.assertTrue(foreign.catering_has_remaining)
+        found = self.env["sale.order"].search(domain)
+        self.assertIn(short.id, found.ids)
+        self.assertNotIn(full.id, found.ids)
+        # Đơn thiếu hàng nhưng khác khách thì không được lọt vào.
+        self.assertNotIn(foreign.id, found.ids)
+        transfer = self._empty_outgoing()
+        transfer.write(
+            {"partner_id": partner.id, "sale_order_id": short.id}
+        )
+        grid = transfer.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 3.0)
+
+    def test_purchase_domain_matches_short_and_vendor(self):
+        product = self._storable("SP mua thiếu", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-001", "is_company": True}
+        )
+        other = self.env["res.partner"].create(
+            {"name": "NCC PO-002", "is_company": True}
+        )
+        short = self._purchase_order(vendor, product, 4.0)
+        short.button_confirm()
+        self.assertTrue(short.catering_has_remaining)
+        full = self._purchase_order(vendor, product, 1.0)
+        full.button_confirm()
+        receipt = full.picking_ids
+        self.assertEqual(len(receipt), 1)
+        receipt.move_ids.quantity = 1.0
+        receipt.button_validate()
+        self.assertEqual(receipt.state, "done")
+        self.assertFalse(full.catering_has_remaining)
+        foreign = self._purchase_order(other, product, 2.0)
+        foreign.button_confirm()
+        self.assertTrue(foreign.catering_has_remaining)
+        draft = self._purchase_order(vendor, product, 2.0)
+        view = self.env.ref("stock.view_picking_form")
+        arch = self.env["stock.picking"].get_view(
+            view_id=view.id, view_type="form"
+        )["arch"]
+        root = ET.fromstring(arch)
+        node = root.find(".//field[@name='purchase_order_id']")
+        self.assertIsNotNone(node)
+        self.assertEqual(node.get("invisible"), "picking_type_code != 'incoming'")
+        self.assertEqual(node.get("readonly"), "state in ('done', 'cancel')")
+        domain = eval(
+            node.get("domain"),
+            {"__builtins__": {}},
+            {"partner_id": vendor.id},
+        )
+        found = self.env["purchase.order"].search(domain)
+        self.assertIn(short.id, found.ids)
+        self.assertNotIn(full.id, found.ids)
+        self.assertNotIn(foreign.id, found.ids)
+        self.assertNotIn(draft.id, found.ids)
+
+    def test_selecting_purchase_order_syncs_origin_and_moves(self):
+        product = self._storable("SP mua chọn", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-003", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        picking = self._empty_incoming()
+        picking.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        self.assertEqual(picking.origin, order.name)
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_id, product)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+        self.assertEqual(grid.purchase_line_id, order.order_line)
+        picking.write({"purchase_order_id": False})
+        self.assertFalse(picking.origin)
+        self.assertFalse(
+            picking.move_ids_without_package.filtered("catering_generated")
+        )
+
+    def test_selecting_purchase_order_fills_vendor(self):
+        product = self._storable("SP mua NCC", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-005", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        picking = self._empty_incoming()
+        self.assertFalse(picking.partner_id)
+        picking.write({"purchase_order_id": order.id})
+        self.assertEqual(picking.partner_id, vendor)
+        self.assertEqual(picking.origin, order.name)
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+
+    def test_purchase_partial_receipt_regenerates_remaining(self):
+        product = self._storable("SP mua một phần", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-004", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        first = self._empty_incoming()
+        first.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        first.action_confirm()
+        first.action_assign()
+        self.assertEqual(first.state, "assigned")
+        first.move_ids.quantity = 1.0
+        self._process_backorder(first)
+        self.assertEqual(first.state, "done")
+        self.assertEqual(order.order_line.qty_received, 1.0)
+        self.assertTrue(order.catering_has_remaining)
+        second = self._empty_incoming()
+        second.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        grid = second.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 3.0)
 
     def test_selecting_order_syncs_origin_and_moves(self):
         partner = self.env["res.partner"].create(
@@ -338,21 +580,25 @@ class TestStockPickingDelivering(TransactionCase):
                 ).id,
             }
         )
+        # Lưới form gắn move_ids_without_package: bản ghi chưa lưu mô
+        # phỏng đúng những gì client thấy nên lưới phải có dòng ở đó.
         picking.sale_order_id = first
         result = picking._onchange_sale_order_id()
         self.assertIsNone(result)
         self.assertEqual(picking.origin, "DH-SEL-009")
-        self.assertEqual(
-            picking.move_ids.mapped("product_id"), product_a
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
         )
-        self.assertEqual(picking.move_ids.product_uom_qty, 4.0)
+        self.assertEqual(grid.mapped("product_id"), product_a)
+        self.assertEqual(grid.product_uom_qty, 4.0)
         picking.sale_order_id = second
         picking._onchange_sale_order_id()
         self.assertEqual(picking.origin, "DH-SEL-010")
-        self.assertEqual(
-            picking.move_ids.mapped("product_id"), product_b
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
         )
-        self.assertEqual(picking.move_ids.product_uom_qty, 5.0)
+        self.assertEqual(grid.mapped("product_id"), product_b)
+        self.assertEqual(grid.product_uom_qty, 5.0)
 
     def test_generated_moves_cover_only_remaining_qty(self):
         product_a = self._storable("SP còn lại A", 10.0)
@@ -376,11 +622,7 @@ class TestStockPickingDelivering(TransactionCase):
         auto.move_ids.filtered(
             lambda move: move.product_id == product_b
         ).quantity = 1.0
-        result = auto.button_validate()
-        wizard = self.env["stock.backorder.confirmation"].browse(
-            result["res_id"]
-        )
-        wizard.process()
+        self._process_backorder(auto)
         self.assertEqual(auto.state, "done")
         self.assertEqual(line_a.qty_delivered, 4.0)
         self.assertEqual(line_b.qty_delivered, 1.0)
@@ -393,6 +635,310 @@ class TestStockPickingDelivering(TransactionCase):
         self.assertEqual(len(generated), 1)
         self.assertEqual(generated.product_id, product_b)
         self.assertEqual(generated.product_uom_qty, 3.0)
+
+    def test_partial_delivery_after_preparation_deducts_once(self):
+        product = self._storable("SP giao một phần", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách PART-001", "is_company": True}
+        )
+        order = self._catering_order("DH-PART-001", partner, state="draft")
+        self._order_line(order, product, 4.0)
+        order.action_confirm()
+        order.action_start_preparation()
+        self.assertEqual(product.qty_available, 6.0)
+        auto = order.picking_ids
+        auto.user_id = self.env.ref("base.user_admin").id
+        auto.action_assign()
+        auto.button_validate()
+        self.assertEqual(auto.state, "delivering")
+        auto.move_ids.quantity = 1.0
+        self._process_backorder(auto)
+        self.assertEqual(auto.state, "done")
+        # Giữ chỗ đã hoàn trước khi lõi trừ thật: 10 - 1 đã giao.
+        self.assertFalse(order.stock_deducted)
+        self.assertEqual(product.qty_available, 9.0)
+        backorder = self.env["stock.picking"].search(
+            [("backorder_id", "=", auto.id)]
+        )
+        self.assertEqual(len(backorder), 1)
+        backorder.user_id = self.env.ref("base.user_admin").id
+        backorder.move_ids.quantity = 3.0
+        backorder.button_validate()
+        self.assertEqual(backorder.state, "delivering")
+        backorder.button_validate()
+        self.assertEqual(backorder.state, "done")
+        self.assertEqual(product.qty_available, 6.0)
+
+    def test_recreated_picking_regenerates_grid_after_delete(self):
+        product = self._storable("SP tạo lại", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách RE-001", "is_company": True}
+        )
+        order = self._catering_order("DH-RE-001", partner)
+        self._order_line(order, product, 4.0)
+        first = self._empty_outgoing()
+        first.write(
+            {"partner_id": partner.id, "sale_order_id": order.id}
+        )
+        self.assertEqual(
+            len(
+                first.move_ids_without_package.filtered(
+                    "catering_generated"
+                )
+            ),
+            1,
+        )
+        first.unlink()
+        second = self._empty_outgoing()
+        second.write(
+            {"partner_id": partner.id, "sale_order_id": order.id}
+        )
+        grid = second.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_id, product)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+
+    def test_save_recovers_link_when_client_drops_it(self):
+        product = self._storable("SP rớt liên kết", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách DROP-001", "is_company": True}
+        )
+        order = self._catering_order("DH-DROP-001", partner)
+        self._order_line(order, product, 4.0)
+        line = order.order_line
+        picking_type = self.env["stock.picking.type"].search(
+            [("code", "=", "outgoing")], limit=1
+        )
+        stock = self.env.ref("stock.stock_location_stock")
+        customers = self.env.ref("stock.stock_location_customers")
+        # Mô phỏng client mất M2O lúc lưu nhưng còn dòng tự sinh.
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": picking_type.id,
+                "partner_id": partner.id,
+                "location_id": stock.id,
+                "location_dest_id": customers.id,
+                "sale_order_id": False,
+                "move_ids_without_package": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": line.name,
+                            "product_id": product.id,
+                            "product_uom_qty": 4.0,
+                            "product_uom": product.uom_id.id,
+                            "location_id": stock.id,
+                            "location_dest_id": customers.id,
+                            "sale_line_id": line.id,
+                            "catering_generated": True,
+                        },
+                    )
+                ],
+            }
+        )
+        self.assertEqual(picking.sale_order_id, order)
+        self.assertEqual(picking.origin, "DH-DROP-001")
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+        self.assertEqual(grid.sale_line_id, line)
+
+    def test_write_recovers_link_when_rows_kept(self):
+        product = self._storable("SP rớt khi sửa", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách DROP-004", "is_company": True}
+        )
+        order = self._catering_order("DH-DROP-004", partner)
+        self._order_line(order, product, 4.0)
+        picking = self._empty_outgoing()
+        picking.write(
+            {"partner_id": partner.id, "sale_order_id": order.id}
+        )
+        generated = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(generated), 1)
+        # Client rớt M2O khi lưu bản sửa nhưng vẫn gửi dòng đang giữ.
+        picking.write(
+            {
+                "sale_order_id": False,
+                "move_ids_without_package": [(4, generated.id)],
+            }
+        )
+        self.assertEqual(picking.sale_order_id, order)
+        self.assertEqual(picking.origin, "DH-DROP-004")
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+
+    def test_write_recovers_purchase_link_when_rows_kept(self):
+        product = self._storable("SP rớt mua khi sửa", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC DROP-004", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        picking = self._empty_incoming()
+        picking.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        generated = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(generated), 1)
+        picking.write(
+            {
+                "purchase_order_id": False,
+                "move_ids_without_package": [(4, generated.id)],
+            }
+        )
+        self.assertEqual(picking.purchase_order_id, order)
+        self.assertEqual(picking.origin, order.name)
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+
+    def test_create_with_link_regenerates_missing_rows(self):
+        product = self._storable("SP mất dòng", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách DROP-003", "is_company": True}
+        )
+        order = self._catering_order("DH-DROP-003", partner)
+        self._order_line(order, product, 4.0)
+        picking_type = self.env["stock.picking.type"].search(
+            [("code", "=", "outgoing")], limit=1
+        )
+        # Client gửi liên kết nhưng mất dòng: sinh lại từ đơn.
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": picking_type.id,
+                "partner_id": partner.id,
+                "location_id": self.env.ref(
+                    "stock.stock_location_stock"
+                ).id,
+                "location_dest_id": self.env.ref(
+                    "stock.stock_location_customers"
+                ).id,
+                "sale_order_id": order.id,
+            }
+        )
+        self.assertEqual(picking.origin, "DH-DROP-003")
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+
+    def test_genuine_clear_still_wipes_grid(self):
+        product = self._storable("SP xóa thật", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách DROP-002", "is_company": True}
+        )
+        order = self._catering_order("DH-DROP-002", partner)
+        self._order_line(order, product, 4.0)
+        picking = self._empty_outgoing()
+        picking.write(
+            {"partner_id": partner.id, "sale_order_id": order.id}
+        )
+        generated = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(generated), 1)
+        # Mô phỏng xóa thật trên UI: M2O rỗng kèm lệnh xóa dòng.
+        picking.write(
+            {
+                "sale_order_id": False,
+                "move_ids_without_package": [(2, generated.id)],
+            }
+        )
+        self.assertFalse(picking.sale_order_id)
+        self.assertFalse(picking.origin)
+        self.assertFalse(
+            picking.move_ids_without_package.filtered("catering_generated")
+        )
+
+    def test_save_recovers_purchase_link_when_client_drops_it(self):
+        product = self._storable("SP rớt đơn mua", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC DROP-001", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        line = order.order_line
+        picking_type = self.env["stock.picking.type"].search(
+            [("code", "=", "incoming")], limit=1
+        )
+        suppliers = self.env.ref("stock.stock_location_suppliers")
+        stock = self.env.ref("stock.stock_location_stock")
+        picking = self.env["stock.picking"].create(
+            {
+                "picking_type_id": picking_type.id,
+                "partner_id": vendor.id,
+                "location_id": suppliers.id,
+                "location_dest_id": stock.id,
+                "purchase_order_id": False,
+                "move_ids_without_package": [
+                    (
+                        0,
+                        0,
+                        {
+                            "name": line.name,
+                            "product_id": product.id,
+                            "product_uom_qty": 4.0,
+                            "product_uom": product.uom_id.id,
+                            "location_id": suppliers.id,
+                            "location_dest_id": stock.id,
+                            "purchase_line_id": line.id,
+                            "catering_generated": True,
+                        },
+                    )
+                ],
+            }
+        )
+        self.assertEqual(picking.purchase_order_id, order)
+        self.assertEqual(picking.origin, order.name)
+        grid = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 4.0)
+        self.assertEqual(grid.purchase_line_id, line)
+
+    def test_genuine_purchase_clear_still_wipes_grid(self):
+        product = self._storable("SP xóa đơn mua", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC DROP-002", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        picking = self._empty_incoming()
+        picking.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        generated = picking.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(generated), 1)
+        picking.write(
+            {
+                "purchase_order_id": False,
+                "move_ids_without_package": [(2, generated.id)],
+            }
+        )
+        self.assertFalse(picking.purchase_order_id)
+        self.assertFalse(picking.origin)
+        self.assertFalse(
+            picking.move_ids_without_package.filtered("catering_generated")
+        )
 
     def test_selecting_same_order_skips_covered_lines(self):
         product = self._storable("SP trùng đơn", 10.0)
@@ -485,7 +1031,12 @@ class TestStockPickingDelivering(TransactionCase):
         order.action_start_preparation()
         self.assertEqual(product.qty_available, 6.0)
         self.assertTrue(order.stock_deducted)
-        order.action_draft()
+        # Lõi Odoo chỉ cho xóa đơn nháp/hủy và chốt bếp chặn xóa dòng
+        # đơn đang chuẩn bị: đưa cả hai trạng thái về nháp (mở chốt bếp
+        # bằng context test), cờ giữ kho còn nguyên để unlink hoàn lại.
+        order.with_context(hnck_sync=True).write(
+            {"state": "draft", "catering_state": "draft"}
+        )
         order_id = order.id
         order.unlink()
         self.assertFalse(
@@ -510,13 +1061,43 @@ class TestStockPickingDelivering(TransactionCase):
         auto.button_validate()
         self.assertEqual(auto.state, "done")
         self.assertEqual(order.catering_state, "delivered")
+        # Giao đủ: phần giữ chỗ lúc Chuẩn bị đã được hoàn trước khi
+        # lõi trừ thật nên kho chỉ trừ đúng một lần (10 - 4).
+        self.assertFalse(order.stock_deducted)
+        self.assertEqual(product.qty_available, 6.0)
         manual = self._empty_outgoing()
         manual.write(
             {"partner_id": partner.id, "sale_order_id": order.id}
         )
         manual.unlink()
+        self.assertFalse(order.stock_deducted)
+        self.assertEqual(product.qty_available, 6.0)
+
+    def test_delivery_deducts_stock_only_once(self):
+        product = self._storable("SP trừ một lần", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách ONCE-001", "is_company": True}
+        )
+        order = self._catering_order("DH-ONCE-001", partner, state="draft")
+        self._order_line(order, product, 4.0)
+        order.action_confirm()
+        order.action_start_preparation()
+        self.assertEqual(product.qty_available, 6.0)
+        auto = order.picking_ids
+        auto.user_id = self.env.ref("base.user_admin").id
+        auto.action_assign()
+        auto.button_validate()
+        self.assertEqual(auto.state, "delivering")
+        # Đang giao chưa hoàn tất: phần giữ chỗ vẫn còn.
         self.assertTrue(order.stock_deducted)
-        self.assertEqual(product.qty_available, 2.0)
+        self.assertEqual(product.qty_available, 6.0)
+        auto.move_ids.quantity = 4.0
+        auto.button_validate()
+        self.assertEqual(auto.state, "done")
+        self.assertEqual(order.catering_state, "delivered")
+        self.assertFalse(order.stock_deducted)
+        self.assertEqual(product.qty_available, 6.0)
+        self.assertGreaterEqual(product.qty_available, 0.0)
 
     def test_cancel_draft_order_keeps_stock(self):
         product = self._storable("SP hủy nháp", 10.0)
@@ -604,7 +1185,7 @@ class TestStockPickingDelivering(TransactionCase):
 
     def test_combined_form_buttons(self):
         view = self.env.ref("stock.view_picking_form")
-        arch = self.env["stock.picking"].fields_view_get(
+        arch = self.env["stock.picking"].get_view(
             view_id=view.id, view_type="form"
         )["arch"]
         header = ET.fromstring(arch).find("header")
@@ -653,6 +1234,143 @@ class TestStockPickingDelivering(TransactionCase):
             others[0].get("statusbar_visible"),
             "draft,confirmed,assigned,delivering,done",
         )
+
+    def _po_bodies(self, order):
+        return " | ".join(order.message_ids.mapped("body") or [])
+
+    def test_done_linked_receipt_logs_purchase_history(self):
+        product = self._storable("SP sử nhập", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-LOG-001", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        picking = self._empty_incoming()
+        picking.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        picking.action_confirm()
+        picking.action_assign()
+        picking.move_ids.quantity = 4.0
+        picking.button_validate()
+        self.assertEqual(picking.state, "done")
+        bodies = self._po_bodies(order)
+        self.assertIn("Nhập bổ sung từ phiếu nhập", bodies)
+        self.assertIn(picking.name, bodies)
+        self.assertIn("SP sử nhập", bodies)
+        self.assertIn("4", bodies)
+
+    def test_partial_linked_receipt_logs_done_qty(self):
+        product = self._storable("SP sử nhập một phần", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-LOG-002", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 4.0)
+        order.button_confirm()
+        picking = self._empty_incoming()
+        picking.write(
+            {"partner_id": vendor.id, "purchase_order_id": order.id}
+        )
+        picking.action_confirm()
+        picking.action_assign()
+        picking.move_ids.quantity = 1.0
+        self._process_backorder(picking)
+        self.assertEqual(picking.state, "done")
+        bodies = self._po_bodies(order)
+        self.assertIn(picking.name, bodies)
+        self.assertIn("SP sử nhập một phần: 1 ", bodies)
+
+    def test_auto_receipt_logs_no_purchase_history(self):
+        product = self._storable("SP tự nhập", 0.0)
+        vendor = self.env["res.partner"].create(
+            {"name": "NCC PO-LOG-003", "is_company": True}
+        )
+        order = self._purchase_order(vendor, product, 1.0)
+        order.button_confirm()
+        receipt = order.picking_ids
+        self.assertFalse(receipt.purchase_order_id)
+        receipt.move_ids.quantity = 1.0
+        receipt.button_validate()
+        self.assertEqual(receipt.state, "done")
+        self.assertNotIn(
+            "Nhập bổ sung từ phiếu nhập", self._po_bodies(order)
+        )
+
+    def _sale_bodies(self, order):
+        return " | ".join(order.message_ids.mapped("body") or [])
+
+    def test_short_order_supplementary_delivery_logs_history(self):
+        product = self._storable("SP giao bù", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách BU-001", "is_company": True}
+        )
+        order = self._catering_order("DH-BU-001", partner, state="draft")
+        self._order_line(order, product, 4.0)
+        order.action_confirm()
+        auto = order.picking_ids
+        auto.user_id = self.env.ref("base.user_admin").id
+        auto.action_assign()
+        auto.button_validate()
+        auto.move_ids.quantity = 1.0
+        self._process_backorder(auto)
+        self.assertEqual(auto.state, "done")
+        manual = self._empty_outgoing()
+        manual.write(
+            {"partner_id": partner.id, "sale_order_id": order.id}
+        )
+        grid = manual.move_ids_without_package.filtered(
+            "catering_generated"
+        )
+        self.assertEqual(len(grid), 1)
+        self.assertEqual(grid.product_uom_qty, 3.0)
+        manual.user_id = self.env.ref("base.user_admin").id
+        manual.action_confirm()
+        manual.action_assign()
+        self.assertEqual(manual.state, "assigned")
+        manual.button_validate()
+        self.assertEqual(manual.state, "delivering")
+        manual.move_ids.quantity = 3.0
+        manual.button_validate()
+        self.assertEqual(manual.state, "done")
+        bodies = self._sale_bodies(order)
+        self.assertIn("Giao bổ sung từ phiếu giao", bodies)
+        self.assertIn(manual.name, bodies)
+        self.assertIn("SP giao bù: 3 ", bodies)
+
+    def test_auto_delivery_logs_no_line_history(self):
+        product = self._storable("SP giao thẳng", 10.0)
+        partner = self.env["res.partner"].create(
+            {"name": "Khách BU-002", "is_company": True}
+        )
+        order = self._catering_order("DH-BU-002", partner, state="draft")
+        self._order_line(order, product, 2.0)
+        order.action_confirm()
+        auto = order.picking_ids
+        self.assertFalse(auto.sale_order_id)
+        auto.user_id = self.env.ref("base.user_admin").id
+        auto.action_assign()
+        auto.button_validate()
+        auto.move_ids.quantity = 2.0
+        auto.button_validate()
+        self.assertEqual(auto.state, "done")
+        self.assertNotIn("Giao bổ sung từ phiếu giao", self._sale_bodies(order))
+
+    def test_grid_keeps_generated_flags_on_save(self):
+        view = self.env.ref("stock.view_picking_form")
+        arch = self.env["stock.picking"].get_view(
+            view_id=view.id, view_type="form"
+        )["arch"]
+        tree = ET.fromstring(arch).find(
+            ".//field[@name='move_ids_without_package']/tree"
+        )
+        self.assertIsNotNone(tree)
+        by_name = {
+            node.get("name"): node
+            for node in tree.findall("field")
+        }
+        for name in ("catering_generated", "sale_line_id"):
+            self.assertIn(name, by_name)
+            self.assertEqual(by_name[name].get("force_save"), "1")
 
     def test_delivering_ordered_before_done(self):
         values = [

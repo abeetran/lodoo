@@ -156,4 +156,52 @@
         color: #4d4d4d;
         white-space: nowrap;
     }
+
+    .o_catering_tops {
+        margin-top: 16px;
+    }
+
+    .o_catering_top {
+        background: #ffffff;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        padding: 16px;
+        margin-bottom: 16px;
+        height: 100%;
+        counter-reset: catering-top-rank;
+    }
+
+    .o_catering_top_row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 6px 0;
+        border-top: 1px solid #f1f3f5;
+        font-size: 13px;
+    }
+
+    .o_catering_top_rank {
+        flex: 0 0 18px;
+        color: #6c757d;
+    }
+
+    .o_catering_top_rank::after {
+        counter-increment: catering-top-rank;
+        content: counter(catering-top-rank);
+    }
+
+    .o_catering_top_name {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #212529;
+    }
+
+    .o_catering_top_amount {
+        font-weight: 600;
+        color: #212529;
+        white-space: nowrap;
+    }
 }

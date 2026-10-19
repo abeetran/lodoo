@@ -26,7 +26,7 @@ export class CateringDashboard extends Component {
             teams: [],
             users: [],
             chartMonths: [],
-            statsYear: "",
+            statsLabel: "",
             revenueTotal: 0,
             purchaseTotal: 0,
             profitTotal: 0,
@@ -39,6 +39,9 @@ export class CateringDashboard extends Component {
             deliveringAmount: 0,
             deliveredCount: 0,
             deliveredAmount: 0,
+            topCustomers: [],
+            topUsers: [],
+            topProducts: [],
         });
         onWillStart(async () => {
             await this.loadFilters();
@@ -135,28 +138,14 @@ export class CateringDashboard extends Component {
 
     async loadTiles() {
         const args = this.filterArgs();
-        const [data, chart, stats] = await Promise.all([
-            this.orm.call("sale.order", "get_catering_dashboard_tiles", args),
-            this.orm.call(
-                "sale.order",
-                "get_catering_dashboard_sales_chart",
-                args
-            ),
-            this.orm.call(
-                "sale.order",
-                "get_catering_dashboard_statistics",
-                []
-            ),
-        ]);
+        const data = await this.orm.call(
+            "sale.order",
+            "get_catering_dashboard_tiles",
+            args
+        );
         Object.assign(this.state, {
             dateFrom: data.date_from,
             dateTo: data.date_to,
-            chartMonths: chart.months,
-            statsYear: stats.year,
-            revenueTotal: stats.revenue,
-            purchaseTotal: stats.purchase,
-            profitTotal: stats.profit,
-            profitMonths: stats.months,
             currencySymbol: data.currency_symbol,
             currencyPosition: data.currency_position,
             cancelledCount: data.cancelled_count,
@@ -165,6 +154,38 @@ export class CateringDashboard extends Component {
             deliveringAmount: data.delivering_amount,
             deliveredCount: data.delivered_count,
             deliveredAmount: data.delivered_amount,
+        });
+        const statsArgs = [
+            this.state.dateFrom || false,
+            this.state.dateTo || false,
+        ];
+        const [chart, stats, tops] = await Promise.all([
+            this.orm.call(
+                "sale.order",
+                "get_catering_dashboard_sales_chart",
+                args
+            ),
+            this.orm.call(
+                "sale.order",
+                "get_catering_dashboard_statistics",
+                statsArgs
+            ),
+            this.orm.call(
+                "sale.order",
+                "get_catering_dashboard_tops",
+                args
+            ),
+        ]);
+        Object.assign(this.state, {
+            chartMonths: chart.months,
+            statsLabel: stats.period_label,
+            revenueTotal: stats.revenue,
+            purchaseTotal: stats.purchase,
+            profitTotal: stats.profit,
+            profitMonths: stats.months,
+            topCustomers: tops.customers,
+            topUsers: tops.users,
+            topProducts: tops.products,
         });
     }
 

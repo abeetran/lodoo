@@ -839,20 +839,28 @@ class SaleOrder(models.Model):
         return {"months": months}
 
     @api.model
-    def get_catering_dashboard_statistics(self):
-        """Khung Thống kê năm hiện tại: doanh thu/mua hàng/lợi nhuận.
+    def get_catering_dashboard_statistics(self, date_from=False, date_to=False):
+        """Khung Thống kê theo kỳ truy vấn: doanh thu/mua hàng/lợi nhuận.
 
-        Độc lập với bộ lọc dashboard: doanh thu là tổng VND các đơn Đã
-        giao trong năm; mua hàng là tổng VND các đơn mua (trừ Nháp/Hủy)
-        trong năm; lợi nhuận = doanh thu - mua hàng, kèm chi tiết tháng.
+        Lọc theo Từ ngày - Đến ngày của dashboard (mặc định cả năm hiện
+        tại khi không truyền kỳ): doanh thu là tổng VND các đơn Đã giao
+        trong kỳ; mua hàng là tổng VND các đơn mua (trừ Nháp/Hủy) trong
+        kỳ; lợi nhuận = doanh thu - mua hàng, kèm chi tiết từng tháng
+        giao với kỳ.
         """
         company = self.env.company
         vnd = self.env.ref("base.VND")
-        year = fields.Date.context_today(self).year
-        start = fields.Datetime.to_string(datetime(year, 1, 1))
-        end = fields.Datetime.to_string(
-            datetime(year, 12, 31, 23, 59, 59)
-        )
+        if not date_from and not date_to:
+            year = fields.Date.context_today(self).year
+            start_day, end_day = date(year, 1, 1), date(year, 12, 31)
+            start = fields.Datetime.to_string(datetime(year, 1, 1))
+            end = fields.Datetime.to_string(
+                datetime(year, 12, 31, 23, 59, 59)
+            )
+        else:
+            start_day, end_day, start, end = self._dashboard_period(
+                date_from, date_to
+            )
         delivered = self.search(
             [
                 ("company_id", "=", company.id),
@@ -887,42 +895,221 @@ class SaleOrder(models.Model):
             ),
             0.0,
         )
+        revenue_by_month = {}
+        for order in delivered:
+            key = (order.date_order.year, order.date_order.month)
+            revenue_by_month[key] = (
+                revenue_by_month.get(key, 0.0)
+                + order.catering_amount_vnd
+            )
+        purchase_by_month = {}
+        for order in purchases:
+            key = (order.date_order.year, order.date_order.month)
+            purchase_by_month[key] = purchase_by_month.get(
+                key, 0.0
+            ) + _to_vnd(
+                order.amount_total, order.currency_id, order.date_order
+            )
         months = []
-        for month in range(1, 13):
-            revenue = sum(
-                delivered.filtered(
-                    lambda order: order.date_order.month == month
-                ).mapped("catering_amount_vnd"),
-                0.0,
-            )
-            purchase = sum(
-                (
-                    _to_vnd(
-                        order.amount_total,
-                        order.currency_id,
-                        order.date_order,
-                    )
-                    for order in purchases.filtered(
-                        lambda order: order.date_order.month == month
-                    )
-                ),
-                0.0,
-            )
+        cursor = date(start_day.year, start_day.month, 1)
+        last = date(end_day.year, end_day.month, 1)
+        while cursor <= last:
+            key = (cursor.year, cursor.month)
+            revenue = revenue_by_month.get(key, 0.0)
+            purchase = purchase_by_month.get(key, 0.0)
             months.append(
                 {
-                    "key": "%d-%02d" % (year, month),
-                    "label": "%02d/%d" % (month, year),
+                    "key": "%d-%02d" % key,
+                    "label": "%02d/%d" % (cursor.month, cursor.year),
                     "revenue": revenue,
                     "purchase": purchase,
                     "profit": revenue - purchase,
                 }
             )
+            if cursor.month == 12:
+                cursor = date(cursor.year + 1, 1, 1)
+            else:
+                cursor = date(cursor.year, cursor.month + 1, 1)
+        if (
+            start_day.month == 1
+            and start_day.day == 1
+            and end_day.month == 12
+            and end_day.day == 31
+            and start_day.year == end_day.year
+        ):
+            period_label = "năm %d" % start_day.year
+        else:
+            period_label = "từ %s đến %s" % (
+                start_day.strftime("%d/%m/%Y"),
+                end_day.strftime("%d/%m/%Y"),
+            )
         return {
-            "year": year,
+            "year": start_day.year,
+            "date_from": fields.Date.to_string(start_day),
+            "date_to": fields.Date.to_string(end_day),
+            "period_label": period_label,
             "revenue": revenue_total,
             "purchase": purchase_total,
             "profit": revenue_total - purchase_total,
             "months": months,
+        }
+
+    @api.model
+    def get_catering_dashboard_tops(
+        self,
+        date_from=False,
+        date_to=False,
+        product_id=False,
+        partner_id=False,
+        team_id=False,
+        user_id=False,
+        source=False,
+    ):
+        """Top 10 khách hàng / NV bán hàng / sản phẩm trong kỳ.
+
+        Áp dụng cùng bộ lọc với ô dashboard trên các đơn Đã giao:
+        khách hàng và NV bán hàng xếp theo tổng VND; sản phẩm (gồm cả
+        thực phẩm, món ăn) xếp theo tổng tiền bán, kèm tổng tiền mua
+        các đơn mua đã xác nhận trong kỳ và lợi nhuận (tiền bán trừ
+        tiền mua). Cả 3 box chỉ xếp hạng tổng doanh thu > 0.
+        """
+        company = self.env.company
+        vnd = self.env.ref("base.VND")
+        _start_day, _end_day, start, end = self._dashboard_period(
+            date_from, date_to
+        )
+        product_id = self._parse_dashboard_id(product_id)
+        delivered = self.search(
+            self._dashboard_order_domain(
+                company,
+                start,
+                end,
+                product_id,
+                self._parse_dashboard_id(partner_id),
+                self._parse_dashboard_id(team_id),
+                self._parse_dashboard_id(user_id),
+                self._parse_dashboard_source(source),
+            )
+            + [("catering_state", "=", "delivered")]
+        )
+
+        def _to_vnd(amount, currency, moment):
+            return currency._convert(
+                amount, vnd, company, moment or fields.Date.today()
+            )
+
+        revenue_by_partner = {}
+        for order in delivered:
+            partner = order.partner_id
+            entry = revenue_by_partner.setdefault(
+                partner.id, {"name": partner.display_name, "total": 0.0}
+            )
+            entry["total"] += order.catering_amount_vnd
+        revenue_by_user = {}
+        for order in delivered:
+            user = order.user_id
+            entry = revenue_by_user.setdefault(
+                user.id or False,
+                {"name": user.name or "Chưa gán", "total": 0.0},
+            )
+            entry["total"] += order.catering_amount_vnd
+        sale_lines = delivered.order_line.filtered(
+            lambda line: not line.display_type and line.product_id
+        )
+        if product_id:
+            sale_lines = sale_lines.filtered(
+                lambda line: line.product_id.id == product_id
+            )
+        sales_by_product = {}
+        for line in sale_lines:
+            product = line.product_id
+            entry = sales_by_product.setdefault(
+                product.id,
+                {
+                    "name": product.display_name,
+                    "sales": 0.0,
+                    "purchase": 0.0,
+                },
+            )
+            entry["sales"] += _to_vnd(
+                line.price_total,
+                line.currency_id,
+                line.order_id.date_order,
+            )
+        # Cả 3 box chỉ xếp hạng tổng doanh thu > 0 (loại đơn 0 đồng).
+        revenue_by_partner = {
+            pid: vals
+            for pid, vals in revenue_by_partner.items()
+            if float_compare(
+                vals["total"], 0.0, precision_rounding=vnd.rounding
+            )
+            > 0
+        }
+        revenue_by_user = {
+            uid: vals
+            for uid, vals in revenue_by_user.items()
+            if float_compare(
+                vals["total"], 0.0, precision_rounding=vnd.rounding
+            )
+            > 0
+        }
+        sales_by_product = {
+            pid: vals
+            for pid, vals in sales_by_product.items()
+            if float_compare(
+                vals["sales"], 0.0, precision_rounding=vnd.rounding
+            )
+            > 0
+        }
+        if sales_by_product:
+            purchase_lines = self.env["purchase.order.line"].search(
+                [
+                    ("company_id", "=", company.id),
+                    ("order_id.state", "in", ("purchase", "done")),
+                    ("order_id.date_order", ">=", start),
+                    ("order_id.date_order", "<=", end),
+                    ("product_id", "in", list(sales_by_product)),
+                ]
+            )
+            for line in purchase_lines:
+                sales_by_product[line.product_id.id][
+                    "purchase"
+                ] += _to_vnd(
+                    line.price_total,
+                    line.currency_id,
+                    line.order_id.date_order,
+                )
+        customers = sorted(
+            (
+                {"id": pid, "name": vals["name"], "total": vals["total"]}
+                for pid, vals in revenue_by_partner.items()
+            ),
+            key=lambda row: (-row["total"], row["name"]),
+        )[:10]
+        users = sorted(
+            (
+                {"id": uid, "name": vals["name"], "total": vals["total"]}
+                for uid, vals in revenue_by_user.items()
+            ),
+            key=lambda row: (-row["total"], row["name"]),
+        )[:10]
+        products = sorted(
+            (
+                {
+                    "id": pid,
+                    "name": vals["name"],
+                    "sales": vals["sales"],
+                    "purchase": vals["purchase"],
+                    "profit": vals["sales"] - vals["purchase"],
+                }
+                for pid, vals in sales_by_product.items()
+            ),
+            key=lambda row: (-row["sales"], row["name"]),
+        )[:10]
+        return {
+            "customers": customers,
+            "users": users,
+            "products": products,
         }
 
     @api.model

@@ -41,3 +41,5 @@ from . import test_order_return
 from . import test_dashboard_amounts
 from . import test_dashboard_tiles
 from . import test_dashboard_statistics
+from . import test_dashboard_tops
+from . import test_order_salesperson

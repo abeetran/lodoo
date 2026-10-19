@@ -129,8 +129,58 @@
                     </div>
                 </div>
             </div>
+            <div class="row o_catering_tops">
+                <div class="col-12 col-lg-4">
+                    <div class="o_catering_top">
+                        <div class="o_catering_chart_title">Top khách hàng</div>
+                        <div class="o_catering_chart_subtitle">Theo tổng tiền đơn đã giao (VND)</div>
+                        <t t-foreach="state.topCustomers" t-as="customer" t-key="customer.id">
+                            <div class="o_catering_top_row">
+                                <span class="o_catering_top_rank"/>
+                                <span class="o_catering_top_name" t-esc="customer.name" t-att-title="customer.name"/>
+                                <span class="o_catering_top_amount" t-esc="formatCompact(customer.total)" t-att-title="formatAmount(customer.total)"/>
+                            </div>
+                        </t>
+                        <p t-if="!state.topCustomers.length" class="text-muted">
+                            Không có dữ liệu trong kỳ.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="o_catering_top">
+                        <div class="o_catering_chart_title">Nhân viên bán hàng</div>
+                        <div class="o_catering_chart_subtitle">Theo doanh số đơn đã giao (VND)</div>
+                        <t t-foreach="state.topUsers" t-as="seller" t-key="seller.id || 0">
+                            <div class="o_catering_top_row">
+                                <span class="o_catering_top_rank"/>
+                                <span class="o_catering_top_name" t-esc="seller.name" t-att-title="seller.name"/>
+                                <span class="o_catering_top_amount" t-esc="formatCompact(seller.total)" t-att-title="formatAmount(seller.total)"/>
+                            </div>
+                        </t>
+                        <p t-if="!state.topUsers.length" class="text-muted">
+                            Không có dữ liệu trong kỳ.
+                        </p>
+                    </div>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <div class="o_catering_top">
+                        <div class="o_catering_chart_title">Top sản phẩm</div>
+                        <div class="o_catering_chart_subtitle">Theo tổng tiền bán đơn đã giao (VND)</div>
+                        <t t-foreach="state.topProducts" t-as="product" t-key="product.id">
+                            <div class="o_catering_top_row">
+                                <span class="o_catering_top_rank"/>
+                                <span class="o_catering_top_name" t-esc="product.name" t-att-title="product.name"/>
+                                <span class="o_catering_top_amount" t-esc="formatCompact(product.sales)" t-att-title="formatAmount(product.sales)"/>
+                            </div>
+                        </t>
+                        <p t-if="!state.topProducts.length" class="text-muted">
+                            Không có dữ liệu trong kỳ.
+                        </p>
+                    </div>
+                </div>
+            </div>
             <div class="o_catering_section_title">
-                Thống kê năm <t t-esc="state.statsYear"/>
+                Thống kê <t t-esc="state.statsLabel"/>
             </div>
             <div class="row">
                 <div class="col-12 col-md-4">

@@ -160,13 +160,17 @@ class TestDashboardStatistics(TransactionCase):
         self.assertEqual(result["revenue"], 100.0)
         self.assertEqual(result["purchase"], 30.0)
         self.assertEqual(result["profit"], 70.0)
-        self.assertEqual(len(result["months"]), 1)
-        month = result["months"][0]
-        self.assertEqual(month["key"], "%d-03" % year)
-        self.assertEqual(month["label"], "03/%d" % year)
-        self.assertEqual(month["revenue"], 100.0)
-        self.assertEqual(month["purchase"], 30.0)
-        self.assertEqual(month["profit"], 70.0)
+        self.assertEqual(len(result["months"]), 12)
+        by_key = {month["key"]: month for month in result["months"]}
+        january_month = by_key["%d-01" % year]
+        self.assertEqual(january_month["label"], "01/%d" % year)
+        self.assertEqual(january_month["revenue"], 200.0)
+        self.assertEqual(january_month["purchase"], 50.0)
+        self.assertEqual(january_month["profit"], 150.0)
+        march_month = by_key["%d-03" % year]
+        self.assertEqual(march_month["revenue"], 100.0)
+        self.assertEqual(march_month["purchase"], 30.0)
+        self.assertEqual(march_month["profit"], 70.0)
 
     def test_statistics_swapped_and_cross_year_period(self):
         year = fields.Date.today().year
@@ -194,15 +198,11 @@ class TestDashboardStatistics(TransactionCase):
         self.assertEqual(result["date_from"], "%d-12-01" % (year - 1))
         self.assertEqual(result["date_to"], "%d-01-31" % year)
         self.assertEqual(result["revenue"], 350.0)
-        self.assertEqual(
-            [month["key"] for month in result["months"]],
-            ["%d-12" % (year - 1), "%d-01" % year],
-        )
+        self.assertEqual(len(result["months"]), 12)
         by_key = {month["key"]: month for month in result["months"]}
-        self.assertEqual(
-            by_key["%d-12" % (year - 1)]["revenue"], 150.0
-        )
         self.assertEqual(by_key["%d-01" % year]["revenue"], 200.0)
+        self.assertEqual(by_key["%d-02" % year]["revenue"], 500.0)
+        self.assertEqual(by_key["%d-12" % year]["revenue"], 0.0)
 
     def test_statistics_full_year_range_keeps_year_label(self):
         year = fields.Date.today().year
@@ -214,6 +214,71 @@ class TestDashboardStatistics(TransactionCase):
         self.assertEqual(len(result["months"]), 12)
         self.assertEqual(result["months"][0]["key"], "%d-01" % year)
         self.assertEqual(result["months"][-1]["key"], "%d-12" % year)
+
+    def test_statistics_months_ignore_dates_apply_filters(self):
+        year = fields.Date.today().year
+        customer_a = self._partner("Khách STT-020")
+        customer_b = self._partner("Khách STT-021")
+        vendor = self._partner("NCC STT-020")
+        product_a = self._product("SP tháng A", 100.0)
+        product_b = self._product("SP tháng B", 100.0)
+        first = self._sale_order(
+            "DH-STT-020",
+            customer_a,
+            product_a,
+            1.0,
+            "%d-01-15 10:00:00" % year,
+        )
+        first.write({"catering_state": "delivered"})
+        second = self._sale_order(
+            "DH-STT-021",
+            customer_b,
+            product_b,
+            1.0,
+            "%d-03-20 10:00:00" % year,
+        )
+        second.write(
+            {"hnck_order": True, "catering_state": "delivered"}
+        )
+        buy_a = self._purchase_order(
+            vendor, product_a, 1.0, 60.0, "%d-01-12 10:00:00" % year
+        )
+        buy_a.button_confirm()
+        buy_b = self._purchase_order(
+            vendor, product_b, 1.0, 40.0, "%d-03-11 10:00:00" % year
+        )
+        buy_b.button_confirm()
+
+        def march(**kwargs):
+            result = self.env[
+                "sale.order"
+            ].get_catering_dashboard_statistics(
+                "%d-03-01" % year, "%d-03-31" % year, **kwargs
+            )
+            self.assertEqual(len(result["months"]), 12)
+            by_key = {month["key"]: month for month in result["months"]}
+            return result, by_key
+
+        result, by_key = march()
+        self.assertEqual(result["revenue"], 100.0)
+        self.assertEqual(by_key["%d-01" % year]["revenue"], 100.0)
+        self.assertEqual(by_key["%d-01" % year]["purchase"], 60.0)
+        self.assertEqual(by_key["%d-03" % year]["revenue"], 100.0)
+        self.assertEqual(by_key["%d-03" % year]["purchase"], 40.0)
+        _, by_product = march(product_id=product_a.id)
+        self.assertEqual(by_product["%d-01" % year]["revenue"], 100.0)
+        self.assertEqual(by_product["%d-01" % year]["purchase"], 60.0)
+        self.assertEqual(by_product["%d-03" % year]["revenue"], 0.0)
+        self.assertEqual(by_product["%d-03" % year]["purchase"], 0.0)
+        _, by_partner = march(partner_id=customer_b.id)
+        self.assertEqual(by_partner["%d-01" % year]["revenue"], 0.0)
+        self.assertEqual(by_partner["%d-03" % year]["revenue"], 100.0)
+        _, hnck = march(source="hnck")
+        self.assertEqual(hnck["%d-01" % year]["revenue"], 0.0)
+        self.assertEqual(hnck["%d-03" % year]["revenue"], 100.0)
+        _, internal = march(source="internal")
+        self.assertEqual(internal["%d-01" % year]["revenue"], 100.0)
+        self.assertEqual(internal["%d-03" % year]["revenue"], 0.0)
 
     def test_statistics_converts_purchase_to_vnd(self):
         vendor = self._partner("NCC STT-002")

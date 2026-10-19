@@ -158,6 +158,7 @@ export class CateringDashboard extends Component {
         const statsArgs = [
             this.state.dateFrom || false,
             this.state.dateTo || false,
+            ...args.slice(2),
         ];
         const [chart, stats, tops] = await Promise.all([
             this.orm.call(

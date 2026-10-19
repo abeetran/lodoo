@@ -839,14 +839,22 @@ class SaleOrder(models.Model):
         return {"months": months}
 
     @api.model
-    def get_catering_dashboard_statistics(self, date_from=False, date_to=False):
-        """Khung Thống kê theo kỳ truy vấn: doanh thu/mua hàng/lợi nhuận.
+    def get_catering_dashboard_statistics(
+        self,
+        date_from=False,
+        date_to=False,
+        product_id=False,
+        partner_id=False,
+        team_id=False,
+        user_id=False,
+        source=False,
+    ):
+        """Khung Thống kê: tổng theo kỳ truy vấn, tháng theo năm hiện tại.
 
-        Lọc theo Từ ngày - Đến ngày của dashboard (mặc định cả năm hiện
-        tại khi không truyền kỳ): doanh thu là tổng VND các đơn Đã giao
-        trong kỳ; mua hàng là tổng VND các đơn mua (trừ Nháp/Hủy) trong
-        kỳ; lợi nhuận = doanh thu - mua hàng, kèm chi tiết từng tháng
-        giao với kỳ.
+        Tổng doanh thu/mua hàng/lợi nhuận lọc theo Từ ngày - Đến ngày
+        (mặc định cả năm hiện tại khi không truyền kỳ). Chi tiết 12
+        tháng luôn hiển thị đủ năm hiện tại, bỏ qua kỳ ngày nhưng vẫn
+        áp dụng các bộ lọc còn lại như biểu đồ doanh số.
         """
         company = self.env.company
         vnd = self.env.ref("base.VND")
@@ -895,15 +903,45 @@ class SaleOrder(models.Model):
             ),
             0.0,
         )
+        product_id = self._parse_dashboard_id(product_id)
+        year = fields.Date.context_today(self).year
+        year_start = fields.Datetime.to_string(datetime(year, 1, 1))
+        year_end = fields.Datetime.to_string(
+            datetime(year, 12, 31, 23, 59, 59)
+        )
+        year_delivered = self.search(
+            self._dashboard_order_domain(
+                company,
+                year_start,
+                year_end,
+                product_id,
+                self._parse_dashboard_id(partner_id),
+                self._parse_dashboard_id(team_id),
+                self._parse_dashboard_id(user_id),
+                self._parse_dashboard_source(source),
+            )
+            + [("catering_state", "=", "delivered")]
+        )
+        purchase_domain = [
+            ("company_id", "=", company.id),
+            ("state", "in", ("purchase", "done")),
+            ("date_order", ">=", year_start),
+            ("date_order", "<=", year_end),
+        ]
+        if product_id:
+            purchase_domain.append(
+                ("order_line.product_id", "=", product_id)
+            )
+        year_purchases = self.env["purchase.order"].search(purchase_domain)
         revenue_by_month = {}
-        for order in delivered:
+        for order in year_delivered:
             key = (order.date_order.year, order.date_order.month)
             revenue_by_month[key] = (
                 revenue_by_month.get(key, 0.0)
                 + order.catering_amount_vnd
             )
         purchase_by_month = {}
-        for order in purchases:
+        for order in year_purchases:
             key = (order.date_order.year, order.date_order.month)
             purchase_by_month[key] = purchase_by_month.get(
                 key, 0.0
@@ -911,25 +949,19 @@ class SaleOrder(models.Model):
                 order.amount_total, order.currency_id, order.date_order
             )
         months = []
-        cursor = date(start_day.year, start_day.month, 1)
-        last = date(end_day.year, end_day.month, 1)
-        while cursor <= last:
-            key = (cursor.year, cursor.month)
+        for month in range(1, 13):
+            key = (year, month)
             revenue = revenue_by_month.get(key, 0.0)
             purchase = purchase_by_month.get(key, 0.0)
             months.append(
                 {
                     "key": "%d-%02d" % key,
-                    "label": "%02d/%d" % (cursor.month, cursor.year),
+                    "label": "%02d/%d" % (month, year),
                     "revenue": revenue,
                     "purchase": purchase,
                     "profit": revenue - purchase,
                 }
             )
-            if cursor.month == 12:
-                cursor = date(cursor.year + 1, 1, 1)
-            else:
-                cursor = date(cursor.year, cursor.month + 1, 1)
         if (
             start_day.month == 1
             and start_day.day == 1

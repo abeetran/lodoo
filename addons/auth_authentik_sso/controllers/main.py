@@ -456,7 +456,10 @@ class AuthentikSSOController(http.Controller):
             if not auto_create:
                 return redirect("/web/login?error=user_not_allowed", code=303)
 
-            user = Users.create({
+            # Miễn kiểm tra mã NV/vai trò: user SSO bổ sung sau lần đầu.
+            user = Users.with_context(
+                set_top_menu_skip_user_checks=True
+            ).create({
                 "name": name,
                 "login": email,
                 "email": email,

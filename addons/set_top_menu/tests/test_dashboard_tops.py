@@ -73,7 +73,12 @@ class TestDashboardTops(TransactionCase):
         year = fields.Date.today().year
         admin = self.env.ref("base.user_admin")
         seller = self.env["res.users"].create(
-            {"name": "NV top", "login": "nv_top_test"}
+            {
+                "name": "NV top",
+                "login": "nv_top_test",
+                "employee_code": "NV-TOP",
+                "business_owner": True,
+            }
         )
         big = self._partner("Khách TOP lớn")
         mid = self._partner("Khách TOP vừa")

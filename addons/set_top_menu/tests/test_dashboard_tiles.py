@@ -210,7 +210,12 @@ class TestDashboardTiles(TransactionCase):
         team_b = self.env["crm.team"].create({"name": "Team B"})
         admin = self.env.ref("base.user_admin")
         seller = self.env["res.users"].create(
-            {"name": "NV bán hàng", "login": "nv_tile_test"}
+            {
+                "name": "NV bán hàng",
+                "login": "nv_tile_test",
+                "employee_code": "NV-TILE",
+                "business_owner": True,
+            }
         )
         order_a = self._order(
             "DH-FLT-020",

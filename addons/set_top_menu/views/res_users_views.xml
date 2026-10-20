@@ -5,9 +5,16 @@
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form"/>
         <field name="arch" type="xml">
-            <field name="name" position="after">
-                <field name="employee_code" placeholder="Ví dụ: NV-001"/>
-            </field>
+            <xpath expr="//div[hasclass('oe_title')]" position="after">
+                <group string="Thông tin nhân viên" name="employee_info">
+                    <field name="employee_code" placeholder="Ví dụ: NV-001" required="1"/>
+                    <field name="job_position" placeholder="Ví dụ: Bếp trưởng"/>
+                    <field name="birth_date"/>
+                    <field name="identity_number" placeholder="Ví dụ: 001099000123"/>
+                    <field name="contact_phone" placeholder="Ví dụ: 0901234567"/>
+                    <field name="contact_address" placeholder="Ví dụ: Số 1, đường Láng, Hà Nội"/>
+                </group>
+            </xpath>
         </field>
     </record>
 
@@ -21,4 +28,64 @@
             </field>
         </field>
     </record>
+
+    <record id="view_users_tree_sync" model="ir.ui.view">
+        <field name="name">res.users.tree.sync</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="before">
+                <header>
+                    <button name="action_push_supplier_users" type="object"
+                            string="Đồng bộ" icon="fa-refresh"
+                            class="btn-primary"/>
+                </header>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_users_form_business" model="ir.ui.view">
+        <field name="name">res.users.form.business</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <page name="preferences" position="after">
+                <page string="Nghiệp vụ" name="business">
+                    <group string="Vai trò nghiệp vụ">
+                        <field name="business_owner"/>
+                        <field name="business_processor"/>
+                        <field name="business_transporter"/>
+                    </group>
+                    <group string="Vận chuyển" name="transport"
+                           invisible="not business_transporter">
+                        <field name="transport_vehicle"
+                               placeholder="Ví dụ: Xe tải lạnh"/>
+                        <field name="transport_plate"
+                               placeholder="Ví dụ: 29H-123.45"
+                               required="business_transporter"/>
+                    </group>
+                    <group string="Sơ chế/Chế biến" name="processing"
+                           invisible="not business_processor">
+                        <group string="Giấy khám sức khỏe">
+                            <field name="health_cert_number"
+                                   required="business_processor"/>
+                            <field name="health_cert_place"/>
+                            <field name="health_cert_date"
+                                   required="business_processor"/>
+                            <field name="health_cert_expiry"
+                                   required="business_processor"/>
+                        </group>
+                        <group string="Giấy chứng nhận tập huấn kiến thức ATTP">
+                            <field name="food_safety_cert_number"
+                                   required="business_processor"/>
+                            <field name="food_safety_issue_date"
+                                   required="business_processor"/>
+                            <field name="food_safety_issuer"/>
+                        </group>
+                    </group>
+                </page>
+            </page>
+        </field>
+    </record>
+
 </odoo>

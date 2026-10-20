@@ -69,6 +69,7 @@ class TestMenuItemStages(TransactionCase):
                 "name": "NV %s" % tag,
                 "login": "nv_%s" % tag,
                 "employee_code": code,
+                "business_owner": True,
             }
         )
 
@@ -234,8 +235,16 @@ class TestMenuItemStages(TransactionCase):
 
     def test_stage_payload_omits_user_without_employee_code(self):
         step = _make_step(self.env, "Sơ chế", "SO_CHE_L1")
-        user = self.env["res.users"].create(
-            {"name": "NV No Code", "login": "nv_no_code"}
+        user = (
+            self.env["res.users"]
+            .with_context(set_top_menu_skip_user_checks=True)
+            .create(
+                {
+                    "name": "NV No Code",
+                    "login": "nv_no_code",
+                    "business_owner": True,
+                }
+            )
         )
         dish = self._dish("MON-KHAU-002")
         self._line(
@@ -254,7 +263,12 @@ class TestMenuItemStages(TransactionCase):
             {"name": "Cơ sở thường", "code": "cs_low"}
         )
         user = self.env["res.users"].create(
-            {"name": "NV Thường", "login": "nv_low", "employee_code": "nv001"}
+            {
+                "name": "NV Thường",
+                "login": "nv_low",
+                "employee_code": "nv001",
+                "business_owner": True,
+            }
         )
         dish = self._dish("mon-thuong-001")
         self._line(

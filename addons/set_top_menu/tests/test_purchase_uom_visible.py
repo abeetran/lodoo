@@ -11,6 +11,8 @@ class TestPurchaseUomVisible(TransactionCase):
                 "name": "Nhân viên mua ĐVT",
                 "login": "buyer_uom_visible_test",
                 "groups_id": [(6, 0, [group.id])],
+                "employee_code": "NV-BUYER",
+                "business_owner": True,
             }
         )
         self.assertNotIn(

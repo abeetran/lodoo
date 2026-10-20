@@ -20,7 +20,12 @@ class TestOrderSalesperson(TransactionCase):
     def test_assigned_salesperson_counts_revenue(self):
         year = fields.Date.today().year
         seller = self.env["res.users"].create(
-            {"name": "NVKD gán đơn", "login": "nvkd_assign_test"}
+            {
+                "name": "NVKD gán đơn",
+                "login": "nvkd_assign_test",
+                "employee_code": "NV-NVKD",
+                "business_owner": True,
+            }
         )
         customer = self.env["res.partner"].create(
             {"name": "Khách NVKD-001", "is_company": True}

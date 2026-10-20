@@ -9,7 +9,7 @@ class TestMenuItemEmployees(TransactionCase):
         self.assertIsInstance(field, fields.Char)
         user = self.env["res.users"].create(
             {"name": "NV Mon An", "login": "nv_mon_an",
-             "employee_code": "NV-101"}
+             "employee_code": "NV-101", "business_owner": True}
         )
         self.assertEqual(user.employee_code, "NV-101")
         user.write({"employee_code": "NV-102"})

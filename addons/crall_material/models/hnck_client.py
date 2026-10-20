@@ -526,6 +526,107 @@ class HnckClient:
         response = getattr(error, "response", None)
         return getattr(response, "status_code", None)
 
+    # Trường thông điệp lỗi thường gặp trong body JSON server trả về,
+    # theo thứ tự ưu tiên khi trích lý do đọc được.
+    ERROR_MESSAGE_KEYS = (
+        "message",
+        "msg",
+        "detail",
+        "description",
+        "error",
+        "errors",
+        "reason",
+    )
+
+    @staticmethod
+    def decode_sync_error_message(error):
+        """Trích lý do lỗi đọc được từ exception đồng bộ.
+
+        Ưu tiên body server trả về (thường là JSON): parse và lấy các
+        trường message/error/detail...; không parse được thì trả text
+        gốc cắt ngắn. Không bao giờ raise.
+        """
+        try:
+            return HnckClient._decode_sync_error_message(error)
+        except Exception:
+            try:
+                return ("%s" % error)[:500]
+            except Exception:
+                return "Đồng bộ thất bại."
+
+    @staticmethod
+    def _decode_sync_error_message(error):
+        response = getattr(error, "response", None)
+        text = (getattr(response, "text", None) or "").strip()
+        if not text:
+            text = "%s" % error
+            marker = "Server trả về:"
+            if marker in text:
+                text = text.split(marker, 1)[1]
+                cut = text.find("\nX-Timestamp:")
+                if cut != -1:
+                    text = text[:cut]
+                text = text.strip()
+            else:
+                lines = [
+                    line.strip()
+                    for line in text.splitlines()
+                    if line.strip()
+                    and not line.strip().startswith("X-Timestamp:")
+                    and not line.strip().startswith("X-Nonce:")
+                    and not line.strip().startswith("X-Signature:")
+                ]
+                text = lines[0] if lines else ""
+        if not text:
+            return "Đồng bộ thất bại."
+        try:
+            data = json.loads(text)
+        except (TypeError, ValueError):
+            return text[:500]
+        return (HnckClient._extract_error_message(data) or text)[:500]
+
+    @staticmethod
+    def _extract_error_message(data):
+        """Rút gọn message từ JSON lỗi: chuỗi/list/dict lồng nhau."""
+        if isinstance(data, str):
+            return data.strip()
+        if isinstance(data, list):
+            parts = [
+                HnckClient._extract_error_message(item) for item in data
+            ]
+            return "; ".join(part for part in parts if part)
+        if isinstance(data, dict):
+            lowered = {
+                key.lower(): value
+                for key, value in data.items()
+                if isinstance(key, str)
+            }
+            for key in HnckClient.ERROR_MESSAGE_KEYS:
+                if lowered.get(key):
+                    found = HnckClient._extract_error_message(
+                        lowered[key]
+                    )
+                    if found:
+                        return found
+            scalars = []
+            for key, value in data.items():
+                if isinstance(value, list):
+                    items = [
+                        "%s" % item
+                        for item in value
+                        if isinstance(item, (str, int, float, bool))
+                    ]
+                    if items:
+                        scalars.append("%s: %s" % (key, "; ".join(items)))
+                elif isinstance(value, (str, int, float, bool)):
+                    scalars.append("%s: %s" % (key, value))
+            if scalars:
+                return "; ".join(scalars)
+            return ""
+        if isinstance(data, (int, float, bool)):
+            return "%s" % data
+        return ""
+
     def _signed_post_error(self, path, error):
         """Build the UserError for a failed signed POST.
 

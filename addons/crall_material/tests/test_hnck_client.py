@@ -811,3 +811,54 @@ class TestFetchSupplierOrders(TransactionCase):
         with patch(get_path, side_effect=fake_get):
             with self.assertRaises(UserError):
                 HnckClient(self.env).fetch_supplier_orders({"page": 1})
+
+
+class TestDecodeSyncErrorMessage(TransactionCase):
+    def test_extracts_server_json_message(self):
+        error = UserError(
+            "Gọi HNCK merge thất bại: 400 Client Error\n"
+            'Server trả về: {"message": "Biển số xe đã tồn tại"}\n'
+            "X-Timestamp: 1\nX-Nonce: 2\nX-Signature: 3"
+        )
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(error),
+            "Biển số xe đã tồn tại",
+        )
+
+    def test_extracts_nested_and_list_shapes(self):
+        nested = UserError(
+            'Server trả về: {"error": {"bien_so": ["Đã tồn tại"]}}'
+        )
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(nested),
+            "bien_so: Đã tồn tại",
+        )
+        listed = UserError('Server trả về: {"errors": ["Lỗi A", "Lỗi B"]}')
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(listed),
+            "Lỗi A; Lỗi B",
+        )
+
+    def test_prefers_response_body_and_plain_text(self):
+        response = _FakeResponse(400, text='{"Detail": "Sai chữ ký"}')
+        error = requests.exceptions.HTTPError("400", response=response)
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(error),
+            "Sai chữ ký",
+        )
+        plain = UserError("Server trả về: invalid signature")
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(plain),
+            "invalid signature",
+        )
+
+    def test_fallbacks_without_server_body(self):
+        simple = UserError("Không thể lấy HNCK token: timeout")
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(simple),
+            "Không thể lấy HNCK token: timeout",
+        )
+        self.assertEqual(
+            HnckClient.decode_sync_error_message(ValueError("")),
+            "Đồng bộ thất bại.",
+        )

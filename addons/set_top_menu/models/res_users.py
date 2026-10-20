@@ -1,7 +1,11 @@
+import logging
+
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
 from odoo.addons.crall_material.models.hnck_client import HnckClient
+
+_logger = logging.getLogger(__name__)
 
 # Tạo user tự động (SSO, đăng ký) được miễn kiểm tra mã NV/vai trò
 # vì bổ sung sau khi đăng nhập lần đầu; form nhập tay vẫn bắt buộc.
@@ -136,7 +140,20 @@ class ResUsers(models.Model):
         if not self:
             raise UserError(_("Vui lòng chọn ít nhất một người dùng để đồng bộ."))
         payloads = [user._supplier_user_push_payload() for user in self]
-        result = HnckClient(self.env).push_supplier_users(payloads)
+        try:
+            result = HnckClient(self.env).push_supplier_users(payloads)
+        except Exception as error:
+            _logger.exception("Đồng bộ người dùng thất bại")
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Đồng bộ người dùng thất bại"),
+                    "message": HnckClient.decode_sync_error_message(error),
+                    "type": "danger",
+                    "sticky": True,
+                },
+            }
         message = _("Đã gửi %s người dùng lên API nhà cung cấp.") % len(payloads)
         if isinstance(result, dict) and result.get("message"):
             message = "%s %s" % (message, result["message"])
@@ -179,8 +196,8 @@ class ResUsers(models.Model):
                 "noi_kham": self.health_cert_place or "",
             }
             payload["chung_nhan_tap_huan_attp"] = {
-                "so_gcn": self.food_safety_cert_number or "",
+                "so_chung_nhan": self.food_safety_cert_number or "",
                 "ngay_cap": _date(self.food_safety_issue_date),
-                "don_vi_cap": self.food_safety_issuer or "",
+                "co_quan_cap": self.food_safety_issuer or "",
             }
         return payload
